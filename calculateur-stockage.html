@@ -205,28 +205,35 @@
 </div>
 
 <script>
-var CDN  = 'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/';
-var BASE = 'https://www.camprotect.fr';
+var CDN      = 'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/';
+var BASE     = 'https://www.camprotect.fr';
+var JSON_URL = 'https://ims-sx304.github.io/camprotect-json/data.json';
+
+// ── INDEX JSON (url → {image, price}) chargé au démarrage ──
+var J = {};
+fetch(JSON_URL)
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    data.forEach(function(p){ if(p.url) J[p.url] = p; });
+    calc(); // Recalculer avec les données réelles
+  })
+  .catch(function(){ calc(); }); // Fallback silencieux
+
+// Récupère image et prix depuis le JSON, avec fallbacks
+function fromJ(slug, fallbackImg, fallbackPrice) {
+  var p = J[BASE + '/product/' + slug];
+  return {
+    img:   (p && p.image) ? p.image : fallbackImg,
+    price: (p && p.price) ? p.price + ' €' : fallbackPrice
+  };
+}
 
 // ── CALCUL STOCKAGE ──
 var RES  = [4, 8, 12, 16];
 var FPS  = [0.3, 0.55, 0.75, 1];
 var COMP = [1, 0.5, 0.35];
 
-// Prix HDD TTC (HT × 1,20)
-var HDD_PRICES = {
-  1:'113,82 €', 2:'118,98 €', 4:'157,46 €',
-  6:'241,61 €', 8:'336,00 €', 10:'416,04 €',
-  16:'Voir le prix', 20:'Voir le prix'
-};
-var HDD_URL = BASE + '/product/disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx';
-var HDD_IMG = CDN + '68de79358a2e78c9b3771fc7_skyhawk-1tb-hero-left-600x600.png';
-
-// Prix caméras Ajax TTC
-var P5 = '75,67 €';
-var P8 = '100,54 €';
-
-// Images Ajax
+// Images fallback (utilisées si JSON pas encore chargé)
 var IA = {
   domeB:   CDN + '69cb6f2d3696164fd91fff25_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20blanche.png',
   domeN:   CDN + '69ca8d0b53b8f1f9d7f31357_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20noire.png',
@@ -237,8 +244,6 @@ var IA = {
   nvrB:    CDN + '69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png',
   nvrN:    CDN + '69ccd4ed737bd56e31d2c861_NVR%20Ajax%20noir.png'
 };
-
-// Images Dahua/Hikvision
 var ID = {
   dome:   CDN + '68b96b467a04bff126330e77_1_0_01_04_39156_330798809_crop_thumb.png',
   bullet: CDN + '68bab06a7d3ec941efd1cf46_1_0_01_04_39557_330801397_crop_thumb.png',
@@ -250,71 +255,114 @@ var ID = {
   sw16:   CDN + '67af07673fbdeb8edbb68c75_1066676860_alt1.jpg'
 };
 
+// ── HDD Seagate SkyHawk ──
+var HDD_URL = BASE + '/product/disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx';
+var HDD_IMG = CDN + '68de79358a2e78c9b3771fc7_skyhawk-1tb-hero-left-600x600.png';
+// Prix fallback HDD (TTC)
+var HDD_FB = { 1:'94,85 €', 2:'99,15 €', 4:'131,22 €', 6:'201,34 €', 8:'280,00 €', 10:'346,70 €', 16:'Voir le prix', 20:'Voir le prix' };
+function hddPrice(cap) {
+  var slug = 'disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx';
+  // Le HDD a plusieurs SKUs — on prend le plus proche de la capacité
+  return HDD_FB[cap] || 'Voir le prix';
+}
+
+// ── CAMÉRAS HIKVISION (par résolution : index 0=2MP, 1=4MP, 2=5MP, 3=8MP) ──
+function ttcH(c) { return (c*1.2/100).toFixed(2).replace('.',',')+' €'; }
+var HIK_CAMS = {
+  dome: [
+    { slug:'camera-dome-ds-2cd1743g2-iz',         name:'Dôme IP 4MP Varifocale',    ref:'DS-2CD1743G2-IZ',    specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 40m',             fi:ID.dome,   fp:ttcH(11360) },
+    { slug:'camera-dome-ds-2cd1743g2-iz',         name:'Dôme IP 4MP Varifocale',    ref:'DS-2CD1743G2-IZ',    specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 40m',             fi:ID.dome,   fp:ttcH(11360) },
+    { slug:'camera-mini-dome-ds-2cd2546g2-i-s',   name:'Mini Dôme IP 5MP AcuSense', ref:'DS-2CD2546G2-I/S',   specs:'5 MP · fixe 2.8mm · IP67 · AcuSense · IR 40m · Micro', fi:ID.dome,   fp:ttcH(14365) },
+    { slug:'camera-dome-ds-2cd2143g2-is',         name:'Dôme IP 4MP AcuSense',      ref:'DS-2CD2143G2-IS',    specs:'4 MP · fixe 2.8mm · IP67 · AcuSense · IR 40m · Micro', fi:ID.dome,   fp:ttcH(11861) }
+  ],
+  bullet: [
+    { slug:'camera-bullet-ds-2cd1643g2-iz',       name:'Bullet IP 4MP Varifocale',  ref:'DS-2CD1643G2-IZ',    specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 50m',             fi:ID.bullet, fp:ttcH(10176) },
+    { slug:'camera-bullet-ds-2cd1643g2-iz',       name:'Bullet IP 4MP Varifocale',  ref:'DS-2CD1643G2-IZ',    specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 50m',             fi:ID.bullet, fp:ttcH(10176) },
+    { slug:'camera-bullet-ds-2cd1643g2-iz',       name:'Bullet IP 4MP Varifocale',  ref:'DS-2CD1643G2-IZ',    specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 50m',             fi:ID.bullet, fp:ttcH(10176) },
+    { slug:'camera-bullet-ds-2cd1643g2-iz',       name:'Bullet IP 4MP Varifocale',  ref:'DS-2CD1643G2-IZ',    specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 50m',             fi:ID.bullet, fp:ttcH(10176) }
+  ]
+};
+
+// ── CAMÉRAS DAHUA (par résolution) ──
+var DAH_CAMS = {
+  dome: [
+    { slug:'camera-dome-ipc-hdbw2441r-zs',          name:'Dôme IP 4MP Varifocale',  ref:'IPC-HDBW2441R-ZS',          specs:'4 MP · 2.7–13.5mm · IP67/IK10 · H.265+ · Micro',           fi:ID.dome,   fp:'113,18 €' },
+    { slug:'camera-dome-ipc-hdbw2441r-zs',          name:'Dôme IP 4MP Varifocale',  ref:'IPC-HDBW2441R-ZS',          specs:'4 MP · 2.7–13.5mm · IP67/IK10 · H.265+ · Micro',           fi:ID.dome,   fp:'113,18 €' },
+    { slug:'camera-dome-ipc-hdbw3541fp-as-s2',      name:'Dôme IP 5MP WizSense',    ref:'IPC-HDBW3541F-AS-S2',       specs:'5 MP · fixe 2.8mm · IP67/IK10 · H.265+ · IR 40m · Micro', fi:ID.dome,   fp:'101,95 €' },
+    { slug:'camera-dome-ipc-hdbw3849r1-zas-pv-s5',  name:'Dôme IP 8MP Full-color',  ref:'IPC-HDBW3849R1-ZAS-PV-S5',  specs:'8 MP · 2.7–13.5mm · IP67 · Full-color · Dual light',       fi:ID.dome,   fp:'262,01 €' }
+  ],
+  bullet: [
+    { slug:'camera-bullet-ipc-hfw2441t-zas',         name:'Bullet IP 4MP Varifocale',ref:'IPC-HFW2441T-ZAS',          specs:'4 MP · 2.7–13.5mm · IP67 · H.265+ · Micro',               fi:ID.bullet, fp:'102,52 €' },
+    { slug:'camera-bullet-ipc-hfw2441t-zas',         name:'Bullet IP 4MP Varifocale',ref:'IPC-HFW2441T-ZAS',          specs:'4 MP · 2.7–13.5mm · IP67 · H.265+ · Micro',               fi:ID.bullet, fp:'102,52 €' },
+    { slug:'camera-bullet-ipc-hfw3541t-zs-s2',       name:'Bullet IP 5MP Varifocale',ref:'IPC-HFW3541T-ZS-S2',        specs:'5 MP · 2.7–13.5mm · IP67 · H.265+ · IR 60m · Micro',      fi:ID.bullet, fp:'151,52 €' },
+    { slug:'camera-bullet-ipc-hfw3849t1-zas-pv-s5',  name:'Bullet IP 8MP Full-color',ref:'IPC-HFW3849T1-ZAS-PV-S5',   specs:'8 MP · 2.7–13.5mm · IP67 · Full-color · Active deterrence',fi:ID.bullet, fp:'230,55 €' }
+  ]
+};
+
 // ── ÉTAT ──
 var S = { mode:0, brand:'hikvision', type:'dome', color:'blanc', focal:'2.8', cams:4, hdd:4 };
 
-// ── CATALOGUE AJAX ──
+// ── CATALOGUE AJAX (données complètes hardcodées) ──
 var AJAX = {
   dome: {
-    '5mp-2.8-blanc': { name:'DomeCam Mini 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', img:IA.domeB },
-    '5mp-2.8-noir':  { name:'DomeCam Mini 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-noire',  img:IA.domeN },
-    '5mp-4-blanc':   { name:'DomeCam Mini 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-4mm-blanche',  img:IA.domeB },
-    '5mp-4-noir':    { name:'DomeCam Mini 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-4mm-noire',    img:IA.domeN },
-    '8mp-2.8-blanc': { name:'DomeCam Mini 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-2-8-mm-blanche', img:IA.domeB },
-    '8mp-2.8-noir':  { name:'DomeCam Mini 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-2-8-mm-noire',  img:IA.domeN },
-    '8mp-4-blanc':   { name:'DomeCam Mini 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-4mm-blanche',  img:IA.domeB },
-    '8mp-4-noir':    { name:'DomeCam Mini 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-4mm-noir',      img:IA.domeN }
+    '5mp-2.8-blanc': { name:'DomeCam Mini 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', slug:'camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', fi:IA.domeB },
+    '5mp-2.8-noir':  { name:'DomeCam Mini 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', slug:'camera-dome-ajax-domecam-mini-5mp-2-8mm-noire',  fi:IA.domeN },
+    '5mp-4-blanc':   { name:'DomeCam Mini 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   slug:'camera-dome-ajax-domecam-mini-5mp-4mm-blanche',  fi:IA.domeB },
+    '5mp-4-noir':    { name:'DomeCam Mini 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   slug:'camera-dome-ajax-domecam-mini-5mp-4mm-noire',    fi:IA.domeN },
+    '8mp-2.8-blanc': { name:'DomeCam Mini 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', slug:'camera-dome-ajax-domecam-mini-8mp-2-8-mm-blanche',fi:IA.domeB },
+    '8mp-2.8-noir':  { name:'DomeCam Mini 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', slug:'camera-dome-ajax-domecam-mini-8mp-2-8-mm-noire', fi:IA.domeN },
+    '8mp-4-blanc':   { name:'DomeCam Mini 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   slug:'camera-dome-ajax-domecam-mini-8mp-4mm-blanche',  fi:IA.domeB },
+    '8mp-4-noir':    { name:'DomeCam Mini 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   slug:'camera-dome-ajax-domecam-mini-8mp-4mm-noir',     fi:IA.domeN }
   },
   bullet: {
-    '5mp-2.8-blanc': { name:'BulletCam 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/ajax-bulletcam-blanche-5mp-2-8mm',         img:IA.bulletB },
-    '5mp-2.8-noir':  { name:'BulletCam 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-noire',              img:IA.bulletN },
-    '5mp-4-blanc':   { name:'BulletCam 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-4mm-blanche',        img:IA.bulletB },
-    '5mp-4-noir':    { name:'BulletCam 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-4mm-noire',          img:IA.bulletN },
-    '8mp-2.8-blanc': { name:'BulletCam 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-2-8mm-blanche',      img:IA.bulletB },
-    '8mp-2.8-noir':  { name:'BulletCam 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-2-8mm-noire',        img:IA.bulletN },
-    '8mp-4-blanc':   { name:'BulletCam 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-4mm-blanche',        img:IA.bulletB },
-    '8mp-4-noir':    { name:'BulletCam 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-4mm-noire',          img:IA.bulletN }
+    '5mp-2.8-blanc': { name:'BulletCam 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', slug:'ajax-bulletcam-blanche-5mp-2-8mm',         fi:IA.bulletB },
+    '5mp-2.8-noir':  { name:'BulletCam 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', slug:'camera-bullet-ajax-5mp-noire',              fi:IA.bulletN },
+    '5mp-4-blanc':   { name:'BulletCam 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   slug:'camera-bullet-ajax-5mp-4mm-blanche',        fi:IA.bulletB },
+    '5mp-4-noir':    { name:'BulletCam 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   slug:'camera-bullet-ajax-5mp-4mm-noire',          fi:IA.bulletN },
+    '8mp-2.8-blanc': { name:'BulletCam 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', slug:'camera-bullet-ajax-8mp-2-8mm-blanche',      fi:IA.bulletB },
+    '8mp-2.8-noir':  { name:'BulletCam 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', slug:'camera-bullet-ajax-8mp-2-8mm-noire',        fi:IA.bulletN },
+    '8mp-4-blanc':   { name:'BulletCam 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   slug:'camera-bullet-ajax-8mp-4mm-blanche',        fi:IA.bulletB },
+    '8mp-4-noir':    { name:'BulletCam 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   slug:'camera-bullet-ajax-8mp-4mm-noire',          fi:IA.bulletN }
   },
   tourelle: {
-    '5mp-2.8-blanc': { name:'TurretCam 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche',  img:IA.turretB },
-    '5mp-2.8-noir':  { name:'TurretCam 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-noire',    img:IA.turretN },
-    '5mp-4-blanc':   { name:'TurretCam 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-4mm-blanche',    img:IA.turretB },
-    '5mp-4-noir':    { name:'TurretCam 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-4mm-noire',      img:IA.turretN },
-    '8mp-2.8-blanc': { name:'TurretCam 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-2-8mm-blanche',  img:IA.turretB },
-    '8mp-2.8-noir':  { name:'TurretCam 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-2-8mm-noire',    img:IA.turretN },
-    '8mp-4-blanc':   { name:'TurretCam 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-4mm-blanche-2', img:IA.turretB },
-    '8mp-4-noir':    { name:'TurretCam 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-4mm-blanche',   img:IA.turretN }
+    '5mp-2.8-blanc': { name:'TurretCam 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', slug:'camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche',  fi:IA.turretB },
+    '5mp-2.8-noir':  { name:'TurretCam 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', slug:'camera-tourelle-ajax-turretcam-5mp-2-8mm-noire',    fi:IA.turretN },
+    '5mp-4-blanc':   { name:'TurretCam 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   slug:'camera-tourelle-ajax-turretcam-5mp-4mm-blanche',    fi:IA.turretB },
+    '5mp-4-noir':    { name:'TurretCam 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   slug:'camera-tourelle-ajax-turretcam-5mp-4mm-noire',      fi:IA.turretN },
+    '8mp-2.8-blanc': { name:'TurretCam 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', slug:'camera-tourelle-ajax-turretcam-8mp-2-8mm-blanche',  fi:IA.turretB },
+    '8mp-2.8-noir':  { name:'TurretCam 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', slug:'camera-tourelle-ajax-turretcam-8mp-2-8mm-noire',    fi:IA.turretN },
+    '8mp-4-blanc':   { name:'TurretCam 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   slug:'camera-tourelle-ajax-turretcam-8mp-4mm-blanche-2', fi:IA.turretB },
+    '8mp-4-noir':    { name:'TurretCam 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   slug:'camera-tourelle-ajax-turretcam-8mp-4mm-blanche',   fi:IA.turretN }
   }
 };
 
-// ── NVR AJAX (série standard, prix JSON) ──
+// ── NVR AJAX ──
 var NVR_AJAX = {
-  '8-blanc':  { name:'NVR Ajax 8 canaux Blanc',  specs:'8 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V', price:'124,99 €', url:BASE+'/product/enregistreur-nvr-ajax-8-canaux-blanc',  img:IA.nvrB },
-  '8-noir':   { name:'NVR Ajax 8 canaux Noir',   specs:'8 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V', price:'124,99 €', url:BASE+'/product/enregistreur-nvr-ajax-8-canaux-noir',   img:IA.nvrN },
-  '16-blanc': { name:'NVR Ajax 16 canaux Blanc', specs:'16 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V', price:'202,01 €', url:BASE+'/product/enregistreur-nvr-ajax-16-canaux-blanc', img:IA.nvrB },
-  '16-noir':  { name:'NVR Ajax 16 canaux Noir',  specs:'16 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V', price:'202,01 €', url:BASE+'/product/enregistreur-nvr-ajax-16-canaux-noir',  img:IA.nvrN }
+  '8-blanc':  { name:'NVR Ajax 8 canaux Blanc',  specs:'8 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240V', slug:'enregistreur-nvr-ajax-8-canaux-blanc',  fi:IA.nvrB, fp:'124,99 €' },
+  '8-noir':   { name:'NVR Ajax 8 canaux Noir',   specs:'8 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240V', slug:'enregistreur-nvr-ajax-8-canaux-noir',   fi:IA.nvrN, fp:'124,99 €' },
+  '16-blanc': { name:'NVR Ajax 16 canaux Blanc', specs:'16 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240V', slug:'enregistreur-nvr-ajax-16-canaux-blanc', fi:IA.nvrB, fp:'202,01 €' },
+  '16-noir':  { name:'NVR Ajax 16 canaux Noir',  specs:'16 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240V', slug:'enregistreur-nvr-ajax-16-canaux-noir',  fi:IA.nvrN, fp:'202,01 €' }
 };
 
-// ── NVR Hikvision (HT centimes → TTC) ──
-function ttcH(c) { return (c*1.2/100).toFixed(2).replace('.',',')+' €'; }
+// ── NVR HIKVISION ──
 var NVR_HIK = [
-  { name:'NVR 4 canaux PoE',  ref:'DS-7604NXI-K1/4P',    specs:'4 ports PoE · AcuSense · Hik-Connect · 1 baie HDD',  price:ttcH(13871), url:BASE+'/product/enregistreur-nvr-4-canaux-poe-ds-7604nxi-k1-4p',    img:ID.nvr4,  max:4 },
-  { name:'NVR 8 canaux PoE',  ref:'DS-7608NXI-K1/8P',    specs:'8 ports PoE · AcuSense · Hik-Connect · 1 baie HDD',  price:ttcH(19357), url:BASE+'/product/enregistreur-nvr-8-canaux-poe-ds-7608nxi-k1-8p',    img:ID.nvr8,  max:8 },
-  { name:'NVR 16 canaux PoE', ref:'DS-7616NXI-K2/16P/D', specs:'16 ports PoE · AcuSense · Hik-Connect · 2 baies HDD', price:ttcH(31755), url:BASE+'/product/enregistreur-nvr-16-canaux-poe-ds-7616nxi-k2-16p-d', img:ID.nvr16, max:999 }
+  { slug:'enregistreur-nvr-4-canaux-poe-ds-7604nxi-k1-4p',     name:'NVR 4 canaux PoE',  ref:'DS-7604NXI-K1/4P',    specs:'4 ports PoE · AcuSense · Hik-Connect · 1 baie HDD',  fi:ID.nvr4,  fp:ttcH(13871), max:4 },
+  { slug:'enregistreur-nvr-8-canaux-poe-ds-7608nxi-k1-8p',     name:'NVR 8 canaux PoE',  ref:'DS-7608NXI-K1/8P',    specs:'8 ports PoE · AcuSense · Hik-Connect · 1 baie HDD',  fi:ID.nvr8,  fp:ttcH(19357), max:8 },
+  { slug:'enregistreur-nvr-16-canaux-poe-ds-7616nxi-k2-16p-d', name:'NVR 16 canaux PoE', ref:'DS-7616NXI-K2/16P/D', specs:'16 ports PoE · AcuSense · Hik-Connect · 2 baies HDD', fi:ID.nvr16, fp:ttcH(31755), max:999 }
 ];
 
-// ── NVR Dahua (prix JSON) ──
+// ── NVR DAHUA ──
 var NVR_DAH = [
-  { name:'NVR 4 canaux PoE',  ref:'DHI-NVR4104HS-P-EI', specs:'4 ports PoE · WizSense · DMSS · 1 baie HDD',  price:'133,92 €', url:BASE+'/product/enregistreur-nvr-4-canaux-poe-dhi-nvr4104hs-p-ei',  img:ID.nvr4,  max:4 },
-  { name:'NVR 8 canaux PoE',  ref:'DHI-NVR5208-8P-EI',  specs:'8 ports PoE · WizSense · DMSS · 2 baies HDD', price:'269,40 €', url:BASE+'/product/enregistreur-nvr-8-canaux-poe-dhi-nvr5208-8p-ei',   img:ID.nvr8,  max:8 },
-  { name:'NVR 16 canaux PoE', ref:'DHI-NVR5216-16P-EI', specs:'16 ports PoE · WizSense · DMSS · 2 baies HDD', price:'322,49 €', url:BASE+'/product/enregistreur-nvr-16-canaux-poe-dhi-nvr5216-16p-ei', img:ID.nvr16, max:999 }
+  { slug:'enregistreur-nvr-4-canaux-poe-dhi-nvr4104hs-p-ei',  name:'NVR 4 canaux PoE',  ref:'DHI-NVR4104HS-P-EI', specs:'4 ports PoE · WizSense · DMSS · 1 baie HDD',  fi:ID.nvr4,  fp:'133,92 €', max:4 },
+  { slug:'enregistreur-nvr-8-canaux-poe-dhi-nvr5208-8p-ei',   name:'NVR 8 canaux PoE',  ref:'DHI-NVR5208-8P-EI',  specs:'8 ports PoE · WizSense · DMSS · 2 baies HDD', fi:ID.nvr8,  fp:'269,40 €', max:8 },
+  { slug:'enregistreur-nvr-16-canaux-poe-dhi-nvr5216-16p-ei', name:'NVR 16 canaux PoE', ref:'DHI-NVR5216-16P-EI', specs:'16 ports PoE · WizSense · DMSS · 2 baies HDD', fi:ID.nvr16, fp:'322,49 €', max:999 }
 ];
 
-// ── Switch Hikvision ──
+// ── SWITCHES HIKVISION ──
 var SWITCHES = [
-  { name:'Switch PoE 4 ports',  ref:'DS-3E0505HP-E', specs:'4 ports PoE · Gigabit · 60W · PoE Watchdog',  price:ttcH(5024),  url:BASE+'/product/switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e', img:ID.sw4,  max:4 },
-  { name:'Switch PoE 8 ports',  ref:'DS-3E0510HP-E', specs:'8 ports PoE · Gigabit · 120W · PoE Watchdog', price:ttcH(11188), url:BASE+'/product/switch-poe-gigabit-10-ports-hikvision-ds-3e0510hp-e', img:ID.sw8,  max:8 },
-  { name:'Switch PoE 16 ports', ref:'DS-3E0520HP-E', specs:'16 ports PoE · Gigabit · 230W · PoE Watchdog', price:ttcH(23487), url:BASE+'/product/switch-poe-gigabit-16-ports-ds-3e0520hp-e',          img:ID.sw16, max:999 }
+  { slug:'switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e', name:'Switch PoE 4 ports',  ref:'DS-3E0505HP-E', specs:'4 ports PoE · Gigabit · 60W · PoE Watchdog',  fi:ID.sw4,  fp:ttcH(5024),  max:4 },
+  { slug:'switch-poe-gigabit-10-ports-hikvision-ds-3e0510hp-e',name:'Switch PoE 8 ports',  ref:'DS-3E0510HP-E', specs:'8 ports PoE · Gigabit · 120W · PoE Watchdog', fi:ID.sw8,  fp:ttcH(11188), max:8 },
+  { slug:'switch-poe-gigabit-16-ports-ds-3e0520hp-e',          name:'Switch PoE 16 ports', ref:'DS-3E0520HP-E', specs:'16 ports PoE · Gigabit · 230W · PoE Watchdog', fi:ID.sw16, fp:ttcH(23487), max:999 }
 ];
 
 // ── HELPERS ──
@@ -353,7 +401,7 @@ function getAjaxRes(){ return +document.getElementById('res').value<=2?'5mp':'8m
 // ── CARTE PRODUIT ──
 function pcard(type, name, ref, specs, price, url, featured, img) {
   var imgH = img
-    ? '<img src="'+img+'" alt="'+name+'" loading="lazy">'
+    ? '<img src="'+img+'" alt="'+name+'" loading="eager" decoding="async">'
     : '<svg class="pimg-ph" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="6" fill="#e0e0e0"/><path d="M12 34l10-12 8 9 5-6 8 9H12z" fill="#ccc"/><circle cx="32" cy="18" r="5" fill="#ccc"/></svg>';
   var refH = ref ? '<p class="pref">'+ref+'</p>' : '';
   return '<div class="pcard'+(featured?' featured':'')+'">'+
@@ -373,46 +421,41 @@ function pcard(type, name, ref, specs, price, url, featured, img) {
 
 // ── RENDER ──
 function render() {
-  var c=S.cams, b=S.brand, camHtml='', nvrHtml='';
+  var c=S.cams, b=S.brand, resIdx=+document.getElementById('res').value, camHtml='', nvrHtml='';
 
   if(b==='ajax'){
     var key=getAjaxRes()+'-'+S.focal+'-'+S.color;
-    var cam=(AJAX[S.type]||{})[key];
-    if(cam) camHtml=pcard('CAMÉRA AJAX',cam.name,null,cam.specs,cam.price,cam.url,true,cam.img);
+    var camDef=(AJAX[S.type]||{})[key];
+    if(camDef){
+      var jc=fromJ(camDef.slug, camDef.fi, null);
+      camHtml=pcard('CAMÉRA AJAX',camDef.name,null,camDef.specs,jc.price||'Voir le prix',BASE+'/product/'+camDef.slug,true,jc.img);
+    }
     document.getElementById('ajax-cap-banner').classList.toggle('show',c>16);
-    var nvr=NVR_AJAX[(c<=8?'8':'16')+'-'+S.color];
-    nvrHtml+=pcard('ENREGISTREUR NVR AJAX',nvr.name,null,nvr.specs,nvr.price,nvr.url,true,nvr.img);
+    var nvrDef=NVR_AJAX[(c<=8?'8':'16')+'-'+S.color];
+    var jn=fromJ(nvrDef.slug,nvrDef.fi,nvrDef.fp);
+    nvrHtml+=pcard('ENREGISTREUR NVR AJAX',nvrDef.name,null,nvrDef.specs,jn.price,BASE+'/product/'+nvrDef.slug,true,jn.img);
   } else {
     document.getElementById('ajax-cap-banner').classList.remove('show');
-    var cams,nvr;
-    if(b==='hikvision'){
-      cams=[
-        {name:'Dôme IP 4MP Varifocale', ref:'DS-2CD1743G2-IZ', specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 40m', price:ttcH(11360), url:BASE+'/product/camera-dome-ds-2cd1743g2-iz',   img:ID.dome},
-        {name:'Bullet IP 4MP Varifocale',ref:'DS-2CD1643G2-IZ', specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 50m', price:ttcH(10176), url:BASE+'/product/camera-bullet-ds-2cd1643g2-iz', img:ID.bullet}
-      ];
-      var cam=cams[S.type==='dome'?0:1];
-      camHtml=pcard('CAMÉRA HIKVISION',cam.name,cam.ref,cam.specs,cam.price,cam.url,false,cam.img);
-      nvr=NVR_HIK.find(function(n){return n.max>=c;})||NVR_HIK[2];
-      nvrHtml=pcard('ENREGISTREUR NVR',nvr.name,nvr.ref,nvr.specs,nvr.price,nvr.url,true,nvr.img);
-    } else {
-      cams=[
-        {name:'Dôme IP 4MP Varifocale', ref:'IPC-HDBW2441R-ZS', specs:'4 MP · 2.7–13.5mm · IP67/IK10 · H.265+ · Micro', price:'113,18 €', url:BASE+'/product/camera-dome-ipc-hdbw2441r-zs',   img:ID.dome},
-        {name:'Bullet IP 4MP Varifocale',ref:'IPC-HFW2441T-ZAS', specs:'4 MP · 2.7–13.5mm · IP67/IK10 · H.265+ · Micro', price:'102,52 €', url:BASE+'/product/camera-bullet-ipc-hfw2441t-zas', img:ID.bullet}
-      ];
-      var cam=cams[S.type==='dome'?0:1];
-      camHtml=pcard('CAMÉRA DAHUA',cam.name,cam.ref,cam.specs,cam.price,cam.url,false,cam.img);
-      nvr=NVR_DAH.find(function(n){return n.max>=c;})||NVR_DAH[2];
-      nvrHtml=pcard('ENREGISTREUR NVR',nvr.name,nvr.ref,nvr.specs,nvr.price,nvr.url,true,nvr.img);
-    }
+    var camTable = b==='hikvision' ? HIK_CAMS : DAH_CAMS;
+    var nvrList  = b==='hikvision' ? NVR_HIK  : NVR_DAH;
+    var camType  = S.type==='bullet' ? 'bullet' : 'dome';
+    var camDef   = camTable[camType][resIdx] || camTable[camType][1];
+    var jc=fromJ(camDef.slug, camDef.fi, camDef.fp);
+    var brand    = b==='hikvision' ? 'HIKVISION' : 'DAHUA';
+    camHtml=pcard('CAMÉRA '+brand,camDef.name,camDef.ref,camDef.specs,jc.price,BASE+'/product/'+camDef.slug,false,jc.img);
+    var nvrDef=nvrList.find(function(n){return n.max>=c;})||nvrList[2];
+    var jn=fromJ(nvrDef.slug,nvrDef.fi,nvrDef.fp);
+    nvrHtml=pcard('ENREGISTREUR NVR',nvrDef.name,nvrDef.ref,nvrDef.specs,jn.price,BASE+'/product/'+nvrDef.slug,true,jn.img);
   }
 
   document.getElementById('cam-grid').innerHTML=camHtml||'<p style="color:#999;font-size:13px">Sélection non disponible.</p>';
 
   var sw=SWITCHES.find(function(s){return s.max>=c;})||SWITCHES[2];
-  nvrHtml+=pcard('SWITCH POE',sw.name,sw.ref,sw.specs,sw.price,sw.url,false,sw.img);
+  var js=fromJ(sw.slug,sw.fi,sw.fp);
+  nvrHtml+=pcard('SWITCH POE',sw.name,sw.ref,sw.specs,js.price,BASE+'/product/'+sw.slug,false,js.img);
 
   var hddCap=[1,2,4,6,8,10].find(function(x){return x>=S.hdd;})||10;
-  nvrHtml+=pcard('DISQUE DUR','Seagate SkyHawk '+hddCap+' To',null,'Usage 24h/24 · Optimisé NVR/DVR · 3 ans de garantie',HDD_PRICES[hddCap]||'Voir le prix',HDD_URL,false,HDD_IMG);
+  nvrHtml+=pcard('DISQUE DUR','Seagate SkyHawk '+hddCap+' To',null,'Usage 24h/24 · Optimisé NVR/DVR · 3 ans de garantie',hddPrice(hddCap),HDD_URL,false,HDD_IMG);
 
   document.getElementById('nvr-hdd-grid').innerHTML=nvrHtml;
 }
