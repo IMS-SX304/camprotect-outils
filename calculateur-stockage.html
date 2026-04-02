@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur Stockage Vidéosurveillance — CamProtect</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F2F2F0; padding: 32px 16px; }
+  .card { background: #1A1A1A; border-radius: 20px; padding: 32px; max-width: 860px; margin: 0 auto; }
+  .card-label { color: #E85D04; font-size: 11px; font-weight: 700; letter-spacing: .12em; margin-bottom: 4px; }
+  .card-sub { color: #888; font-size: 13px; margin-bottom: 28px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .input-card { background: #242424; border-radius: 12px; padding: 20px; }
+  .input-card label { display: block; color: #888; font-size: 10px; font-weight: 700; letter-spacing: .1em; margin-bottom: 14px; }
+  .slider-row { display: flex; align-items: center; gap: 14px; }
+  .slider-row input[type=range] { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; background: #3a3a3a; border-radius: 3px; outline: none; cursor: pointer; }
+  .slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #E85D04; cursor: pointer; }
+  .slider-row input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #E85D04; cursor: pointer; border: none; }
+  .slider-val { color: #fff; font-size: 26px; font-weight: 800; min-width: 42px; text-align: right; }
+  .slider-unit { color: #888; font-size: 12px; margin-left: 2px; }
+  select { width: 100%; background: #333; border: 1px solid #444; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; outline: none; }
+  select:focus { border-color: #E85D04; }
+  .radio-group { display: flex; flex-direction: column; gap: 8px; }
+  .radio-label { display: flex; align-items: center; gap: 12px; background: #2e2e2e; padding: 12px 14px; border-radius: 8px; cursor: pointer; color: #ccc; font-size: 13px; transition: background .15s; user-select: none; }
+  .radio-label:hover { background: #363636; }
+  .radio-label.active { background: rgba(232,93,4,.15); color: #fff; }
+  .radio-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #555; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color .15s; }
+  .radio-label.active .radio-dot { border-color: #E85D04; }
+  .radio-dot-inner { width: 8px; height: 8px; border-radius: 50%; background: #E85D04; display: none; }
+  .radio-label.active .radio-dot-inner { display: block; }
+  .result { background: linear-gradient(135deg, #E85D04, #c44e00); border-radius: 14px; padding: 28px 32px; margin-top: 20px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between; }
+  .result-item p.label { color: rgba(255,255,255,.65); font-size: 10px; font-weight: 700; letter-spacing: .12em; margin-bottom: 6px; }
+  .result-item p.value { color: #fff; font-weight: 900; line-height: 1; }
+  .result-item.main p.value { font-size: 44px; }
+  .result-item.secondary p.value { font-size: 32px; }
+  .result-item.tertiary p.value { font-size: 22px; }
+  .note { color: #555; font-size: 12px; margin-top: 14px; text-align: center; }
+  .ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+  .btn-primary { display: inline-flex; align-items: center; background: #E85D04; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 700; }
+  .btn-primary:hover { background: #c44e00; }
+  .btn-secondary { display: inline-flex; align-items: center; background: #1A1A1A; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 700; border: 1.5px solid #444; }
+  .btn-secondary:hover { border-color: #E85D04; }
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .result { flex-direction: column; gap: 16px; }
+    .result-item.main p.value { font-size: 36px; }
+    .ctas { flex-direction: column; }
+    .btn-primary, .btn-secondary { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="card-label">PARAMÈTRES DE L'INSTALLATION</p>
+  <p class="card-sub">Ajustez les curseurs et sélectionnez vos options — le résultat se met à jour en temps réel.</p>
+  <div class="grid">
+    <div class="input-card">
+      <label>📹 NOMBRE DE CAMÉRAS</label>
+      <div class="slider-row">
+        <input type="range" id="nc" min="1" max="32" value="4">
+        <span class="slider-val" id="nc-val">4</span>
+      </div>
+    </div>
+    <div class="input-card">
+      <label>🎯 RÉSOLUTION</label>
+      <select id="res">
+        <option value="0">2 MP — Full HD 1080p</option>
+        <option value="1" selected>4 MP — 2K Ultra HD</option>
+        <option value="2">5 MP — 2K+ Haute qualité</option>
+        <option value="3">8 MP — 4K Ultra HD</option>
+      </select>
+    </div>
+    <div class="input-card">
+      <label>⏱ FRÉQUENCE D'IMAGES (FPS)</label>
+      <select id="fps">
+        <option value="0">5 fps — Minimum</option>
+        <option value="1">10 fps — Standard</option>
+        <option value="2" selected>15 fps — Recommandé</option>
+        <option value="3">25 fps — Fluide</option>
+      </select>
+    </div>
+    <div class="input-card">
+      <label>⚡ COMPRESSION</label>
+      <select id="comp">
+        <option value="0">H.264 — Standard</option>
+        <option value="1" selected>H.265 — Efficace (÷2)</option>
+        <option value="2">H.265+ — Très efficace (÷3)</option>
+      </select>
+    </div>
+    <div class="input-card">
+      <label>📅 DURÉE DE CONSERVATION</label>
+      <div class="slider-row">
+        <input type="range" id="days" min="7" max="90" value="15">
+        <span class="slider-val" id="days-val">15</span><span class="slider-unit">j</span>
+      </div>
+    </div>
+    <div class="input-card">
+      <label>📼 MODE D'ENREGISTREMENT</label>
+      <div class="radio-group">
+        <div class="radio-label active" id="label-cont" onclick="setMode(0)">
+          <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+          Continu 24h/24
+        </div>
+        <div class="radio-label" id="label-motion" onclick="setMode(1)">
+          <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+          Détection de mouvement
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="result">
+    <div class="result-item main">
+      <p class="label">CAPACITÉ TOTALE NÉCESSAIRE</p>
+      <p class="value" id="res-tb">2.14 To</p>
+    </div>
+    <div class="result-item secondary">
+      <p class="label">DISQUE DUR RECOMMANDÉ</p>
+      <p class="value" id="res-hdd">4 To</p>
+    </div>
+    <div class="result-item tertiary">
+      <p class="label">EN GIGAOCTETS</p>
+      <p class="value" id="res-gb">2189 Go</p>
+    </div>
+  </div>
+  <p class="note">Résultats calculés avec 20% de marge de sécurité. Détection de mouvement ≈ −75% de stockage.</p>
+</div>
+<div class="ctas">
+  <a href="https://www.camprotect.fr/accessoires-alimentation-et-stockage" class="btn-primary" target="_parent">Voir les disques durs NVR →</a>
+  <a href="https://www.camprotect.fr/accessoires-enregistreurs-nvr-dvr" class="btn-secondary" target="_parent">Voir les enregistreurs NVR →</a>
+</div>
+<script>
+  var RES  = [4, 8, 12, 16];
+  var FPS  = [0.3, 0.55, 0.75, 1];
+  var COMP = [1, 0.5, 0.35];
+  var HDD  = [1, 2, 4, 6, 8, 10, 16, 20];
+  var mode = 0;
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('label-cont').classList.toggle('active', m === 0);
+    document.getElementById('label-motion').classList.toggle('active', m === 1);
+    calc();
+  }
+
+  function calc() {
+    var c   = +document.getElementById('nc').value;
+    var r   = RES[+document.getElementById('res').value];
+    var f   = FPS[+document.getElementById('fps').value];
+    var k   = COMP[+document.getElementById('comp').value];
+    var d   = +document.getElementById('days').value;
+    var m   = mode === 0 ? 1 : 0.25;
+    var gb  = c * r * f * k * d * 86400 / 8 / 1024 * m * 1.2;
+    var tb  = gb / 1024;
+    var hdd = HDD.find(function(x){ return x >= tb; }) || 20;
+    document.getElementById('nc-val').textContent   = c;
+    document.getElementById('days-val').textContent = d;
+    document.getElementById('res-tb').textContent   = tb.toFixed(2) + ' To';
+    document.getElementById('res-hdd').textContent  = hdd + ' To';
+    document.getElementById('res-gb').textContent   = Math.round(gb) + ' Go';
+  }
+
+  document.getElementById('nc').addEventListener('input', calc);
+  document.getElementById('days').addEventListener('input', calc);
+  document.getElementById('res').addEventListener('change', calc);
+  document.getElementById('fps').addEventListener('change', calc);
+  document.getElementById('comp').addEventListener('change', calc);
+  calc();
+</script>
+</body>
+</html>
