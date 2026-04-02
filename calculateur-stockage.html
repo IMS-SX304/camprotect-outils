@@ -415,7 +415,6 @@ function render() {
   nvrHtml+=pcard('DISQUE DUR','Seagate SkyHawk '+hddCap+' To',null,'Usage 24h/24 · Optimisé NVR/DVR · 3 ans de garantie',HDD_PRICES[hddCap]||'Voir le prix',HDD_URL,false,HDD_IMG);
 
   document.getElementById('nvr-hdd-grid').innerHTML=nvrHtml;
-  setTimeout(sendHeight,80);
 }
 
 // ── CALCUL ──
@@ -445,32 +444,34 @@ document.getElementById('fps').addEventListener('change',calc);
 document.getElementById('comp').addEventListener('change',calc);
 calc();
 
-// ── AUTO-RESIZE via postMessage ──
-function sendHeight(){
-  var h=Math.max(
-    document.body.scrollHeight, document.body.offsetHeight,
-    document.documentElement.scrollHeight, document.documentElement.offsetHeight
-  );
-  window.parent.postMessage({type:'calcHeight',height:h},'*');
+// ── AUTO-RESIZE via postMessage (débounce 120ms) ──
+var _dbt = null;
+function sendHeight() {
+  clearTimeout(_dbt);
+  _dbt = setTimeout(function() {
+    // Mesure le bas du dernier élément réel plutôt que scrollHeight
+    var last = document.body.lastElementChild;
+    var h = last
+      ? Math.ceil(last.getBoundingClientRect().bottom + window.scrollY) + 32
+      : document.body.scrollHeight + 32;
+    window.parent.postMessage({ type: 'calcHeight', height: h }, '*');
+  }, 120);
 }
 
-// Envois immédiats + différés (images async)
+// Envoi initial + après chargement complet
 sendHeight();
-setTimeout(sendHeight,200);
-setTimeout(sendHeight,600);
-setTimeout(sendHeight,1200);
-
-window.addEventListener('load',function(){
+window.addEventListener('load', function() {
   sendHeight();
-  setTimeout(sendHeight,400);
+  // Un dernier envoi pour récupérer les images chargées en lazy
+  setTimeout(sendHeight, 800);
 });
 
 // Re-send après chaque mutation DOM (render produits, show/hide sections)
-var _mo=new MutationObserver(function(){ setTimeout(sendHeight,60); });
-_mo.observe(document.body,{childList:true,subtree:true});
+var _mo = new MutationObserver(sendHeight);
+_mo.observe(document.body, { childList: true, subtree: true });
 
 // Re-send au resize (rotation mobile, redimensionnement)
-window.addEventListener('resize',function(){ setTimeout(sendHeight,150); });
+window.addEventListener('resize', sendHeight);
 </script>
 </body>
 </html>
