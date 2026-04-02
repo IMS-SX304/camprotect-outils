@@ -1,0 +1,239 @@
+{
+  "version": "1.0",
+  "extracted_at": "2026-04-02",
+  "total": 15,
+  "products": {
+    "ajax_bulletcam": {
+      "name": "Ajax BulletCam",
+      "type": "camera",
+      "shape": "bullet",
+      "environment": "outdoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69c5491be907476f2e0b9be7_TDS%20-%20EN%20-%20Ajax%20BulletCam.pdf",
+      "ir_range_m": 50,
+      "focal_lengths": {
+        "2.8mm": {
+          "fov_h_deg": 100,
+          "fov_v_deg": null,
+          "fov_d_deg": 110
+        },
+        "4mm": {
+          "fov_h_deg": 75,
+          "fov_v_deg": null,
+          "fov_d_deg": 85
+        }
+      },
+      "power_poe": true,
+      "ip_rating": "IP65",
+      "notes": "True WDR available"
+    },
+    "ajax_domecam_mini": {
+      "name": "Ajax DomeCam Mini",
+      "type": "camera",
+      "shape": "dome",
+      "environment": "both",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ca8edadb64fd9a3686b257_TDS%20-%20EN%20-%20Ajax%20DomeCam%20mini.pdf",
+      "ir_range_m": 15,
+      "focal_lengths": {
+        "2.8mm": {
+          "fov_h_deg": null,
+          "fov_v_deg": null,
+          "fov_d_deg": 110
+        },
+        "4mm": {
+          "fov_h_deg": null,
+          "fov_v_deg": null,
+          "fov_d_deg": 85
+        }
+      },
+      "power_poe": true,
+      "ip_rating": "IP65",
+      "notes": "Wired AI-powered IP security camera with IR illumination, True WDR, microphone, and PoE/12 V. For outdoor and indoor use."
+    },
+    "ajax_turretcam": {
+      "name": "Ajax TurretCam",
+      "type": "camera",
+      "shape": "turret",
+      "environment": "both",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69cba86b9b1a53b094a64285_TDS%20-%20EN%20-%20Ajax%20TurretCam-avec%20compression.pdf",
+      "ir_range_m": 50,
+      "focal_lengths": {
+        "2.8mm": {
+          "fov_h_deg": null,
+          "fov_v_deg": null,
+          "fov_d_deg": 110
+        },
+        "4mm": {
+          "fov_h_deg": null,
+          "fov_v_deg": null,
+          "fov_d_deg": 85
+        }
+      },
+      "power_poe": true,
+      "ip_rating": "IP65",
+      "notes": "Wired AI-powered IP security camera with True WDR, microphone, and PoE/12V power options"
+    },
+    "ajax_motionprotect": {
+      "name": "Ajax MotionProtect",
+      "type": "pir_detector",
+      "environment": "indoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b304051f2a3f6ebad74507_TDS%20-%20FR%20-%20Ajax%20MotionProtect%20Jeweller.pdf",
+      "detection_range_m": 12,
+      "detection_angle_h_deg": 88.5,
+      "detection_angle_v_deg": 80,
+      "mounting_height_m": 2.4,
+      "immunity_pet": true,
+      "ip_rating": "IP50",
+      "battery": "CR123A",
+      "notes": "Immunité aux animaux de compagnie jusqu'à 20 kg et 50 cm de hauteur"
+    },
+    "ajax_motionprotect_plus": {
+      "name": "Ajax MotionProtect Plus",
+      "type": "pir_detector",
+      "environment": "indoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b310811680d2e0aa9dcf6a_TDS%20-%20FR%20-%20Ajax%20MotionProtect%20Plus%20Jeweller.pdf",
+      "detection_range_m": 12,
+      "detection_angle_h_deg": 88.5,
+      "detection_angle_v_deg": null,
+      "mounting_height_m": 2.4,
+      "immunity_pet": true,
+      "ip_rating": null,
+      "battery": "CR123A",
+      "notes": "Double technologie PIR + micro-ondes bande K, immunité animaux jusqu'à 20 kg et 50 cm"
+    },
+    "ajax_motioncam": {
+      "name": "Ajax MotionCam",
+      "type": "pir_detector",
+      "environment": "indoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b319e4e6bcd6416d35fce4_TDS%20-%20FR%20-%20Ajax%20MotionCam%20Jeweller.pdf",
+      "detection_range_m": 12,
+      "detection_angle_h_deg": 88.5,
+      "detection_angle_v_deg": null,
+      "mounting_height_m": 2.4,
+      "immunity_pet": true,
+      "ip_rating": "IP50",
+      "battery": "CR123A",
+      "notes": "Immunité aux animaux jusqu'à 50 cm de hauteur et 20 kg de poids"
+    },
+    "ajax_motioncam_phod": {
+      "name": "Ajax MotionCam (PhOD)",
+      "type": "pir_detector",
+      "environment": "indoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b31e3c34d18c399726e492_TDS%20-%20FR%20-%20Ajax%20MotionCam%20(PhOD)%20Jeweller.pdf",
+      "detection_range_m": 12,
+      "detection_angle_h_deg": 88.5,
+      "detection_angle_v_deg": null,
+      "mounting_height_m": 2.4,
+      "immunity_pet": true,
+      "ip_rating": "IP50",
+      "battery": "CR123A",
+      "notes": "Immunité aux animaux jusqu'à 50 cm de hauteur et 20 kg"
+    },
+    "ajax_combiprotect": {
+      "name": "Ajax CombiProtect",
+      "type": "pir_detector",
+      "environment": "indoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b31646a861dd642a6e45e4_TDS%20-%20FR%20-%20Ajax%20CombiProtect%20Jeweller.pdf",
+      "detection_range_m": 12,
+      "detection_angle_h_deg": 88.5,
+      "detection_angle_v_deg": null,
+      "mounting_height_m": 2.4,
+      "immunity_pet": true,
+      "ip_rating": "IP50",
+      "battery": "CR123A",
+      "notes": "Détecteur combiné PIR + bris de glace, immunité animaux jusqu'à 20kg et 50cm de hauteur"
+    },
+    "ajax_motionprotect_outdoor": {
+      "name": "Ajax MotionProtect Outdoor",
+      "type": "pir_detector",
+      "environment": "outdoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b32f9ebb9004d90580bde7_TDS%20-%20FR%20-%20Ajax%20MotionProtect%20Outdoor%20Jeweller.pdf",
+      "detection_range_m": 15,
+      "detection_angle_h_deg": 90,
+      "detection_angle_v_deg": null,
+      "mounting_height_m": 1.3,
+      "immunity_pet": true,
+      "ip_rating": "IP55",
+      "battery": "CR123A",
+      "notes": "Immunité aux animaux de compagnie mesurant jusqu'à 80 cm de haut"
+    },
+    "ajax_motioncam_outdoor": {
+      "name": "Ajax MotionCam Outdoor",
+      "type": "pir_detector",
+      "environment": "outdoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b33234d54b2fd8cfe97772_TDS%20-%20FR%20-%20Ajax%20MotionCam%20Outdoor%20Jeweller.pdf",
+      "detection_range_m": 15,
+      "detection_angle_h_deg": null,
+      "detection_angle_v_deg": null,
+      "mounting_height_m": 1.3,
+      "immunity_pet": true,
+      "ip_rating": "IP56",
+      "battery": "CR123A",
+      "notes": "Détecteur PIR extérieur avec caméra photo intégrée, portée de communication avec le hub jusqu'à 1700m"
+    },
+    "ajax_motioncam_outdoor_phod": {
+      "name": "Ajax MotionCam Outdoor (PhOD)",
+      "type": "pir_detector",
+      "environment": "outdoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b3370c2f0ddb2fab5fbdad_TDS%20-%20FR%20-%20Ajax%20MotionCam%20Outdoor%20(PhOD)%20Jeweller.pdf",
+      "detection_range_m": 15,
+      "detection_angle_h_deg": 90,
+      "detection_angle_v_deg": null,
+      "mounting_height_m": 1.3,
+      "immunity_pet": true,
+      "ip_rating": "IP56",
+      "battery": "CR123A",
+      "notes": "Hauteur d'installation recommandée 0,8-1,3 m du niveau du sol"
+    },
+    "ajax_motionprotect_curtain": {
+      "name": "Ajax MotionProtect Curtain",
+      "type": "curtain_detector",
+      "environment": "indoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69392c162e61a366ff8b2466_TDS%20-%20FR%20-%20Ajax%20MotionProtect%20Curtain%20Jeweller.pdf",
+      "detection_range_m": 15,
+      "curtain_width_m": null,
+      "detection_angle_deg": 6,
+      "mounting_height_m": null,
+      "ip_rating": "IP54",
+      "battery": "CR123A",
+      "notes": "Détecteur de mouvement IR sans fil de type rideau pour l'intérieur avec un angle de vue étroit"
+    },
+    "ajax_curtain_outdoor": {
+      "name": "Ajax Curtain Outdoor",
+      "type": "curtain_detector",
+      "environment": "outdoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b32aa8ffeaf5f68037446c_TDS%20-%20FR%20-%20Ajax%20Curtain%20Outdoor%20Jeweller.pdf",
+      "detection_range_m": 12,
+      "curtain_width_m": null,
+      "detection_angle_deg": 85,
+      "mounting_height_m": 2.4,
+      "ip_rating": "IP55",
+      "battery": "2 x CR123A",
+      "notes": "Détecteur de mouvement sans fil de type rideau à double technologie pour une utilisation à l'extérieur et à l'intérieur"
+    },
+    "ajax_dualcurtain_outdoor": {
+      "name": "Ajax DualCurtain Outdoor",
+      "type": "curtain_detector",
+      "environment": "outdoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b32cda9d89f9f88e4c888a_TDS%20-%20FR%20-%20Ajax%20DualCurtain%20Outdoor%20Jeweller.pdf",
+      "detection_range_m": 15,
+      "curtain_width_m": null,
+      "detection_angle_deg": 3,
+      "mounting_height_m": null,
+      "ip_rating": "IP54",
+      "battery": "2 x CR123, 3 V",
+      "notes": "Détecteur de mouvement sans fil de type rideau à double face avec deux capteurs PIR indépendants"
+    },
+    "ajax_homesiren": {
+      "name": "Ajax HomeSiren",
+      "type": "siren",
+      "environment": "indoor",
+      "pdfUrl": "https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67b466ad87e43ccf896ca718_TDS%20-%20FR%20-%20Ajax%20HomeSiren%20Jeweller.pdf",
+      "sound_level_db": 100,
+      "sound_range_m": null,
+      "flash": true,
+      "battery_backup": true,
+      "ip_rating": null,
+      "notes": "Volume réglable de 80 à 100 dB, connecteur LED externe, autonomie jusqu'à 5 ans"
+    }
+  }
+}
