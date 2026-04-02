@@ -63,13 +63,21 @@
   .banner { background:rgba(232,93,4,.08); border:1.5px solid rgba(232,93,4,.25); border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:12px; color:#c44e00; font-weight:600; display:none; }
   .banner.show { display:block; }
   .prod-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-  .pcard { background:#fff; border-radius:12px; padding:18px; border:1.5px solid #EAEAE6; display:flex; flex-direction:column; gap:10px; }
+
+  /* ── CARTE PRODUIT ── */
+  .pcard { background:#fff; border-radius:12px; border:1.5px solid #EAEAE6; display:flex; flex-direction:column; overflow:hidden; }
   .pcard.featured { border-color:#E85D04; }
+  .pimg-wrap { background:#F8F8F6; border-bottom:1px solid #EAEAE6; height:130px; display:flex; align-items:center; justify-content:center; padding:12px; flex-shrink:0; }
+  .pimg-wrap img { max-height:106px; max-width:100%; width:auto; object-fit:contain; display:block; }
+  .pimg-ph { width:44px; height:44px; opacity:.2; }
+  .pbody { padding:14px 16px; display:flex; flex-direction:column; gap:7px; flex:1; }
   .ptype  { font-size:9px; font-weight:700; letter-spacing:.1em; color:#E85D04; }
-  .pname  { font-size:14px; font-weight:700; color:#1A1A1A; line-height:1.3; }
+  .pname  { font-size:13px; font-weight:700; color:#1A1A1A; line-height:1.3; }
+  .pref   { font-size:10px; color:#bbb; }
   .pspecs { font-size:11px; color:#888; line-height:1.5; }
-  .pprice { font-size:18px; font-weight:800; color:#1A1A1A; }
-  .pacts  { display:flex; flex-direction:column; gap:7px; margin-top:auto; }
+  .pprice { font-size:17px; font-weight:800; color:#1A1A1A; margin-top:2px; }
+  .pacts  { display:flex; flex-direction:column; gap:7px; margin-top:auto; padding-top:6px; }
+
   .divider { max-width:860px; margin:20px auto 0; display:flex; align-items:center; gap:12px; }
   .divider span { color:#999; font-size:11px; font-weight:600; white-space:nowrap; }
   .divider::before, .divider::after { content:''; flex:1; height:1px; background:#E0E0E0; }
@@ -78,10 +86,16 @@
   .btn-view { display:flex; align-items:center; justify-content:center; background:#fff; color:#444; text-decoration:none; padding:9px 14px; border-radius:7px; font-size:12px; font-weight:600; border:1.5px solid #E0E0E0; transition:all .15s; }
   .btn-view:hover { border-color:#E85D04; color:#E85D04; }
 
+  /* ── RESPONSIVE ── */
   @media(max-width:640px) {
-    .grid2,.prod-grid { grid-template-columns:1fr; }
+    .grid2 { grid-template-columns:1fr; }
+    .prod-grid { grid-template-columns:1fr; }
     .rbox { flex-direction:column; gap:14px; }
     .rit.main p.rv { font-size:32px; }
+    .pimg-wrap { height:110px; }
+  }
+  @media(min-width:641px) and (max-width:860px) {
+    .prod-grid { grid-template-columns:1fr 1fr; }
   }
 </style>
 </head>
@@ -191,253 +205,272 @@
 </div>
 
 <script>
-// ─── CALCUL STOCKAGE ───
+var CDN  = 'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/';
+var BASE = 'https://www.camprotect.fr';
+
+// ── CALCUL STOCKAGE ──
 var RES  = [4, 8, 12, 16];
 var FPS  = [0.3, 0.55, 0.75, 1];
 var COMP = [1, 0.5, 0.35];
-var HDD_SIZES = [1, 2, 4, 6, 8, 10, 16, 20];
-var BASE = 'https://www.camprotect.fr';
 
-// Prix HDD Seagate SkyHawk TTC (prix HT × 1,20)
+// Prix HDD TTC (HT × 1,20)
 var HDD_PRICES = {
-  1:  '113,82 €',
-  2:  '118,98 €',
-  4:  '157,46 €',
-  6:  '241,61 €',
-  8:  '336,00 €',
-  10: '416,04 €',
-  16: 'Voir le prix',
-  20: 'Voir le prix'
+  1:'113,82 €', 2:'118,98 €', 4:'157,46 €',
+  6:'241,61 €', 8:'336,00 €', 10:'416,04 €',
+  16:'Voir le prix', 20:'Voir le prix'
 };
 var HDD_URL = BASE + '/product/disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx';
+var HDD_IMG = CDN + '68de79358a2e78c9b3771fc7_skyhawk-1tb-hero-left-600x600.png';
 
-// Prix TTC caméras Ajax (depuis JSON data)
-var P5 = '75,67 €';   // 5MP
-var P8 = '100,54 €';  // 8MP
+// Prix caméras Ajax TTC
+var P5 = '75,67 €';
+var P8 = '100,54 €';
 
-// ─── ÉTAT ───
+// Images Ajax
+var IA = {
+  domeB:   CDN + '69cb6f2d3696164fd91fff25_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20blanche.png',
+  domeN:   CDN + '69ca8d0b53b8f1f9d7f31357_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20noire.png',
+  bulletB: CDN + '69ca29b02fec424ac045ff54_Cam%C3%A9ra%20Bullet%20Ajax%208MP%202.8mm%20Blanche.png',
+  bulletN: CDN + '69c81a60bb5afb2f5d3c1322_Bulletcam%205MP-2.8%20noire%20.png',
+  turretB: CDN + '69cbca248634db3c54041e77_TurretCam%20blanche.png',
+  turretN: CDN + '69cba6ddb7f897c56f45bb0f_TurretCam%20noire.png',
+  nvrB:    CDN + '69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png',
+  nvrN:    CDN + '69ccd4ed737bd56e31d2c861_NVR%20Ajax%20noir.png'
+};
+
+// Images Dahua/Hikvision
+var ID = {
+  dome:   CDN + '68b96b467a04bff126330e77_1_0_01_04_39156_330798809_crop_thumb.png',
+  bullet: CDN + '68bab06a7d3ec941efd1cf46_1_0_01_04_39557_330801397_crop_thumb.png',
+  nvr4:   CDN + '68bedacfc7a9df2dcbc3d5ae_Design%20sans%20titre%20(25).png',
+  nvr8:   CDN + '68bfe6b2a635af0f59563831_Design%20sans%20titre%20(33).png',
+  nvr16:  CDN + '68bff18d4c4f014bc9f2c39b_Design%20sans%20titre%20(36).png',
+  sw4:    CDN + '67aefd9329932c64adc65442_Design%20sans%20titre%20(55).png',
+  sw8:    CDN + '67af04a466a1b80fc620b411_1064429996_lg.jpg',
+  sw16:   CDN + '67af07673fbdeb8edbb68c75_1066676860_alt1.jpg'
+};
+
+// ── ÉTAT ──
 var S = { mode:0, brand:'hikvision', type:'dome', color:'blanc', focal:'2.8', cams:4, hdd:4 };
 
-// ─── CATALOGUE AJAX (URLs exactes depuis data.json) ───
+// ── CATALOGUE AJAX ──
 var AJAX = {
   dome: {
-    '5mp-2.8-blanc': { name:'DomeCam Mini 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré', price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche' },
-    '5mp-2.8-noir':  { name:'DomeCam Mini 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré', price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-noire' },
-    '5mp-4-blanc':   { name:'DomeCam Mini 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré',   price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-4mm-blanche' },
-    '5mp-4-noir':    { name:'DomeCam Mini 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré',   price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-4mm-noire' },
-    '8mp-2.8-blanc': { name:'DomeCam Mini 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré', price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-2-8-mm-blanche' },
-    '8mp-2.8-noir':  { name:'DomeCam Mini 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré', price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-2-8-mm-noire' },
-    '8mp-4-blanc':   { name:'DomeCam Mini 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré',   price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-4mm-blanche' },
-    '8mp-4-noir':    { name:'DomeCam Mini 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré',   price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-4mm-noir' }
+    '5mp-2.8-blanc': { name:'DomeCam Mini 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', img:IA.domeB },
+    '5mp-2.8-noir':  { name:'DomeCam Mini 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-noire',  img:IA.domeN },
+    '5mp-4-blanc':   { name:'DomeCam Mini 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-4mm-blanche',  img:IA.domeB },
+    '5mp-4-noir':    { name:'DomeCam Mini 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-dome-ajax-domecam-mini-5mp-4mm-noire',    img:IA.domeN },
+    '8mp-2.8-blanc': { name:'DomeCam Mini 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-2-8-mm-blanche', img:IA.domeB },
+    '8mp-2.8-noir':  { name:'DomeCam Mini 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-2-8-mm-noire',  img:IA.domeN },
+    '8mp-4-blanc':   { name:'DomeCam Mini 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-4mm-blanche',  img:IA.domeB },
+    '8mp-4-noir':    { name:'DomeCam Mini 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-dome-ajax-domecam-mini-8mp-4mm-noir',      img:IA.domeN }
   },
   bullet: {
-    '5mp-2.8-blanc': { name:'BulletCam 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré', price:P5, url:BASE+'/product/ajax-bulletcam-blanche-5mp-2-8mm' },
-    '5mp-2.8-noir':  { name:'BulletCam 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré', price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-noire' },
-    '5mp-4-blanc':   { name:'BulletCam 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré',   price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-4mm-blanche' },
-    '5mp-4-noir':    { name:'BulletCam 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré',   price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-4mm-noire' },
-    '8mp-2.8-blanc': { name:'BulletCam 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré', price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-2-8mm-blanche' },
-    '8mp-2.8-noir':  { name:'BulletCam 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré', price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-2-8mm-noire' },
-    '8mp-4-blanc':   { name:'BulletCam 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré',   price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-4mm-blanche' },
-    '8mp-4-noir':    { name:'BulletCam 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65 · PoE/12V DC · Détection IA · Micro intégré',   price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-4mm-noire' }
+    '5mp-2.8-blanc': { name:'BulletCam 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/ajax-bulletcam-blanche-5mp-2-8mm',         img:IA.bulletB },
+    '5mp-2.8-noir':  { name:'BulletCam 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-noire',              img:IA.bulletN },
+    '5mp-4-blanc':   { name:'BulletCam 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-4mm-blanche',        img:IA.bulletB },
+    '5mp-4-noir':    { name:'BulletCam 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-bullet-ajax-5mp-4mm-noire',          img:IA.bulletN },
+    '8mp-2.8-blanc': { name:'BulletCam 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-2-8mm-blanche',      img:IA.bulletB },
+    '8mp-2.8-noir':  { name:'BulletCam 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-2-8mm-noire',        img:IA.bulletN },
+    '8mp-4-blanc':   { name:'BulletCam 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-4mm-blanche',        img:IA.bulletB },
+    '8mp-4-noir':    { name:'BulletCam 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-bullet-ajax-8mp-4mm-noire',          img:IA.bulletN }
   },
   tourelle: {
-    '5mp-2.8-blanc': { name:'TurretCam 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · Détection IA · Micro intégré', price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche' },
-    '5mp-2.8-noir':  { name:'TurretCam 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · Détection IA · Micro intégré', price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-noire' },
-    '5mp-4-blanc':   { name:'TurretCam 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65/IK08 · PoE/12V DC · Détection IA · Micro intégré',   price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-4mm-blanche' },
-    '5mp-4-noir':    { name:'TurretCam 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65/IK08 · PoE/12V DC · Détection IA · Micro intégré',   price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-4mm-noire' },
-    '8mp-2.8-blanc': { name:'TurretCam 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · Détection IA · Micro intégré', price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-2-8mm-blanche' },
-    '8mp-2.8-noir':  { name:'TurretCam 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · Détection IA · Micro intégré', price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-2-8mm-noire' },
-    '8mp-4-blanc':   { name:'TurretCam 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65/IK08 · PoE/12V DC · Détection IA · Micro intégré',   price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-4mm-blanche-2' },
-    '8mp-4-noir':    { name:'TurretCam 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65/IK08 · PoE/12V DC · Détection IA · Micro intégré',   price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-4mm-blanche' }
+    '5mp-2.8-blanc': { name:'TurretCam 5MP 2.8mm Blanche', specs:'5 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche',  img:IA.turretB },
+    '5mp-2.8-noir':  { name:'TurretCam 5MP 2.8mm Noire',   specs:'5 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-noire',    img:IA.turretN },
+    '5mp-4-blanc':   { name:'TurretCam 5MP 4mm Blanche',   specs:'5 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-4mm-blanche',    img:IA.turretB },
+    '5mp-4-noir':    { name:'TurretCam 5MP 4mm Noire',     specs:'5 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   price:P5, url:BASE+'/product/camera-tourelle-ajax-turretcam-5mp-4mm-noire',      img:IA.turretN },
+    '8mp-2.8-blanc': { name:'TurretCam 8MP 2.8mm Blanche', specs:'8 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-2-8mm-blanche',  img:IA.turretB },
+    '8mp-2.8-noir':  { name:'TurretCam 8MP 2.8mm Noire',   specs:'8 MP · 2.8 mm · IP65/IK08 · PoE/12V DC · IA · Micro', price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-2-8mm-noire',    img:IA.turretN },
+    '8mp-4-blanc':   { name:'TurretCam 8MP 4mm Blanche',   specs:'8 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-4mm-blanche-2', img:IA.turretB },
+    '8mp-4-noir':    { name:'TurretCam 8MP 4mm Noire',     specs:'8 MP · 4 mm · IP65/IK08 · PoE/12V DC · IA · Micro',   price:P8, url:BASE+'/product/camera-tourelle-ajax-turretcam-8mp-4mm-blanche',   img:IA.turretN }
   }
 };
 
-// ─── NVR AJAX — Prix et URLs depuis JSON (série standard 70934/70935/70936/70938) ───
+// ── NVR AJAX (série standard, prix JSON) ──
 var NVR_AJAX = {
-  '8-blanc': {
-    name:  'NVR Ajax 8 canaux Blanc',
-    specs: '8 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V',
-    price: '124,99 €',
-    url:   BASE + '/product/enregistreur-nvr-ajax-8-canaux-blanc'
-  },
-  '8-noir': {
-    name:  'NVR Ajax 8 canaux Noir',
-    specs: '8 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V',
-    price: '124,99 €',
-    url:   BASE + '/product/enregistreur-nvr-ajax-8-canaux-noir'
-  },
-  '16-blanc': {
-    name:  'NVR Ajax 16 canaux Blanc',
-    specs: '16 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V',
-    price: '202,01 €',
-    url:   BASE + '/product/enregistreur-nvr-ajax-16-canaux-blanc'
-  },
-  '16-noir': {
-    name:  'NVR Ajax 16 canaux Noir',
-    specs: '16 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V',
-    price: '202,01 €',
-    url:   BASE + '/product/enregistreur-nvr-ajax-16-canaux-noir'
-  }
+  '8-blanc':  { name:'NVR Ajax 8 canaux Blanc',  specs:'8 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V', price:'124,99 €', url:BASE+'/product/enregistreur-nvr-ajax-8-canaux-blanc',  img:IA.nvrB },
+  '8-noir':   { name:'NVR Ajax 8 canaux Noir',   specs:'8 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V', price:'124,99 €', url:BASE+'/product/enregistreur-nvr-ajax-8-canaux-noir',   img:IA.nvrN },
+  '16-blanc': { name:'NVR Ajax 16 canaux Blanc', specs:'16 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V', price:'202,01 €', url:BASE+'/product/enregistreur-nvr-ajax-16-canaux-blanc', img:IA.nvrB },
+  '16-noir':  { name:'NVR Ajax 16 canaux Noir',  specs:'16 caméras · JetSparrow · ONVIF · SATA 3.5" jusqu\'à 16 To · 110–240 V', price:'202,01 €', url:BASE+'/product/enregistreur-nvr-ajax-16-canaux-noir',  img:IA.nvrN }
 };
 
-// NVR Hikvision (prix HT centimes → TTC)
+// ── NVR Hikvision (HT centimes → TTC) ──
 function ttcH(c) { return (c*1.2/100).toFixed(2).replace('.',',')+' €'; }
 var NVR_HIK = [
-  { name:'NVR 4 canaux PoE', ref:'DS-7604NXI-K1/4P', specs:'4 ports PoE · AcuSense · Hik-Connect · 1 baie HDD', price:ttcH(13871), url:BASE+'/product/enregistreur-nvr-4-canaux-poe-ds-7604nxi-k1-4p', max:4 },
-  { name:'NVR 8 canaux PoE', ref:'DS-7608NXI-K1/8P', specs:'8 ports PoE · AcuSense · Hik-Connect · 1 baie HDD', price:ttcH(19357), url:BASE+'/product/enregistreur-nvr-8-canaux-poe-ds-7608nxi-k1-8p', max:8 },
-  { name:'NVR 16 canaux PoE',ref:'DS-7616NXI-K2/16P/D',specs:'16 ports PoE · AcuSense · Hik-Connect · 2 baies HDD', price:ttcH(31755), url:BASE+'/product/enregistreur-nvr-16-canaux-poe-ds-7616nxi-k2-16p-d', max:999 }
+  { name:'NVR 4 canaux PoE',  ref:'DS-7604NXI-K1/4P',    specs:'4 ports PoE · AcuSense · Hik-Connect · 1 baie HDD',  price:ttcH(13871), url:BASE+'/product/enregistreur-nvr-4-canaux-poe-ds-7604nxi-k1-4p',    img:ID.nvr4,  max:4 },
+  { name:'NVR 8 canaux PoE',  ref:'DS-7608NXI-K1/8P',    specs:'8 ports PoE · AcuSense · Hik-Connect · 1 baie HDD',  price:ttcH(19357), url:BASE+'/product/enregistreur-nvr-8-canaux-poe-ds-7608nxi-k1-8p',    img:ID.nvr8,  max:8 },
+  { name:'NVR 16 canaux PoE', ref:'DS-7616NXI-K2/16P/D', specs:'16 ports PoE · AcuSense · Hik-Connect · 2 baies HDD', price:ttcH(31755), url:BASE+'/product/enregistreur-nvr-16-canaux-poe-ds-7616nxi-k2-16p-d', img:ID.nvr16, max:999 }
 ];
 
-// NVR Dahua — prix depuis JSON
+// ── NVR Dahua (prix JSON) ──
 var NVR_DAH = [
-  { name:'NVR 4 canaux PoE', ref:'DHI-NVR4104HS-P-EI', specs:'4 ports PoE · WizSense · DMSS · 1 baie HDD', price:'133,92 €', url:BASE+'/product/enregistreur-nvr-4-canaux-poe-dhi-nvr4104hs-p-ei', max:4 },
-  { name:'NVR 8 canaux PoE', ref:'DHI-NVR5208-8P-EI',  specs:'8 ports PoE · WizSense · DMSS · 2 baies HDD', price:'269,40 €', url:BASE+'/product/enregistreur-nvr-8-canaux-poe-dhi-nvr5208-8p-ei', max:8 },
-  { name:'NVR 16 canaux PoE',ref:'DHI-NVR5216-16P-EI', specs:'16 ports PoE · WizSense · DMSS · 2 baies HDD', price:'322,49 €', url:BASE+'/product/enregistreur-nvr-16-canaux-poe-dhi-nvr5216-16p-ei', max:999 }
+  { name:'NVR 4 canaux PoE',  ref:'DHI-NVR4104HS-P-EI', specs:'4 ports PoE · WizSense · DMSS · 1 baie HDD',  price:'133,92 €', url:BASE+'/product/enregistreur-nvr-4-canaux-poe-dhi-nvr4104hs-p-ei',  img:ID.nvr4,  max:4 },
+  { name:'NVR 8 canaux PoE',  ref:'DHI-NVR5208-8P-EI',  specs:'8 ports PoE · WizSense · DMSS · 2 baies HDD', price:'269,40 €', url:BASE+'/product/enregistreur-nvr-8-canaux-poe-dhi-nvr5208-8p-ei',   img:ID.nvr8,  max:8 },
+  { name:'NVR 16 canaux PoE', ref:'DHI-NVR5216-16P-EI', specs:'16 ports PoE · WizSense · DMSS · 2 baies HDD', price:'322,49 €', url:BASE+'/product/enregistreur-nvr-16-canaux-poe-dhi-nvr5216-16p-ei', img:ID.nvr16, max:999 }
 ];
 
-// Switch Hikvision
+// ── Switch Hikvision ──
 var SWITCHES = [
-  { name:'Switch PoE 4 ports', ref:'DS-3E0505HP-E', specs:'4 ports PoE · Gigabit · 60W total · PoE Watchdog', price:ttcH(5024), url:BASE+'/product/switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e', max:4 },
-  { name:'Switch PoE 8 ports', ref:'DS-3E0510HP-E', specs:'8 ports PoE · Gigabit · 120W total · PoE Watchdog', price:ttcH(11188), url:BASE+'/product/switch-poe-gigabit-10-ports-hikvision-ds-3e0510hp-e', max:8 },
-  { name:'Switch PoE 16 ports',ref:'DS-3E0520HP-E', specs:'16 ports PoE · Gigabit · 230W total · PoE Watchdog', price:ttcH(23487), url:BASE+'/product/switch-poe-gigabit-16-ports-ds-3e0520hp-e', max:999 }
+  { name:'Switch PoE 4 ports',  ref:'DS-3E0505HP-E', specs:'4 ports PoE · Gigabit · 60W · PoE Watchdog',  price:ttcH(5024),  url:BASE+'/product/switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e', img:ID.sw4,  max:4 },
+  { name:'Switch PoE 8 ports',  ref:'DS-3E0510HP-E', specs:'8 ports PoE · Gigabit · 120W · PoE Watchdog', price:ttcH(11188), url:BASE+'/product/switch-poe-gigabit-10-ports-hikvision-ds-3e0510hp-e', img:ID.sw8,  max:8 },
+  { name:'Switch PoE 16 ports', ref:'DS-3E0520HP-E', specs:'16 ports PoE · Gigabit · 230W · PoE Watchdog', price:ttcH(23487), url:BASE+'/product/switch-poe-gigabit-16-ports-ds-3e0520hp-e',          img:ID.sw16, max:999 }
 ];
 
-// ─── HELPERS ───
-function tabSwitch(groupId, el) {
-  document.querySelectorAll('#'+groupId+' .tab').forEach(function(t){ t.classList.remove('on'); });
+// ── HELPERS ──
+function tabSwitch(g, el) {
+  document.querySelectorAll('#'+g+' .tab').forEach(function(t){ t.classList.remove('on'); });
   el.classList.add('on');
 }
-
 function setBrand(b, el) {
-  S.brand = b;
-  tabSwitch('brand-tabs', el);
-  var isAjax = b==='ajax';
-  document.getElementById('tab-tourelle').classList.toggle('hidden', !isAjax);
-  document.getElementById('color-wrap').classList.toggle('hidden', !isAjax);
-  document.getElementById('focal-wrap').classList.toggle('hidden', !isAjax);
-  if(!isAjax && S.type==='tourelle') {
+  S.brand=b; tabSwitch('brand-tabs',el);
+  var aj = b==='ajax';
+  document.getElementById('tab-tourelle').classList.toggle('hidden',!aj);
+  document.getElementById('color-wrap').classList.toggle('hidden',!aj);
+  document.getElementById('focal-wrap').classList.toggle('hidden',!aj);
+  if(!aj && S.type==='tourelle'){
     S.type='dome';
-    document.querySelectorAll('#type-tabs .tab').forEach(function(t,i){ t.classList.toggle('on', i===0); });
+    document.querySelectorAll('#type-tabs .tab').forEach(function(t,i){ t.classList.toggle('on',i===0); });
   }
   render();
 }
-
-function setType(t, el) { S.type=t; tabSwitch('type-tabs', el); render(); }
-
-function setColor(c) {
+function setType(t,el){ S.type=t; tabSwitch('type-tabs',el); render(); }
+function setColor(c){
   S.color=c;
-  document.getElementById('c-blanc').classList.toggle('on', c==='blanc');
-  document.getElementById('c-noir').classList.toggle('on', c==='noir');
+  document.getElementById('c-blanc').classList.toggle('on',c==='blanc');
+  document.getElementById('c-noir').classList.toggle('on',c==='noir');
   render();
 }
-
-function setFocal(f, el) { S.focal=f; tabSwitch('focal-tabs', el); render(); }
-
-function setMode(m) {
+function setFocal(f,el){ S.focal=f; tabSwitch('focal-tabs',el); render(); }
+function setMode(m){
   S.mode=m;
-  document.getElementById('mode-cont').classList.toggle('on', m===0);
-  document.getElementById('mode-motion').classList.toggle('on', m===1);
+  document.getElementById('mode-cont').classList.toggle('on',m===0);
+  document.getElementById('mode-motion').classList.toggle('on',m===1);
   calc();
 }
+function getAjaxRes(){ return +document.getElementById('res').value<=2?'5mp':'8mp'; }
 
-function getAjaxRes() { return +document.getElementById('res').value <= 2 ? '5mp' : '8mp'; }
-
-// ─── RENDER HTML ───
-function pcard(type, name, ref, specs, price, url, featured) {
-  var r = ref ? ref + '<br>' : '';
+// ── CARTE PRODUIT ──
+function pcard(type, name, ref, specs, price, url, featured, img) {
+  var imgH = img
+    ? '<img src="'+img+'" alt="'+name+'" loading="lazy">'
+    : '<svg class="pimg-ph" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="6" fill="#e0e0e0"/><path d="M12 34l10-12 8 9 5-6 8 9H12z" fill="#ccc"/><circle cx="32" cy="18" r="5" fill="#ccc"/></svg>';
+  var refH = ref ? '<p class="pref">'+ref+'</p>' : '';
   return '<div class="pcard'+(featured?' featured':'')+'">'+
-    '<p class="ptype">'+type+'</p>'+
-    '<p class="pname">'+name+'</p>'+
-    '<p class="pspecs">'+r+specs+'</p>'+
-    '<p class="pprice">'+price+'</p>'+
-    '<div class="pacts">'+
-      '<button class="btn-cart" onclick="window.open(\''+url+'\',\'_parent\')">Voir &amp; ajouter au panier →</button>'+
-      '<a class="btn-view" href="'+url+'" target="_parent">Voir la fiche produit</a>'+
+    '<div class="pimg-wrap">'+imgH+'</div>'+
+    '<div class="pbody">'+
+      '<p class="ptype">'+type+'</p>'+
+      '<p class="pname">'+name+'</p>'+
+      refH+
+      '<p class="pspecs">'+specs+'</p>'+
+      '<p class="pprice">'+price+'</p>'+
+      '<div class="pacts">'+
+        '<button class="btn-cart" onclick="window.open(\''+url+'\',\'_parent\')">Voir &amp; ajouter au panier →</button>'+
+        '<a class="btn-view" href="'+url+'" target="_parent">Voir la fiche produit</a>'+
+      '</div>'+
     '</div></div>';
 }
 
+// ── RENDER ──
 function render() {
-  var c = S.cams, hdd = S.hdd, b = S.brand;
-  var camHtml = '', nvrHtml = '';
+  var c=S.cams, b=S.brand, camHtml='', nvrHtml='';
 
-  // ── CAMÉRAS ──
-  if(b==='ajax') {
-    var resKey = getAjaxRes();
-    var key = resKey+'-'+S.focal+'-'+S.color;
-    var pool = AJAX[S.type] || {};
-    var cam = pool[key];
-    if(cam) camHtml = pcard('CAMÉRA AJAX', cam.name, null, cam.specs, cam.price, cam.url, true);
-    document.getElementById('ajax-cap-banner').classList.toggle('show', c>16);
-
-    // NVR Ajax — couleur synchronisée avec caméra, 8ch si ≤8, 16ch sinon
-    var nvrCh = c<=8 ? '8' : '16';
-    var nvrKey = nvrCh+'-'+S.color;
-    var nvr = NVR_AJAX[nvrKey];
-    nvrHtml += pcard('ENREGISTREUR NVR AJAX', nvr.name, null, nvr.specs, nvr.price, nvr.url, true);
-
+  if(b==='ajax'){
+    var key=getAjaxRes()+'-'+S.focal+'-'+S.color;
+    var cam=(AJAX[S.type]||{})[key];
+    if(cam) camHtml=pcard('CAMÉRA AJAX',cam.name,null,cam.specs,cam.price,cam.url,true,cam.img);
+    document.getElementById('ajax-cap-banner').classList.toggle('show',c>16);
+    var nvr=NVR_AJAX[(c<=8?'8':'16')+'-'+S.color];
+    nvrHtml+=pcard('ENREGISTREUR NVR AJAX',nvr.name,null,nvr.specs,nvr.price,nvr.url,true,nvr.img);
   } else {
     document.getElementById('ajax-cap-banner').classList.remove('show');
-    if(b==='hikvision') {
-      var cams = [
-        { name:'Dôme IP 4MP Varifocale', ref:'DS-2CD1743G2-IZ', specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 40m', price:ttcH(11360), url:BASE+'/product/camera-dome-ds-2cd1743g2-iz' },
-        { name:'Bullet IP 4MP Varifocale', ref:'DS-2CD1643G2-IZ', specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 50m', price:ttcH(10176), url:BASE+'/product/camera-bullet-ds-2cd1643g2-iz' }
+    var cams,nvr;
+    if(b==='hikvision'){
+      cams=[
+        {name:'Dôme IP 4MP Varifocale', ref:'DS-2CD1743G2-IZ', specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 40m', price:ttcH(11360), url:BASE+'/product/camera-dome-ds-2cd1743g2-iz',   img:ID.dome},
+        {name:'Bullet IP 4MP Varifocale',ref:'DS-2CD1643G2-IZ', specs:'4 MP · 2.8–12mm · IP67 · H.265+ · IR 50m', price:ttcH(10176), url:BASE+'/product/camera-bullet-ds-2cd1643g2-iz', img:ID.bullet}
       ];
-      var cam = S.type==='dome' ? cams[0] : cams[1];
-      camHtml = pcard('CAMÉRA HIKVISION', cam.name, cam.ref, cam.specs, cam.price, cam.url, false);
-      var nvr = NVR_HIK.find(function(n){ return n.max>=c; }) || NVR_HIK[2];
-      nvrHtml = pcard('ENREGISTREUR NVR', nvr.name, nvr.ref, nvr.specs, nvr.price, nvr.url, true);
+      var cam=cams[S.type==='dome'?0:1];
+      camHtml=pcard('CAMÉRA HIKVISION',cam.name,cam.ref,cam.specs,cam.price,cam.url,false,cam.img);
+      nvr=NVR_HIK.find(function(n){return n.max>=c;})||NVR_HIK[2];
+      nvrHtml=pcard('ENREGISTREUR NVR',nvr.name,nvr.ref,nvr.specs,nvr.price,nvr.url,true,nvr.img);
     } else {
-      var cams = [
-        { name:'Dôme IP 4MP Varifocale', ref:'IPC-HDBW2441R-ZS', specs:'4 MP · 2.7–13.5mm · IP67/IK10 · H.265+ · Micro', price:'113,18 €', url:BASE+'/product/camera-dome-ipc-hdbw2441r-zs' },
-        { name:'Bullet IP 4MP Varifocale', ref:'IPC-HFW2441T-ZAS', specs:'4 MP · 2.7–13.5mm · IP67/IK10 · H.265+ · Micro', price:'102,52 €', url:BASE+'/product/camera-bullet-ipc-hfw2441t-zas' }
+      cams=[
+        {name:'Dôme IP 4MP Varifocale', ref:'IPC-HDBW2441R-ZS', specs:'4 MP · 2.7–13.5mm · IP67/IK10 · H.265+ · Micro', price:'113,18 €', url:BASE+'/product/camera-dome-ipc-hdbw2441r-zs',   img:ID.dome},
+        {name:'Bullet IP 4MP Varifocale',ref:'IPC-HFW2441T-ZAS', specs:'4 MP · 2.7–13.5mm · IP67/IK10 · H.265+ · Micro', price:'102,52 €', url:BASE+'/product/camera-bullet-ipc-hfw2441t-zas', img:ID.bullet}
       ];
-      var cam = S.type==='dome' ? cams[0] : cams[1];
-      camHtml = pcard('CAMÉRA DAHUA', cam.name, cam.ref, cam.specs, cam.price, cam.url, false);
-      var nvr = NVR_DAH.find(function(n){ return n.max>=c; }) || NVR_DAH[2];
-      nvrHtml = pcard('ENREGISTREUR NVR', nvr.name, nvr.ref, nvr.specs, nvr.price, nvr.url, true);
+      var cam=cams[S.type==='dome'?0:1];
+      camHtml=pcard('CAMÉRA DAHUA',cam.name,cam.ref,cam.specs,cam.price,cam.url,false,cam.img);
+      nvr=NVR_DAH.find(function(n){return n.max>=c;})||NVR_DAH[2];
+      nvrHtml=pcard('ENREGISTREUR NVR',nvr.name,nvr.ref,nvr.specs,nvr.price,nvr.url,true,nvr.img);
     }
   }
 
-  document.getElementById('cam-grid').innerHTML = camHtml || '<p style="color:#999;font-size:13px">Sélection non disponible.</p>';
+  document.getElementById('cam-grid').innerHTML=camHtml||'<p style="color:#999;font-size:13px">Sélection non disponible.</p>';
 
-  // ── SWITCH (non lié à la marque) ──
-  var sw = SWITCHES.find(function(s){ return s.max>=c; }) || SWITCHES[2];
-  nvrHtml += pcard('SWITCH POE', sw.name, sw.ref, sw.specs, sw.price, sw.url, false);
+  var sw=SWITCHES.find(function(s){return s.max>=c;})||SWITCHES[2];
+  nvrHtml+=pcard('SWITCH POE',sw.name,sw.ref,sw.specs,sw.price,sw.url,false,sw.img);
 
-  // ── HDD ──
-  var hddCap = [1,2,4,6,8,10].find(function(x){ return x>=hdd; }) || 10;
-  var hddPrice = HDD_PRICES[hddCap] || 'Voir le prix';
-  nvrHtml += pcard('DISQUE DUR', 'Seagate SkyHawk '+hddCap+' To', null, 'Usage 24h/24 · Optimisé NVR/DVR · 3 ans de garantie', hddPrice, HDD_URL, false);
+  var hddCap=[1,2,4,6,8,10].find(function(x){return x>=S.hdd;})||10;
+  nvrHtml+=pcard('DISQUE DUR','Seagate SkyHawk '+hddCap+' To',null,'Usage 24h/24 · Optimisé NVR/DVR · 3 ans de garantie',HDD_PRICES[hddCap]||'Voir le prix',HDD_URL,false,HDD_IMG);
 
-  document.getElementById('nvr-hdd-grid').innerHTML = nvrHtml;
+  document.getElementById('nvr-hdd-grid').innerHTML=nvrHtml;
+  setTimeout(sendHeight,80);
 }
 
-// ─── CALCUL ───
-function calc() {
-  var c = +document.getElementById('nc').value;
-  var r = RES[+document.getElementById('res').value];
-  var f = FPS[+document.getElementById('fps').value];
-  var k = COMP[+document.getElementById('comp').value];
-  var d = +document.getElementById('days').value;
-  var m = S.mode===0 ? 1 : 0.25;
-  var gb = c*r*f*k*d*86400/8/1024*m*1.2;
-  var tb = gb/1024;
-  var hdd = HDD_SIZES.find(function(x){ return x>=tb; }) || 20;
-  S.cams=c; S.hdd=hdd;
-  document.getElementById('nc-val').textContent  = c;
-  document.getElementById('days-val').textContent = d;
-  document.getElementById('res-tb').textContent  = tb.toFixed(2)+' To';
-  document.getElementById('res-hdd').textContent = hdd+' To';
-  document.getElementById('res-gb').textContent  = Math.round(gb)+' Go';
+// ── CALCUL ──
+function calc(){
+  var c=+document.getElementById('nc').value;
+  var r=RES[+document.getElementById('res').value];
+  var f=FPS[+document.getElementById('fps').value];
+  var k=COMP[+document.getElementById('comp').value];
+  var d=+document.getElementById('days').value;
+  var m=S.mode===0?1:0.25;
+  var gb=c*r*f*k*d*86400/8/1024*m*1.2;
+  var tb=gb/1024;
+  var h=[1,2,4,6,8,10,16,20].find(function(x){return x>=tb;})||20;
+  S.cams=c; S.hdd=h;
+  document.getElementById('nc-val').textContent=c;
+  document.getElementById('days-val').textContent=d;
+  document.getElementById('res-tb').textContent=tb.toFixed(2)+' To';
+  document.getElementById('res-hdd').textContent=h+' To';
+  document.getElementById('res-gb').textContent=Math.round(gb)+' Go';
   render();
 }
 
-document.getElementById('nc').addEventListener('input', calc);
-document.getElementById('days').addEventListener('input', calc);
-document.getElementById('res').addEventListener('change', calc);
-document.getElementById('fps').addEventListener('change', calc);
-document.getElementById('comp').addEventListener('change', calc);
+document.getElementById('nc').addEventListener('input',calc);
+document.getElementById('days').addEventListener('input',calc);
+document.getElementById('res').addEventListener('change',calc);
+document.getElementById('fps').addEventListener('change',calc);
+document.getElementById('comp').addEventListener('change',calc);
 calc();
+
+// ── AUTO-RESIZE via postMessage ──
+function sendHeight(){
+  var h=Math.max(
+    document.body.scrollHeight, document.body.offsetHeight,
+    document.documentElement.scrollHeight, document.documentElement.offsetHeight
+  );
+  window.parent.postMessage({type:'calcHeight',height:h},'*');
+}
+
+// Envois immédiats + différés (images async)
+sendHeight();
+setTimeout(sendHeight,200);
+setTimeout(sendHeight,600);
+setTimeout(sendHeight,1200);
+
+window.addEventListener('load',function(){
+  sendHeight();
+  setTimeout(sendHeight,400);
+});
+
+// Re-send après chaque mutation DOM (render produits, show/hide sections)
+var _mo=new MutationObserver(function(){ setTimeout(sendHeight,60); });
+_mo.observe(document.body,{childList:true,subtree:true});
+
+// Re-send au resize (rotation mobile, redimensionnement)
+window.addEventListener('resize',function(){ setTimeout(sendHeight,150); });
 </script>
 </body>
 </html>
