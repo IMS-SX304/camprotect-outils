@@ -31,7 +31,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 .pi:hover{background:rgba(255,255,255,.05)}.pi.on{border-left-color:var(--br);background:rgba(232,93,4,.1)}
 .ic{width:17px;height:17px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;font-weight:700;color:#fff}
 .pla{flex:1;min-width:0}.pn{font-size:10.5px;font-weight:500;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ps{font-size:8.5px;color:rgba(255,255,255,.6);font-family:'DM Mono',monospace}.pp{font-size:9px;font-weight:600;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace}
+.ps{font-size:8.5px;color:rgba(255,255,255,.6);font-family:'DM Mono',monospace}.pp{font-size:9.5px;font-weight:700;color:#fff;font-family:'DM Mono',monospace}
 .sp{height:1px;background:rgba(255,255,255,.06);margin:3px 0}
 /* FLOOR TABS */
 #fbar{background:#1a2332;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 8px;height:32px;gap:2px;overflow-x:auto;flex-shrink:0}
@@ -126,8 +126,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 .qt{color:var(--rt);min-width:40px;text-align:right;font-family:'DM Mono',monospace;font-size:9px;font-weight:600}
 #qpe{color:#9ca3af;font-size:10.5px;text-align:center;padding:12px 0}
 #qtot{margin-top:5px;padding:5px 0 0;border-top:2px solid var(--br);display:none}
-#qtr{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--rt)}
-#qttv{font-size:8.5px;color:var(--rm);margin-top:1px;text-align:right}
+#qtr{display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:var(--rt)}
+#qttv{font-size:11px;color:var(--rm);margin-top:2px;text-align:right}
 /* MODALS */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px)}
 .modal-bg.show{display:flex}
@@ -362,25 +362,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
       <button onclick="showModal('email-modal')" style="background:var(--br);color:#fff;border:none;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">✉</button>
     </div>
     <div id="qp-items"><div id="qpe">Aucun équipement</div></div>
-    <div id="qtot">
+      <div id="qtot">
       <!-- Remise -->
-      <div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--bo)">
-        <span style="font-size:9.5px;color:var(--rm);flex:1">Remise</span>
+      <div style="display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid var(--bo)">
+        <span style="font-size:11px;color:var(--rm);flex:1">Remise</span>
         <input type="range" id="r-remise" min="0" max="40" value="0" style="flex:1;accent-color:var(--br)" oninput="ST.remise=+this.value;document.getElementById('v-remise').textContent=this.value+'%';updQ()">
-        <span style="font-size:9.5px;font-family:DM Mono,monospace;min-width:26px;color:var(--rt)" id="v-remise">0%</span>
+        <span style="font-size:11px;font-family:DM Mono,monospace;min-width:30px;color:var(--rt)" id="v-remise">0%</span>
       </div>
       <!-- Main d'œuvre -->
-      <div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--bo)">
-        <span style="font-size:9.5px;color:var(--rm);flex:1">Main d'œuvre</span>
-        <input type="number" id="inp-mo" min="0" step="0.5" value="0" style="width:36px;padding:1px 3px;border:1px solid var(--bo);border-radius:3px;font-size:9.5px;text-align:center;background:var(--sbg);color:var(--rt)" oninput="ST.moHours=+this.value;updQ()">
-        <span style="font-size:9px;color:var(--rm)">h ×</span>
-        <input type="number" id="inp-rate" min="0" value="45" style="width:30px;padding:1px 3px;border:1px solid var(--bo);border-radius:3px;font-size:9.5px;text-align:center;background:var(--sbg);color:var(--rt)" oninput="ST.moRate=+this.value;updQ()">
-        <span style="font-size:9px;color:var(--rm)">€</span>
+      <div style="display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid var(--bo)">
+        <span style="font-size:11px;color:var(--rm);flex:1">Main d'œuvre</span>
+        <input type="number" id="inp-mo" min="0" step="0.5" value="0" style="width:38px;padding:2px 4px;border:1px solid var(--bo);border-radius:3px;font-size:11px;text-align:center;background:var(--sbg);color:var(--rt)" oninput="ST.moHours=+this.value;updQ()">
+        <span style="font-size:10px;color:var(--rm)">h ×</span>
+        <input type="number" id="inp-rate" min="0" value="45" style="width:34px;padding:2px 4px;border:1px solid var(--bo);border-radius:3px;font-size:11px;text-align:center;background:var(--sbg);color:var(--rt)" oninput="ST.moRate=+this.value;updQ()">
+        <span style="font-size:10px;color:var(--rm)">€</span>
       </div>
       <div id="qtr"><span>Total HT</span><span id="qtv">—</span></div>
-      <div id="qttv" style="font-size:8.5px;color:var(--rm);text-align:right">TVA 20% : <span id="qtv2">—</span> · TTC : <span id="qttc">—</span></div>
-      <div id="q-time" style="font-size:8.5px;color:var(--br);text-align:right;margin-top:2px"></div>
-      <div id="q-surface" style="font-size:8.5px;color:#10b981;text-align:right;margin-top:1px"></div>
+      <div id="qttv" style="font-size:11px;color:var(--rm);text-align:right">TVA 20% : <span id="qtv2">—</span> · TTC : <span id="qttc">—</span></div>
+      <div id="q-time" style="font-size:10px;color:var(--br);text-align:right;margin-top:3px"></div>
+      <div id="q-surface" style="font-size:10px;color:#10b981;text-align:right;margin-top:2px"></div>
     </div>
   </div>
 </div>
@@ -491,6 +491,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
         <div class="fr"><label>Date devis</label><input type="date" id="cl-date"></div>
       </div>
       <div class="fr"><label>Notes internes</label><textarea id="cl-notes" rows="2" placeholder="Notes installateur..."></textarea></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--bo);margin-top:4px">
+        <input type="checkbox" id="cl-use-cp-logo" checked style="accent-color:var(--br);width:14px;height:14px">
+        <label for="cl-use-cp-logo" style="font-size:11px;color:var(--rt);cursor:pointer">Utiliser le logo CamProtect sur le devis PDF</label>
+      </div>
+      <div id="cl-logo-info" style="font-size:9.5px;color:var(--rm)">Décocher pour utiliser votre logo (chargé via bouton 🏢 Logo)</div>
     </div>
     <div class="mf">
       <button class="wb2 s" onclick="closeModal('client-modal')">Annuler</button>
@@ -566,7 +571,7 @@ const ST={
   heatRoomId:null,covItemId:null,
   bgImg:null,bgOp:0.3,
   noteTargetId:null,
-  client:{name:'',tel:'',addr:'',ref:'',date:'',notes:'',societe:'',chantier:'',chantierAddr:''},
+  client:{name:'',tel:'',addr:'',ref:'',date:'',notes:'',societe:'',chantier:'',chantierAddr:'',useCpLogo:true},
   remise:0,moHours:0,moRate:45,logoB64:null,
   snapStep:0.5,// configurable grid snap: 0.25, 0.5, 1
   heatCache:null,heatDirty:true,
@@ -726,9 +731,42 @@ function checkAlerts(){
   else bar.className='';
 }
 
+// ── FOND INTELLIGENT : vérifie si le fond extérieur est nécessaire ────────────
+function needsExteriorBg(){
+  if(ST.tels.length>0)return true;// terrain dessiné → conserver
+  const outdoorKeys=new Set(['mp_o','mc_o','cu','ss','bc28','bc4','tc28','tc4']);
+  for(const it of CF().items){
+    if(outdoorKeys.has(it.key))return true;// produit extérieur dans le plan
+    // Item placé hors des pièces → couverture externe
+    const inRoom=CF().rooms.some(r=>it.x>=r.x&&it.x<=r.x+r.w&&it.y>=r.y&&it.y<=r.y+r.h);
+    if(!inRoom&&P[it.key]?.range>0)return true;
+  }
+  return false;
+}
+
 // ── PDF PROFESSIONNEL ─────────────────────────────────────────────────────────
 function doPrint(){
+  // ── 1. Centrer automatiquement le plan pour le screenshot
+  const savedOx=ST.ox,savedOy=ST.oy,savedScale=ST.scale;
+  const savedGrid=ST.grid,savedMinimap=true;
+  // Temporarily disable grid and minimap for clean capture
+  const wasGrid=ST.grid;ST.grid=false;
+  // Disable minimap during render by patching drawMinimap temporarily
+  const _dm=window.drawMinimap;window.drawMinimap=()=>{};
+  // Smart background: hide if not needed
+  const wasShowBg=!!ST.bgImg;const needsBg=needsExteriorBg();
+  const _savedBgImg=ST.bgImg;
+  if(!needsBg)ST.bgImg=null;
+  // Fit all elements to center the plan
+  fitAll();
+  render();
   const dataURL=cv.toDataURL('image/png',1);
+  // Restore state
+  ST.grid=wasGrid;window.drawMinimap=_dm;ST.bgImg=_savedBgImg;
+  ST.ox=savedOx;ST.oy=savedOy;ST.scale=savedScale;
+  render();
+
+  // ── 2. Données devis
   const c=ST.client;
   const cnts={};ST.floors.forEach(f=>f.items.forEach(it=>cnts[it.key]=(cnts[it.key]||0)+1));
   const ord=['c','p','d','g','s','fire','k','cam','nvr','a'];
@@ -753,7 +791,8 @@ function doPrint(){
   const mins=calcTotalTime();const h=Math.floor(mins/60),mi=mins%60;
   const dateStr=c.date?new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}):new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
   const ref=c.ref||('CP-'+new Date().getFullYear()+'-'+String(Math.floor(Math.random()*900)+100));
-  const logo=ST.logoB64||'https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg';
+  const cpLogoUrl='https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg';
+  const logo=(c.useCpLogo!==false)?cpLogoUrl:(ST.logoB64||cpLogoUrl);
   const s=calcSurface();
   const w=window.open('');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Devis ${ref}</title>
@@ -851,6 +890,7 @@ function saveClient(){
   ST.client.ref=document.getElementById('cl-ref').value;
   ST.client.date=document.getElementById('cl-date').value;
   ST.client.notes=document.getElementById('cl-notes').value;
+  ST.client.useCpLogo=document.getElementById('cl-use-cp-logo')?.checked!==false;
   autoSave();closeModal('client-modal');
 }
 function loadClientForm(){
@@ -864,6 +904,8 @@ function loadClientForm(){
   document.getElementById('cl-ref').value=ST.client.ref||'';
   document.getElementById('cl-date').value=ST.client.date||new Date().toISOString().slice(0,10);
   document.getElementById('cl-notes').value=ST.client.notes||'';
+  const cpCheck=document.getElementById('cl-use-cp-logo');
+  if(cpCheck)cpCheck.checked=ST.client.useCpLogo!==false;
 }
 
 // EMAIL
