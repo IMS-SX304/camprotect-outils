@@ -293,9 +293,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
       <button class="t" id="tb-h" onclick="togHeat()">🌡 Heatmap</button>
       <button class="t on" id="tb-sn" onclick="togSnap()">⊹ Snap</button>
       <button class="t" id="tb-dk" onclick="togDark()">🌙 Nuit</button>
+      <button class="t" onclick="togFullscreen()" id="tb-fs" title="Plein écran">⛶</button>
       <button class="t" onclick="document.getElementById('bg-upload').click()">🖼 Fond</button>
+      <button class="t" onclick="document.getElementById('logo-upload').click()" title="Logo installateur">🏢 Logo</button>
+      <select id="snap-sel" onchange="ST.snapStep=+this.value" style="height:25px;padding:0 4px;border:1px solid rgba(0,0,0,.12);border-radius:4px;font-size:10px;font-family:'DM Sans',sans-serif;background:var(--sbg);color:var(--rt);cursor:pointer">
+        <option value="0.25">Snap 25cm</option>
+        <option value="0.5" selected>Snap 50cm</option>
+        <option value="1">Snap 1m</option>
+      </select>
     </div>
     <input type="file" id="bg-upload" accept="image/*" style="display:none" onchange="loadBg(this)">
+    <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="loadLogo(this)">
     <div id="snap-hint">🔒 Snap sur mur</div>
     <div id="measure-tip"></div>
     <div id="ib">Choisissez un élément · cliquez pour placer · double-clic sur équipement = note</div>
@@ -351,10 +359,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   <!-- QUOTE -->
   <div id="qp">
     <div id="qpt"><span>📋 Devis <small style="font-weight:400;color:var(--rm)">(tous étages)</small></span>
-      <button onclick="showModal('email-modal')" style="background:var(--br);color:#fff;border:none;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">✉ Envoyer</button>
+      <button onclick="showModal('email-modal')" style="background:var(--br);color:#fff;border:none;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">✉</button>
     </div>
     <div id="qp-items"><div id="qpe">Aucun équipement</div></div>
-    <div id="qtot"><div id="qtr"><span>Total HT</span><span id="qtv">—</span></div><div id="qttv">TVA 20% : <span id="qtv2">—</span> · TTC : <span id="qttc">—</span></div></div>
+    <div id="qtot">
+      <!-- Remise -->
+      <div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--bo)">
+        <span style="font-size:9.5px;color:var(--rm);flex:1">Remise</span>
+        <input type="range" id="r-remise" min="0" max="40" value="0" style="flex:1;accent-color:var(--br)" oninput="ST.remise=+this.value;document.getElementById('v-remise').textContent=this.value+'%';updQ()">
+        <span style="font-size:9.5px;font-family:DM Mono,monospace;min-width:26px;color:var(--rt)" id="v-remise">0%</span>
+      </div>
+      <!-- Main d'œuvre -->
+      <div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--bo)">
+        <span style="font-size:9.5px;color:var(--rm);flex:1">Main d'œuvre</span>
+        <input type="number" id="inp-mo" min="0" step="0.5" value="0" style="width:36px;padding:1px 3px;border:1px solid var(--bo);border-radius:3px;font-size:9.5px;text-align:center;background:var(--sbg);color:var(--rt)" oninput="ST.moHours=+this.value;updQ()">
+        <span style="font-size:9px;color:var(--rm)">h ×</span>
+        <input type="number" id="inp-rate" min="0" value="45" style="width:30px;padding:1px 3px;border:1px solid var(--bo);border-radius:3px;font-size:9.5px;text-align:center;background:var(--sbg);color:var(--rt)" oninput="ST.moRate=+this.value;updQ()">
+        <span style="font-size:9px;color:var(--rm)">€</span>
+      </div>
+      <div id="qtr"><span>Total HT</span><span id="qtv">—</span></div>
+      <div id="qttv" style="font-size:8.5px;color:var(--rm);text-align:right">TVA 20% : <span id="qtv2">—</span> · TTC : <span id="qttc">—</span></div>
+      <div id="q-time" style="font-size:8.5px;color:var(--br);text-align:right;margin-top:2px"></div>
+      <div id="q-surface" style="font-size:8.5px;color:#10b981;text-align:right;margin-top:1px"></div>
+    </div>
   </div>
 </div>
 </div>
@@ -450,11 +477,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
     <div class="mb">
       <div class="fr2">
         <div class="fr"><label>Nom client</label><input type="text" id="cl-name" placeholder="M. Dupont"></div>
-        <div class="fr"><label>Téléphone</label><input type="text" id="cl-tel" placeholder="06 XX XX XX XX"></div>
+        <div class="fr"><label>Société</label><input type="text" id="cl-societe" placeholder="SARL Dupont"></div>
       </div>
-      <div class="fr"><label>Adresse</label><input type="text" id="cl-addr" placeholder="12 rue de la Paix, 75001 Paris"></div>
       <div class="fr2">
-        <div class="fr"><label>Référence projet</label><input type="text" id="cl-ref" placeholder="CP-2026-001"></div>
+        <div class="fr"><label>Téléphone</label><input type="text" id="cl-tel" placeholder="06 XX XX XX XX"></div>
+        <div class="fr"><label>Email</label><input type="text" id="cl-email" placeholder="contact@..."></div>
+      </div>
+      <div class="fr"><label>Adresse client</label><input type="text" id="cl-addr" placeholder="12 rue de la Paix, 75001 Paris"></div>
+      <div class="fr"><label>Nom du chantier / projet</label><input type="text" id="cl-chantier" placeholder="Maison Dupont — Villa Les Pins"></div>
+      <div class="fr"><label>Adresse du chantier</label><input type="text" id="cl-chantierAddr" placeholder="Adresse du site à sécuriser"></div>
+      <div class="fr2">
+        <div class="fr"><label>Référence devis</label><input type="text" id="cl-ref" placeholder="CP-2026-001"></div>
         <div class="fr"><label>Date devis</label><input type="date" id="cl-date"></div>
       </div>
       <div class="fr"><label>Notes internes</label><textarea id="cl-notes" rows="2" placeholder="Notes installateur..."></textarea></div>
@@ -505,7 +538,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 // ══════════════════════════════════════════════════════
 const TC={t_ext:{n:'Terrain ext.',col:'#c8e6c9',brd:'#81c784',pat:'grass'},t_route:{n:'Route',col:'#eeeeee',brd:'#bdbdbd',pat:'hatch'},t_allee:{n:'Allée',col:'#f5f5f5',brd:'#e0e0e0',pat:'dots'},t_parking:{n:'Parking',col:'#e8eaf6',brd:'#9fa8da',pat:'solid'},t_pelouse:{n:'Jardin',col:'#dcedc8',brd:'#aed581',pat:'grass'},t_piscine:{n:'Piscine',col:'#b3e5fc',brd:'#4fc3f7',pat:'water'},t_terr:{n:'Terrasse',col:'#efebe9',brd:'#bcaaa4',pat:'grid'}};
 const OC={o_porte:{n:'Porte',ow:.9,col:'#78716c',ot:'d1'},o_porte2:{n:'Double porte',ow:1.6,col:'#57534e',ot:'d2'},o_fen:{n:'Fenêtre',ow:1.2,col:'#0ea5e9',ot:'w'},o_baie:{n:'Baie vitrée',ow:2.4,col:'#0284c7',ot:'bv'},o_gar:{n:'Porte garage',ow:2.5,col:'#6366f1',ot:'gr'}};
-const P={hub:{n:'Hub 2 (4G)',cat:'c',col:'#1a1a2e',fill:null,range:0,angle:0,price:308.66},hub_h:{n:'Hub Hybrid (4G)',cat:'c',col:'#0f172a',fill:null,range:0,angle:0,price:378.90,note:'Centrale hybride radio+filaire'},mp:{n:'MotionProtect',cat:'p',col:'#E85D04',fill:'rgba(232,93,4,.15)',range:12,angle:88.5,price:55.10,note:'PIR int·12m·88.5°'},mp_p:{n:'MotionProtect+',cat:'p',col:'#d05502',fill:'rgba(208,85,2,.15)',range:12,angle:88.5,price:74.90,note:'PIR dual·12m'},mp_o:{n:'Motion Outdoor',cat:'p',col:'#2d6a4f',fill:'rgba(45,106,79,.17)',range:15,angle:90,price:84.90,note:'PIR ext·15m·90°'},mc_o:{n:'MotionCam Out.',cat:'p',col:'#1b5e34',fill:'rgba(27,94,52,.17)',range:15,angle:90,price:149,note:'PIR+photo·15m'},cb:{n:'CombiProtect',cat:'p',col:'#7b2d8b',fill:'rgba(123,45,139,.14)',range:12,angle:88.5,price:64.90,note:'PIR+bris·12m'},cu:{n:'Curtain Outdoor',cat:'p',col:'#92400e',fill:'rgba(146,64,14,.17)',range:12,angle:15,price:89,note:'Rideau·12m'},dp:{n:'DoorProtect',cat:'d',col:'#7c3aed',fill:null,range:0,angle:0,price:32.48},dp_p:{n:'DoorProtect+',cat:'d',col:'#5b21b6',fill:null,range:0,angle:0,price:44.90},gp:{n:'GlassProtect',cat:'g',col:'#059669',fill:'rgba(5,150,105,.13)',range:9,angle:360,price:44.90,note:'Bris·9m·360°'},fp:{n:'FireProtect',cat:'fire',col:'#ef4444',fill:'rgba(239,68,68,.13)',range:6,angle:360,price:68.90,note:'Fumée+chaleur·6m·360°'},fp_p:{n:'FireProtect Plus',cat:'fire',col:'#dc2626',fill:'rgba(220,38,38,.13)',range:6,angle:360,price:88.90,note:'Fumée+CO+chaleur·360°'},fp2:{n:'FireProtect 2 RB',cat:'fire',col:'#b91c1c',fill:'rgba(185,28,28,.13)',range:6,angle:360,price:108.90,note:'Fumée+CO·certifié EN·360°'},hs:{n:'HomeSiren',cat:'s',col:'#dc2626',fill:'rgba(220,38,38,.09)',range:8,angle:360,price:55.10,note:'Sirène int·100dB',sound:true},ss:{n:'StreetSiren',cat:'s',col:'#991b1b',fill:'rgba(153,27,27,.09)',range:15,angle:360,price:119,note:'Sirène ext·113dB',sound:true},kp:{n:'Keypad',cat:'k',col:'#4a4e69',fill:null,range:0,angle:0,price:74.90},kp_p:{n:'Keypad Plus',cat:'k',col:'#22223b',fill:null,range:0,angle:0,price:94.90},bc28:{n:'BulletCam 2.8mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:100,price:164.9,note:'Bullet·100°H·IR35m'},bc4:{n:'BulletCam 4mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:75,price:164.9,note:'Bullet·75°H·IR35m'},dc28:{n:'DomeCam 2.8mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:107,price:154.9,note:'Dôme·107°H·IR15m'},dc4:{n:'DomeCam 4mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:84,price:154.9,note:'Dôme·84°H·IR15m'},tc28:{n:'TurretCam 2.8mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:107,price:174.9,note:'Tourelle·107°H·IR50m'},tc4:{n:'TurretCam 4mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:84,price:174.9,note:'Tourelle·84°H·IR50m'},nvr8:{n:'NVR Ajax 8 canaux',cat:'nvr',col:'#1e40af',fill:null,range:0,angle:0,price:388.90,note:'Enregistreur 8 caméras'},nvr16:{n:'NVR Ajax 16 canaux',cat:'nvr',col:'#1e3a8a',fill:null,range:0,angle:0,price:548.90,note:'Enregistreur 16 caméras'},mt:{n:'MultiTransmitter',cat:'a',col:'#64748b',fill:null,range:0,angle:0,price:118.90,note:'Intégration détecteurs filaires'},rex:{n:'ReX 2',cat:'a',col:'#6b7280',fill:null,range:0,angle:0,price:88.90}};
+const P={hub:{n:'Hub 2 (4G)',cat:'c',col:'#1a1a2e',fill:null,range:0,angle:0,price:308.66,time:120},hub_h:{n:'Hub Hybrid (4G)',cat:'c',col:'#0f172a',fill:null,range:0,angle:0,price:378.90,note:'Centrale hybride radio+filaire',time:150},mp:{n:'MotionProtect',cat:'p',col:'#E85D04',fill:'rgba(232,93,4,.15)',range:12,angle:88.5,price:55.10,note:'PIR int·12m·88.5°',time:20},mp_p:{n:'MotionProtect+',cat:'p',col:'#d05502',fill:'rgba(208,85,2,.15)',range:12,angle:88.5,price:74.90,note:'PIR dual·12m',time:20},mp_o:{n:'Motion Outdoor',cat:'p',col:'#2d6a4f',fill:'rgba(45,106,79,.17)',range:15,angle:90,price:84.90,note:'PIR ext·15m·90°',time:25},mc_o:{n:'MotionCam Out.',cat:'p',col:'#1b5e34',fill:'rgba(27,94,52,.17)',range:15,angle:90,price:149,note:'PIR+photo·15m',time:30},cb:{n:'CombiProtect',cat:'p',col:'#7b2d8b',fill:'rgba(123,45,139,.14)',range:12,angle:88.5,price:64.90,note:'PIR+bris·12m',time:20},cu:{n:'Curtain Outdoor',cat:'p',col:'#92400e',fill:'rgba(146,64,14,.17)',range:12,angle:15,price:89,note:'Rideau·12m',time:25},dp:{n:'DoorProtect',cat:'d',col:'#7c3aed',fill:null,range:0,angle:0,price:32.48,time:15},dp_p:{n:'DoorProtect+',cat:'d',col:'#5b21b6',fill:null,range:0,angle:0,price:44.90,time:15},gp:{n:'GlassProtect',cat:'g',col:'#059669',fill:'rgba(5,150,105,.13)',range:9,angle:360,price:44.90,note:'Bris·9m·360°',time:20},fp:{n:'FireProtect',cat:'fire',col:'#ef4444',fill:'rgba(239,68,68,.13)',range:6,angle:360,price:68.90,note:'Fumée+chaleur·6m·360°',time:20},fp_p:{n:'FireProtect Plus',cat:'fire',col:'#dc2626',fill:'rgba(220,38,38,.13)',range:6,angle:360,price:88.90,note:'Fumée+CO+chaleur·360°',time:20},fp2:{n:'FireProtect 2 RB',cat:'fire',col:'#b91c1c',fill:'rgba(185,28,28,.13)',range:6,angle:360,price:108.90,note:'Fumée+CO·certifié EN·360°',time:20},hs:{n:'HomeSiren',cat:'s',col:'#dc2626',fill:'rgba(220,38,38,.09)',range:8,angle:360,price:55.10,note:'Sirène int·100dB',sound:true,time:25},ss:{n:'StreetSiren',cat:'s',col:'#991b1b',fill:'rgba(153,27,27,.09)',range:15,angle:360,price:119,note:'Sirène ext·113dB',sound:true,time:35},kp:{n:'Keypad',cat:'k',col:'#4a4e69',fill:null,range:0,angle:0,price:74.90,time:30},kp_p:{n:'Keypad Plus',cat:'k',col:'#22223b',fill:null,range:0,angle:0,price:94.90,time:30},bc28:{n:'BulletCam 2.8mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:100,price:164.9,note:'Bullet·100°H·IR35m',time:45},bc4:{n:'BulletCam 4mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:75,price:164.9,note:'Bullet·75°H·IR35m',time:45},dc28:{n:'DomeCam 2.8mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:107,price:154.9,note:'Dôme·107°H·IR15m',time:45},dc4:{n:'DomeCam 4mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:84,price:154.9,note:'Dôme·84°H·IR15m',time:45},tc28:{n:'TurretCam 2.8mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:107,price:174.9,note:'Tourelle·107°H·IR50m',time:50},tc4:{n:'TurretCam 4mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:84,price:174.9,note:'Tourelle·84°H·IR50m',time:50},nvr8:{n:'NVR Ajax 8 canaux',cat:'nvr',col:'#1e40af',fill:null,range:0,angle:0,price:388.90,note:'Enregistreur 8 caméras',time:60},nvr16:{n:'NVR Ajax 16 canaux',cat:'nvr',col:'#1e3a8a',fill:null,range:0,angle:0,price:548.90,note:'Enregistreur 16 caméras',time:90},mt:{n:'MultiTransmitter',cat:'a',col:'#64748b',fill:null,range:0,angle:0,price:118.90,note:'Intégration détecteurs filaires',time:45},rex:{n:'ReX 2',cat:'a',col:'#6b7280',fill:null,range:0,angle:0,price:88.90,time:20}};
 const ALL={...TC,...OC,...P};
 const RC={living:'#fef3e8',bedroom:'#eff6ff',kitchen:'#f0fdf4',hallway:'#f5f5f5',bathroom:'#ecfeff',garage:'#f1f5f9',garden:'#dcfce7',office:'#f9fafb',storage:'#f8f8f8',other:'#faf5ff'};
 const RB={living:'#fbbf24',bedroom:'#93c5fd',kitchen:'#86efac',hallway:'#d1d5db',bathroom:'#67e8f9',garage:'#cbd5e1',garden:'#4ade80',office:'#e5e7eb',storage:'#e5e7eb',other:'#c4b5fd'};
@@ -533,7 +566,9 @@ const ST={
   heatRoomId:null,covItemId:null,
   bgImg:null,bgOp:0.3,
   noteTargetId:null,
-  client:{name:'',tel:'',addr:'',ref:'',date:'',notes:''},
+  client:{name:'',tel:'',addr:'',ref:'',date:'',notes:'',societe:'',chantier:'',chantierAddr:''},
+  remise:0,moHours:0,moRate:45,logoB64:null,
+  snapStep:0.5,// configurable grid snap: 0.25, 0.5, 1
   heatCache:null,heatDirty:true,
   // Multi-select
   multiSel:new Map(),rubber:null,
@@ -640,18 +675,6 @@ function updVersionList(){
 }
 
 // CATALOG CONNECTION
-async function fetchCatalog(){
-  try{
-    const r=await fetch('https://raw.githubusercontent.com/IMS-SX304/camprotect-outils/main/products-specs.json',{cache:'default'});
-    if(!r.ok)throw new Error();
-    // JSON loaded — we have specs but prices come from existing P object
-    document.getElementById('catalog-status').textContent='✓ Catalogue en ligne';
-    document.getElementById('catalog-status').style.color='rgba(16,185,129,.8)';
-  }catch(e){
-    document.getElementById('catalog-status').textContent='● Catalogue local';
-  }
-}
-
 // BACKGROUND IMAGE
 function loadBg(input){
   const f=input.files[0];if(!f)return;
@@ -660,11 +683,171 @@ function loadBg(input){
   r.readAsDataURL(f);
 }
 
+// LOGO INSTALLATEUR
+function loadLogo(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{ST.logoB64=e.target.result;try{localStorage.setItem('cp6_logo',e.target.result);}catch(e){}};
+  r.readAsDataURL(f);
+}
+
+// FULLSCREEN
+function togFullscreen(){
+  const fs=document.getElementById('main');
+  const btn=document.getElementById('tb-fs');
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+    btn.textContent='✕ Quitter';
+  } else {
+    document.exitFullscreen();
+    btn.textContent='⛶';
+  }
+}
+
+// HUB ALERT PRECISE
+function checkAlerts(){
+  const alerts=[];
+  const allItems=ST.floors.flatMap(f=>f.items);
+  const total=allItems.length;
+  const cats={};allItems.forEach(it=>{const pr=P[it.key];if(pr)cats[pr.cat]=(cats[pr.cat]||0)+1;});
+  if(total>100)alerts.push(`⚠ ${total} périphériques > 100 (limite Hub 2)`);
+  else if(total>80)alerts.push(`⚠ ${total}/100 périphériques (limite Hub 2 proche)`);
+  if((cats.p||0)+(cats.d||0)+(cats.g||0)+(cats.fire||0)>50)alerts.push('⚠ Plus de 50 détecteurs (limite Hub 2)');
+  if((cats.cam||0)>20)alerts.push('⚠ Plus de 20 caméras (limite Hub 2)');
+  const hasHub=allItems.find(it=>it.key==='hub'||it.key==='hub_h');
+  if(!hasHub&&allItems.length>0)alerts.push('⚠ Aucune centrale Hub détectée');
+  const hasCams=cats.cam>0;
+  const hasNVR=cats.nvr>0;
+  if(hasCams&&!hasNVR)alerts.push('⚠ Caméras sans NVR Ajax au devis');
+  const hasSiren=allItems.find(it=>it.key==='hs'||it.key==='ss');
+  if(allItems.length>2&&!hasSiren)alerts.push('ℹ Aucune sirène dans le plan');
+  const bar=document.getElementById('alerts-bar');
+  if(alerts.length){bar.className='show';bar.innerHTML=alerts.map(a=>`<span class="alert-item">${a}</span>`).join('<span style="opacity:.4;margin:0 4px">·</span>');}
+  else bar.className='';
+}
+
+// ── PDF PROFESSIONNEL ─────────────────────────────────────────────────────────
+function doPrint(){
+  const dataURL=cv.toDataURL('image/png',1);
+  const c=ST.client;
+  const cnts={};ST.floors.forEach(f=>f.items.forEach(it=>cnts[it.key]=(cnts[it.key]||0)+1));
+  const ord=['c','p','d','g','s','fire','k','cam','nvr','a'];
+  const sorted=Object.entries(cnts).sort((a,b)=>ord.indexOf(P[a[0]]?.cat)-ord.indexOf(P[b[0]]?.cat));
+  let matHT=0;let numRow=1;
+  const rows=sorted.map(([k,qty])=>{
+    const p=P[k];if(!p)return'';
+    const lt=p.price*qty;matHT+=lt;
+    return`<tr>
+      <td>${numRow++}</td>
+      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.col};margin-right:6px;vertical-align:middle"></span>${p.n}</td>
+      <td style="text-align:center">${qty}</td>
+      <td style="text-align:right">${p.price.toFixed(2)} €</td>
+      <td style="text-align:right;font-weight:600">${lt.toFixed(2)} €</td>
+    </tr>`;
+  }).join('');
+  const remise=ST.remise||0;
+  const matApres=matHT*(1-remise/100);
+  const moTotal=(ST.moHours||0)*(ST.moRate||45);
+  const totalHT=matApres+moTotal;
+  const tva=totalHT*.2;const ttc=totalHT*1.2;
+  const mins=calcTotalTime();const h=Math.floor(mins/60),mi=mins%60;
+  const dateStr=c.date?new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}):new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const ref=c.ref||('CP-'+new Date().getFullYear()+'-'+String(Math.floor(Math.random()*900)+100));
+  const logo=ST.logoB64||'https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg';
+  const s=calcSurface();
+  const w=window.open('');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Devis ${ref}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#000;position:relative}
+.top-left-bg{position:fixed;top:20px;left:20px;width:160px;height:58px;background:#25262d;border-radius:4px;z-index:10}
+.top-left-content{position:fixed;top:20px;left:20px;width:300px;height:58px;z-index:11;display:flex;align-items:center;padding:5px}
+.top-left-content img{max-height:48px;max-width:140px}
+.title-devis{position:fixed;top:20px;right:30px;font-size:26px;font-weight:700;color:#000;z-index:12;letter-spacing:1px}
+.main{max-width:760px;margin:100px auto 30px;padding:0 20px}
+.info-row{display:flex;gap:16px;margin-bottom:14px}
+.info-box{flex:1;border:1px solid #E85D04;font-size:11.5px}
+.info-box h4{background:#E85D04;color:#fff;padding:5px 10px;font-size:12px;font-weight:700;margin:0}
+.info-box-body{padding:8px 10px;line-height:1.6}
+.plan-img{width:100%;border:1px solid #e5e7eb;margin:14px 0 6px;border-radius:3px}
+h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin:14px 0 8px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#E85D04;color:#fff;padding:7px 10px;text-align:left;font-size:11px;font-weight:700}
+tbody td{border:1px solid #e5e7eb;padding:6px 10px}
+tbody tr:nth-child(even) td{background:#fafafa}
+.totals{margin-top:12px;text-align:right;font-size:12px}
+.tot-row{display:flex;justify-content:flex-end;gap:20px;padding:3px 0;border-bottom:1px solid #f3f4f6}
+.tot-row.main-tot{border-top:2px solid #E85D04;margin-top:4px;font-weight:700;font-size:13px;color:#E85D04}
+.footer{margin-top:20px;padding-top:8px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:9px;color:#9ca3af}
+@media print{.top-left-bg,.top-left-content,.title-devis{position:absolute}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body>
+<div class="top-left-bg"></div>
+<div class="top-left-content"><img src="${logo}" alt="Logo"></div>
+<div class="title-devis">DEVIS</div>
+<div class="main">
+  <div class="info-row">
+    <div class="info-box"><h4>N° DEVIS</h4><div class="info-box-body"><strong>${ref}</strong></div></div>
+    <div class="info-box"><h4>DATE</h4><div class="info-box-body">${dateStr}</div></div>
+  </div>
+  <div class="info-row">
+    <div class="info-box">
+      <h4>CLIENT</h4>
+      <div class="info-box-body">
+        ${c.societe?`<strong>${c.societe}</strong><br>`:''}
+        ${c.name||'—'}<br>
+        ${c.tel?c.tel+'<br>':''}
+        ${c.email?c.email+'<br>':''}
+        ${c.addr||''}
+      </div>
+    </div>
+    <div class="info-box">
+      <h4>CHANTIER / PROJET</h4>
+      <div class="info-box-body">
+        <strong>${c.chantier||'—'}</strong><br>
+        ${c.chantierAddr||''}
+        ${ST.floors.length>1?'<br><em>'+ST.floors.length+' étages</em>':''}
+        ${s.total>0?`<br>${s.covered}/${s.total} m² couverts (${s.pct}%)`:''}
+      </div>
+    </div>
+  </div>
+  <h2>Plan d'implantation — ${CF().name}</h2>
+  <img class="plan-img" src="${dataURL}">
+  <h2>Détail des équipements</h2>
+  <table>
+    <thead><tr><th>#</th><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:right">Prix unit. HT</th><th style="text-align:right">Total HT</th></tr></thead>
+    <tbody>${rows}
+    ${remise>0?`<tr><td colspan="4" style="text-align:right;font-style:italic">Remise ${remise}%</td><td style="text-align:right;color:#10b981">-${(matHT*remise/100).toFixed(2)} €</td></tr>`:''}
+    ${moTotal>0?`<tr><td colspan="2">Main d'œuvre (${ST.moHours}h × ${ST.moRate}€/h)</td><td colspan="2"></td><td style="text-align:right;font-weight:600">${moTotal.toFixed(2)} €</td></tr>`:''}
+    </tbody>
+  </table>
+  <div class="totals">
+    ${remise>0?`<div class="tot-row"><span>Matériel HT</span><span>${matHT.toFixed(2)} €</span></div>
+    <div class="tot-row"><span>Remise ${remise}%</span><span>-${(matHT*remise/100).toFixed(2)} €</span></div>`:''}
+    ${moTotal>0?`<div class="tot-row"><span>Main d'œuvre HT</span><span>${moTotal.toFixed(2)} €</span></div>`:''}
+    <div class="tot-row"><span><strong>Total HT</strong></span><span><strong>${totalHT.toFixed(2)} €</strong></span></div>
+    <div class="tot-row"><span>TVA 20%</span><span>${tva.toFixed(2)} €</span></div>
+    <div class="tot-row main-tot"><span>TOTAL TTC</span><span>${ttc.toFixed(2)} €</span></div>
+  </div>
+  ${mins>0?`<div style="text-align:right;font-size:11px;color:#6b7280;margin-top:8px">⏱ Durée de pose estimée : ${h}h${mi>0?mi+'min':''}</div>`:''}
+  ${c.notes?`<div style="margin-top:12px;font-size:11.5px;background:#f9fafb;padding:8px 12px;border-left:3px solid #E85D04"><strong>Notes :</strong> ${c.notes}</div>`:''}
+  <div class="footer">
+    <span>CamProtect.fr · Devis non contractuel · Prix HT</span>
+    <span>Généré le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</span>
+  </div>
+</div>
+<script>setTimeout(()=>window.print(),600)<\/script>
+</body></html>`);
+}
+
 // CLIENT INFO
 function saveClient(){
   ST.client.name=document.getElementById('cl-name').value;
+  ST.client.societe=document.getElementById('cl-societe').value;
   ST.client.tel=document.getElementById('cl-tel').value;
+  ST.client.email=document.getElementById('cl-email')?.value||'';
   ST.client.addr=document.getElementById('cl-addr').value;
+  ST.client.chantier=document.getElementById('cl-chantier').value;
+  ST.client.chantierAddr=document.getElementById('cl-chantierAddr').value;
   ST.client.ref=document.getElementById('cl-ref').value;
   ST.client.date=document.getElementById('cl-date').value;
   ST.client.notes=document.getElementById('cl-notes').value;
@@ -672,8 +855,12 @@ function saveClient(){
 }
 function loadClientForm(){
   document.getElementById('cl-name').value=ST.client.name||'';
+  document.getElementById('cl-societe').value=ST.client.societe||'';
   document.getElementById('cl-tel').value=ST.client.tel||'';
+  if(document.getElementById('cl-email'))document.getElementById('cl-email').value=ST.client.email||'';
   document.getElementById('cl-addr').value=ST.client.addr||'';
+  document.getElementById('cl-chantier').value=ST.client.chantier||'';
+  document.getElementById('cl-chantierAddr').value=ST.client.chantierAddr||'';
   document.getElementById('cl-ref').value=ST.client.ref||'';
   document.getElementById('cl-date').value=ST.client.date||new Date().toISOString().slice(0,10);
   document.getElementById('cl-notes').value=ST.client.notes||'';
@@ -790,7 +977,7 @@ const cv=document.getElementById('cv');const ctx=cv.getContext('2d');
 function resize(){const w=document.getElementById('cw');cv.width=w.clientWidth;cv.height=w.clientHeight;ST.heatDirty=true;updScale();render();}
 const toC=(x,y)=>({x:x*ST.scale+ST.ox,y:y*ST.scale+ST.oy});
 const toM=(x,y)=>({x:(x-ST.ox)/ST.scale,y:(y-ST.oy)/ST.scale});
-const sn=v=>ST.snap?Math.round(v*2)/2:Math.round(v*10)/10;
+const sn=v=>ST.snap?Math.round(v/ST.snapStep)*ST.snapStep:Math.round(v*10)/10;
 const isz=()=>Math.max(8,Math.min(18,ST.scale*.28));
 const dst=(ax,ay,bx,by)=>Math.hypot(ax-bx,ay-by);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1991,25 +2178,7 @@ function autoPlace(){
   ST.heatDirty=true;render();updQ();updLP();updZones();updStat();checkAlerts();
 }
 
-// ══════════════════════════════════════════════════════
-// ALERTS
-// ══════════════════════════════════════════════════════
-function checkAlerts(){
-  const alerts=[];
-  const allItems=ST.floors.flatMap(f=>f.items);
-  const total=allItems.length;
-  if(total>100)alerts.push(`⚠ ${total} périphériques > 100 (limite Hub 2)`);
-  const cams=allItems.filter(it=>P[it.key]?.cat==='cam');
-  const hasCams=cams.length>0;
-  const hasHub=allItems.find(it=>it.key==='hub');
-  if(!hasHub&&allItems.length>0)alerts.push('⚠ Aucune centrale Hub détectée');
-  if(hasCams&&!allItems.find(it=>it.key==='rex'||it.key==='hub'))alerts.push('⚠ Caméras placées sans NVR Ajax au devis');
-  const hasSiren=allItems.find(it=>it.key==='hs'||it.key==='ss');
-  if(allItems.length>2&&!hasSiren)alerts.push('ℹ Aucune sirène dans le plan');
-  const bar=document.getElementById('alerts-bar');
-  if(alerts.length){bar.className='show';bar.innerHTML=alerts.map(a=>`<span class="alert-item">${a}</span>`).join('<span style="opacity:.4;margin:0 4px">·</span>');}
-  else bar.className='';
-}
+
 
 // ══════════════════════════════════════════════════════
 // ZONES
@@ -2113,18 +2282,66 @@ function fitAll(){const all=[...CF().rooms,...ST.tels];if(!all.length)return;con
 // ══════════════════════════════════════════════════════
 // QUOTE
 // ══════════════════════════════════════════════════════
+function calcTotalTime(){
+  let mins=0;
+  ST.floors.forEach(f=>f.items.forEach(it=>{const pr=P[it.key];if(pr&&pr.time)mins+=pr.time;}));
+  // Cables: 30min per 10m of RJ45
+  ST.cables.forEach(c=>{if(c.style==='rj45'){let l=0;(c.pts||[]).forEach((p,i)=>{if(i>0){const dx=p.x-c.pts[i-1].x,dy=p.y-c.pts[i-1].y;l+=Math.sqrt(dx*dx+dy*dy);}});mins+=Math.round(l/10*30);}});
+  return mins;
+}
+
+function calcSurface(){
+  let total=0,covered=0;
+  const segs=wallSegs();
+  const step=0.6;
+  for(const r of CF().rooms){
+    total+=r.w*r.h;
+    for(let mx=r.x+step/2;mx<r.x+r.w;mx+=step){
+      for(let my=r.y+step/2;my<r.y+r.h;my+=step){
+        for(const it of CF().items){
+          const pr=P[it.key];if(!pr||pr.range===0||pr.sound)continue;
+          const dx=mx-it.x,dy=my-it.y;const d=Math.sqrt(dx*dx+dy*dy);
+          if(d>pr.range)continue;
+          if(pr.angle<360){const pa=((Math.atan2(dx,-dy)*180/Math.PI)+360)%360;const diff=Math.abs(((pa-it.rot)+180+360)%360-180);if(diff>pr.angle/2)continue;}
+          if(hasLOS(it.x,it.y,mx,my,segs)){covered+=step*step;break;}
+        }
+      }
+    }
+  }
+  return{total:total.toFixed(0),covered:Math.min(total,covered).toFixed(0),pct:total>0?Math.round(Math.min(100,covered/total*100)):0};
+}
+
 function updQ(){
   const c={};ST.floors.forEach(f=>f.items.forEach(it=>c[it.key]=(c[it.key]||0)+1));
   const el=document.getElementById('qp-items');const tot=document.getElementById('qtot');
   if(!Object.keys(c).length){el.innerHTML='<div id="qpe">Aucun équipement</div>';tot.style.display='none';return;}
   const ord=['c','p','d','g','s','fire','k','cam','nvr','a'];
   const sorted=Object.entries(c).sort((a,b)=>ord.indexOf(P[a[0]]?.cat)-ord.indexOf(P[b[0]]?.cat));
-  let total=0;
-  // Build numbering across all floors
-  const allNums={};const ctrs={};
-  ST.floors.forEach(f=>f.items.forEach(it=>{const pr=P[it.key];if(!pr)return;const pre=CPF[pr.cat]||'X';ctrs[pre]=(ctrs[pre]||0)+1;allNums[it.key]=pre+(String(ctrs[pre]).padStart(2,'0'));}));
-  el.innerHTML=sorted.map(([k,qty])=>{const p=P[k];if(!p)return'';const lt=p.price*qty;total+=lt;return`<div class="qi"><div class="qd" style="background:${p.col}"></div><div class="qn">${p.n}</div><div class="qq">×${qty}</div><div class="qt">${lt.toFixed(0)}€</div></div>`;}).join('');
-  tot.style.display='block';document.getElementById('qtv').textContent=total.toFixed(2)+' €';document.getElementById('qtv2').textContent=(total*.2).toFixed(2)+' €';document.getElementById('qttc').textContent=(total*1.2).toFixed(2)+' €';
+  let matHT=0;
+  el.innerHTML=sorted.map(([k,qty])=>{const p=P[k];if(!p)return'';const lt=p.price*qty;matHT+=lt;return`<div class="qi"><div class="qd" style="background:${p.col}"></div><div class="qn">${p.n}</div><div class="qq">×${qty}</div><div class="qt">${lt.toFixed(0)}€</div></div>`;}).join('');
+  // Apply remise
+  const remise=ST.remise||0;
+  const matApres=matHT*(1-remise/100);
+  // Main d'oeuvre
+  const moTotal=(ST.moHours||0)*(ST.moRate||45);
+  const totalHT=matApres+moTotal;
+  const tva=totalHT*.2;
+  const ttc=totalHT*1.2;
+  tot.style.display='block';
+  document.getElementById('qtv').textContent=totalHT.toFixed(2)+' €';
+  document.getElementById('qtv2').textContent=tva.toFixed(2)+' €';
+  document.getElementById('qttc').textContent=ttc.toFixed(2)+' €';
+  // Time estimate
+  const mins=calcTotalTime();
+  const h=Math.floor(mins/60),m=mins%60;
+  const tEl=document.getElementById('q-time');
+  if(tEl)tEl.textContent=mins>0?`⏱ Pose estimée : ${h}h${m>0?m+'min':''}`:''  ;
+  // Surface coverage (async-like: only if items exist)
+  const sEl=document.getElementById('q-surface');
+  if(sEl&&CF().items.some(it=>P[it.key]?.range>0&&!P[it.key]?.sound)){
+    const s=calcSurface();
+    sEl.textContent=`📐 Couverture : ${s.covered}/${s.total} m² (${s.pct}%)`;
+  } else if(sEl){sEl.textContent='';}
 }
 function updStat(){
   const totalI=ST.floors.reduce((s,f)=>s+f.items.length,0);
@@ -2165,50 +2382,81 @@ function clearAll(){
   wizUpdFloors();renderWR();updFloorBar();render();updQ();updLP();updZones();updStat();
 }
 
-function doPrint(){
-  const dataURL=cv.toDataURL('image/png',1);const c=ST.client;
-  const cnts={};ST.floors.forEach(f=>f.items.forEach(it=>cnts[it.key]=(cnts[it.key]||0)+1));
-  const ord=['c','p','d','g','s','fire','k','cam','nvr','a'];const sorted=Object.entries(cnts).sort((a,b)=>ord.indexOf(P[a[0]]?.cat)-ord.indexOf(P[b[0]]?.cat));
-  let tot=0;const rows=sorted.map(([k,qty])=>{const p=P[k];if(!p)return'';const lt=p.price*qty;tot+=lt;return`<tr><td><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${p.col};margin-right:5px;vertical-align:middle"></span>${p.n}</td><td style="text-align:center">${qty}</td><td style="text-align:right">${p.price.toFixed(2)} €</td><td style="text-align:right;font-weight:700">${lt.toFixed(2)} €</td></tr>`;}).join('');
-  const clientInfo=`${c.name||'—'}${c.tel?' · '+c.tel:''}<br>${c.addr||''}`;
-  const w=window.open('');
-  w.document.write(`<!DOCTYPE html><html><head><title>Devis Sécurité Ajax</title><style>
-  *{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;padding:20px;color:#111;max-width:940px;margin:0 auto}
-  .hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:3px solid #E85D04;margin-bottom:14px}
-  .hdr-l h1{color:#E85D04;font-size:16px;font-weight:700}.hdr-l p{font-size:10px;color:#6b7280;margin-top:2px}
-  .hdr-r{text-align:right;font-size:11px;color:#374151}
-  .client-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:8px 12px;margin-bottom:12px;font-size:11px}
-  .client-box b{color:#E85D04;font-size:9px;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:2px}
-  h2{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin:12px 0 7px}
-  img{max-width:100%;border:1px solid #e5e7eb;border-radius:4px}
-  table{width:100%;border-collapse:collapse;font-size:11px}th{background:#111827;color:#fff;padding:6px 9px;text-align:left;font-size:10px}
-  td{padding:4.5px 9px;border-bottom:1px solid #f3f4f6}tr.t td{font-weight:700;background:#fff5f0;border-top:2px solid #E85D04}
-  .ft{font-size:9px;color:#aaa;margin-top:12px;padding-top:8px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between}
-  @media print{body{padding:10px}}
-  </style></head><body>
-  <div class="hdr"><div class="hdr-l"><h1>🔒 Plan de sécurité Ajax</h1><p>CamProtect.fr</p></div><div class="hdr-r">${c.ref?'Réf. '+c.ref+'<br>':''}${c.date||new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</div></div>
-  <div class="client-box"><b>Client</b>${clientInfo}</div>
-  <h2>Plan d'implantation — ${CF().name}${ST.floors.length>1?' (tous étages sur PDF séparé)':''}</h2><img src="${dataURL}">
-  <h2>Devis estimatif (tous étages)</h2>
-  <table><thead><tr><th>Produit</th><th style="text-align:center">Qté</th><th style="text-align:right">Prix unit. HT</th><th style="text-align:right">Total HT</th></tr></thead>
-  <tbody>${rows}<tr class="t"><td colspan="3">Total HT</td><td style="text-align:right">${tot.toFixed(2)} €</td></tr><tr class="t"><td colspan="3">TVA 20%</td><td style="text-align:right">${(tot*.2).toFixed(2)} €</td></tr><tr class="t"><td colspan="3">Total TTC</td><td style="text-align:right">${(tot*1.2).toFixed(2)} €</td></tr></tbody></table>
-  ${c.notes?`<div style="margin-top:10px;font-size:11px;color:#374151"><b>Notes :</b> ${c.notes}</div>`:''}
-  <div class="ft"><span>Prix indicatifs HT · CamProtect.fr</span><span>Généré le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>
-  <script>setTimeout(()=>window.print(),500)<\/script></body></html>`);
+
+// ══════════════════════════════════════════════════════
+// WEBFLOW CMS — PRIX EN TEMPS RÉEL
+// ══════════════════════════════════════════════════════
+async function fetchCatalog(){
+  // Mapping nom produit CMS → clé produit dans P
+  const nameMap={
+    'ajax bulletcam 5mp 2.8mm':['bc28'],'ajax bulletcam 5mp 4mm':['bc4'],
+    'ajax bulletcam 8mp 2.8mm':['bc28'],'ajax bulletcam 8mp 4mm':['bc4'],
+    'ajax domecam mini 5mp 2.8mm':['dc28'],'ajax domecam mini 5mp 4mm':['dc4'],
+    'ajax turretcam 5mp 2.8mm':['tc28'],'ajax turretcam 5mp 4mm':['tc4'],
+    'ajax hub 2':['hub'],'ajax hub hybrid':['hub_h'],
+    'ajax motionprotect':['mp'],'ajax motionprotect plus':['mp_p'],
+    'ajax motionprotect outdoor':['mp_o'],'ajax motioncam outdoor':['mc_o'],
+    'ajax doorprotect':['dp'],'ajax doorprotect plus':['dp_p'],
+    'ajax glassprotect':['gp'],'ajax combiprotect':['cb'],
+    'ajax fireprotect':['fp'],'ajax fireprotect plus':['fp_p'],
+    'ajax homesiren':['hs'],'ajax streetsiren':['ss'],
+    'ajax keypad':['kp'],'ajax keypad plus':['kp_p'],
+    'ajax rex 2':['rex'],'ajax multitransmitter':['mt'],
+  };
+  try{
+    // Fetch products from Webflow CMS via public CDN (no API key needed for published items)
+    const url='https://ims-sx304.github.io/camprotect-outils/products-specs.json';
+    const r=await fetch(url,{cache:'default'});
+    if(!r.ok)throw new Error('offline');
+    const data=await r.json();
+    // Update prices from specs file if price field available
+    let updated=0;
+    if(Array.isArray(data)){
+      data.forEach(item=>{
+        const name=(item.name||'').toLowerCase();
+        for(const[k,keys]of Object.entries(nameMap)){
+          if(name.includes(k.split(' ').slice(-2).join(' '))||name===k){
+            keys.forEach(key=>{if(P[key]&&item.price){P[key].price=+item.price;updated++;}});
+          }
+        }
+      });
+    }
+    const el=document.getElementById('catalog-status');
+    el.textContent=updated>0?`✓ ${updated} prix mis à jour`:'✓ Catalogue en ligne';
+    el.style.color='rgba(16,185,129,.8)';
+  }catch(e){
+    const el=document.getElementById('catalog-status');
+    el.textContent='● Prix locaux';
+    el.style.color='rgba(255,255,255,.25)';
+  }
 }
 
 // ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
 window.addEventListener('resize',resize);
+// Restore saved logo
+try{const lg=localStorage.getItem('cp6_logo');if(lg)ST.logoB64=lg;}catch(e){}
 // Load saved plan
 if(loadSave()&&ST.floors.some(f=>f.rooms.length>0)){
   closeModal('wiz');
   fitAll();updFloorBar();render();updQ();updLP();updZones();updStat();checkAlerts();
+  // Sync UI sliders with loaded state
+  if(ST.remise){document.getElementById('r-remise').value=ST.remise;document.getElementById('v-remise').textContent=ST.remise+'%';}
+  if(ST.moHours)document.getElementById('inp-mo').value=ST.moHours;
+  if(ST.moRate)document.getElementById('inp-rate').value=ST.moRate;
+  if(ST.snapStep)document.getElementById('snap-sel').value=ST.snapStep;
 }
 resize();setMode('p');
-document.getElementById('tb-g').classList.add('on');document.getElementById('tb-c').classList.add('on');document.getElementById('tb-sn').classList.add('on');
+document.getElementById('tb-g').classList.add('on');
+document.getElementById('tb-c').classList.add('on');
+document.getElementById('tb-sn').classList.add('on');
 document.getElementById('r-bgop').addEventListener('input',function(){ST.bgOp=this.value/100;document.getElementById('v-bgop').textContent=this.value+'%';render();});
+// Fullscreen listener
+document.addEventListener('fullscreenchange',()=>{
+  const btn=document.getElementById('tb-fs');
+  if(btn)btn.textContent=document.fullscreenElement?'✕ Quitter':'⛶';
+});
 fetchCatalog();
 </script>
 </body>
