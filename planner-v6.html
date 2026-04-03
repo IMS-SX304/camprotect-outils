@@ -505,7 +505,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 // ══════════════════════════════════════════════════════
 const TC={t_ext:{n:'Terrain ext.',col:'#c8e6c9',brd:'#81c784',pat:'grass'},t_route:{n:'Route',col:'#eeeeee',brd:'#bdbdbd',pat:'hatch'},t_allee:{n:'Allée',col:'#f5f5f5',brd:'#e0e0e0',pat:'dots'},t_parking:{n:'Parking',col:'#e8eaf6',brd:'#9fa8da',pat:'solid'},t_pelouse:{n:'Jardin',col:'#dcedc8',brd:'#aed581',pat:'grass'},t_piscine:{n:'Piscine',col:'#b3e5fc',brd:'#4fc3f7',pat:'water'},t_terr:{n:'Terrasse',col:'#efebe9',brd:'#bcaaa4',pat:'grid'}};
 const OC={o_porte:{n:'Porte',ow:.9,col:'#78716c',ot:'d1'},o_porte2:{n:'Double porte',ow:1.6,col:'#57534e',ot:'d2'},o_fen:{n:'Fenêtre',ow:1.2,col:'#0ea5e9',ot:'w'},o_baie:{n:'Baie vitrée',ow:2.4,col:'#0284c7',ot:'bv'},o_gar:{n:'Porte garage',ow:2.5,col:'#6366f1',ot:'gr'}};
-const P={hub:{n:'Hub 2 (4G)',cat:'c',col:'#1a1a2e',fill:null,range:0,angle:0,price:308.66},hub_h:{n:'Hub Hybrid (4G)',cat:'c',col:'#0f172a',fill:null,range:0,angle:0,price:378.90,note:'Centrale hybride radio+filaire'},mp:{n:'MotionProtect',cat:'p',col:'#E85D04',fill:'rgba(232,93,4,.15)',range:12,angle:88.5,price:55.10,note:'PIR int·12m·88.5°'},mp_p:{n:'MotionProtect+',cat:'p',col:'#d05502',fill:'rgba(208,85,2,.15)',range:12,angle:88.5,price:74.90,note:'PIR dual·12m'},mp_o:{n:'Motion Outdoor',cat:'p',col:'#2d6a4f',fill:'rgba(45,106,79,.17)',range:15,angle:90,price:84.90,note:'PIR ext·15m·90°'},mc_o:{n:'MotionCam Out.',cat:'p',col:'#1b5e34',fill:'rgba(27,94,52,.17)',range:15,angle:90,price:149,note:'PIR+photo·15m'},cb:{n:'CombiProtect',cat:'p',col:'#7b2d8b',fill:'rgba(123,45,139,.14)',range:12,angle:88.5,price:64.90,note:'PIR+bris·12m'},cu:{n:'Curtain Outdoor',cat:'p',col:'#92400e',fill:'rgba(146,64,14,.17)',range:12,angle:15,price:89,note:'Rideau·12m'},dp:{n:'DoorProtect',cat:'d',col:'#7c3aed',fill:null,range:0,angle:0,price:32.48},dp_p:{n:'DoorProtect+',cat:'d',col:'#5b21b6',fill:null,range:0,angle:0,price:44.90},gp:{n:'GlassProtect',cat:'g',col:'#059669',fill:'rgba(5,150,105,.13)',range:9,angle:360,price:44.90,note:'Bris·9m·360°'},fp:{n:'FireProtect',cat:'fire',col:'#ef4444',fill:'rgba(239,68,68,.13)',range:6,angle:360,price:68.90,note:'Fumée+chaleur·6m·360°'},fp_p:{n:'FireProtect Plus',cat:'fire',col:'#dc2626',fill:'rgba(220,38,38,.13)',range:6,angle:360,price:88.90,note:'Fumée+CO+chaleur·360°'},fp2:{n:'FireProtect 2 RB',cat:'fire',col:'#b91c1c',fill:'rgba(185,28,28,.13)',range:6,angle:360,price:108.90,note:'Fumée+CO·certifié EN·360°'},hs:{n:'HomeSiren',cat:'s',col:'#dc2626',fill:'rgba(220,38,38,.09)',range:8,angle:360,price:55.10,note:'Sirène int·100dB'},ss:{n:'StreetSiren',cat:'s',col:'#991b1b',fill:'rgba(153,27,27,.09)',range:15,angle:360,price:119,note:'Sirène ext·113dB'},kp:{n:'Keypad',cat:'k',col:'#4a4e69',fill:null,range:0,angle:0,price:74.90},kp_p:{n:'Keypad Plus',cat:'k',col:'#22223b',fill:null,range:0,angle:0,price:94.90},bc28:{n:'BulletCam 2.8mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:100,price:164.9,note:'Bullet·100°H·IR35m'},bc4:{n:'BulletCam 4mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:75,price:164.9,note:'Bullet·75°H·IR35m'},dc28:{n:'DomeCam 2.8mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:107,price:154.9,note:'Dôme·107°H·IR15m'},dc4:{n:'DomeCam 4mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:84,price:154.9,note:'Dôme·84°H·IR15m'},tc28:{n:'TurretCam 2.8mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:107,price:174.9,note:'Tourelle·107°H·IR50m'},tc4:{n:'TurretCam 4mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:84,price:174.9,note:'Tourelle·84°H·IR50m'},nvr8:{n:'NVR Ajax 8 canaux',cat:'nvr',col:'#1e40af',fill:null,range:0,angle:0,price:388.90,note:'Enregistreur 8 caméras'},nvr16:{n:'NVR Ajax 16 canaux',cat:'nvr',col:'#1e3a8a',fill:null,range:0,angle:0,price:548.90,note:'Enregistreur 16 caméras'},mt:{n:'MultiTransmitter',cat:'a',col:'#64748b',fill:null,range:0,angle:0,price:118.90,note:'Intégration détecteurs filaires'},rex:{n:'ReX 2',cat:'a',col:'#6b7280',fill:null,range:0,angle:0,price:88.90}};
+const P={hub:{n:'Hub 2 (4G)',cat:'c',col:'#1a1a2e',fill:null,range:0,angle:0,price:308.66},hub_h:{n:'Hub Hybrid (4G)',cat:'c',col:'#0f172a',fill:null,range:0,angle:0,price:378.90,note:'Centrale hybride radio+filaire'},mp:{n:'MotionProtect',cat:'p',col:'#E85D04',fill:'rgba(232,93,4,.15)',range:12,angle:88.5,price:55.10,note:'PIR int·12m·88.5°'},mp_p:{n:'MotionProtect+',cat:'p',col:'#d05502',fill:'rgba(208,85,2,.15)',range:12,angle:88.5,price:74.90,note:'PIR dual·12m'},mp_o:{n:'Motion Outdoor',cat:'p',col:'#2d6a4f',fill:'rgba(45,106,79,.17)',range:15,angle:90,price:84.90,note:'PIR ext·15m·90°'},mc_o:{n:'MotionCam Out.',cat:'p',col:'#1b5e34',fill:'rgba(27,94,52,.17)',range:15,angle:90,price:149,note:'PIR+photo·15m'},cb:{n:'CombiProtect',cat:'p',col:'#7b2d8b',fill:'rgba(123,45,139,.14)',range:12,angle:88.5,price:64.90,note:'PIR+bris·12m'},cu:{n:'Curtain Outdoor',cat:'p',col:'#92400e',fill:'rgba(146,64,14,.17)',range:12,angle:15,price:89,note:'Rideau·12m'},dp:{n:'DoorProtect',cat:'d',col:'#7c3aed',fill:null,range:0,angle:0,price:32.48},dp_p:{n:'DoorProtect+',cat:'d',col:'#5b21b6',fill:null,range:0,angle:0,price:44.90},gp:{n:'GlassProtect',cat:'g',col:'#059669',fill:'rgba(5,150,105,.13)',range:9,angle:360,price:44.90,note:'Bris·9m·360°'},fp:{n:'FireProtect',cat:'fire',col:'#ef4444',fill:'rgba(239,68,68,.13)',range:6,angle:360,price:68.90,note:'Fumée+chaleur·6m·360°'},fp_p:{n:'FireProtect Plus',cat:'fire',col:'#dc2626',fill:'rgba(220,38,38,.13)',range:6,angle:360,price:88.90,note:'Fumée+CO+chaleur·360°'},fp2:{n:'FireProtect 2 RB',cat:'fire',col:'#b91c1c',fill:'rgba(185,28,28,.13)',range:6,angle:360,price:108.90,note:'Fumée+CO·certifié EN·360°'},hs:{n:'HomeSiren',cat:'s',col:'#dc2626',fill:'rgba(220,38,38,.09)',range:8,angle:360,price:55.10,note:'Sirène int·100dB',sound:true},ss:{n:'StreetSiren',cat:'s',col:'#991b1b',fill:'rgba(153,27,27,.09)',range:15,angle:360,price:119,note:'Sirène ext·113dB',sound:true},kp:{n:'Keypad',cat:'k',col:'#4a4e69',fill:null,range:0,angle:0,price:74.90},kp_p:{n:'Keypad Plus',cat:'k',col:'#22223b',fill:null,range:0,angle:0,price:94.90},bc28:{n:'BulletCam 2.8mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:100,price:164.9,note:'Bullet·100°H·IR35m'},bc4:{n:'BulletCam 4mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:75,price:164.9,note:'Bullet·75°H·IR35m'},dc28:{n:'DomeCam 2.8mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:107,price:154.9,note:'Dôme·107°H·IR15m'},dc4:{n:'DomeCam 4mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:84,price:154.9,note:'Dôme·84°H·IR15m'},tc28:{n:'TurretCam 2.8mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:107,price:174.9,note:'Tourelle·107°H·IR50m'},tc4:{n:'TurretCam 4mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:84,price:174.9,note:'Tourelle·84°H·IR50m'},nvr8:{n:'NVR Ajax 8 canaux',cat:'nvr',col:'#1e40af',fill:null,range:0,angle:0,price:388.90,note:'Enregistreur 8 caméras'},nvr16:{n:'NVR Ajax 16 canaux',cat:'nvr',col:'#1e3a8a',fill:null,range:0,angle:0,price:548.90,note:'Enregistreur 16 caméras'},mt:{n:'MultiTransmitter',cat:'a',col:'#64748b',fill:null,range:0,angle:0,price:118.90,note:'Intégration détecteurs filaires'},rex:{n:'ReX 2',cat:'a',col:'#6b7280',fill:null,range:0,angle:0,price:88.90}};
 const ALL={...TC,...OC,...P};
 const RC={living:'#fef3e8',bedroom:'#eff6ff',kitchen:'#f0fdf4',hallway:'#f5f5f5',bathroom:'#ecfeff',garage:'#f1f5f9',garden:'#dcfce7',office:'#f9fafb',storage:'#f8f8f8',other:'#faf5ff'};
 const RB={living:'#fbbf24',bedroom:'#93c5fd',kitchen:'#86efac',hallway:'#d1d5db',bathroom:'#67e8f9',garage:'#cbd5e1',garden:'#4ade80',office:'#e5e7eb',storage:'#e5e7eb',other:'#c4b5fd'};
@@ -1309,35 +1309,52 @@ function angleDiff(a,b){
 // ─────────────────────────────────────────────────────────────────────────────
 
 function drawCov(it){
-  // If isolation mode: only draw the selected item's coverage
   if(ST.covItemId && it.id!==ST.covItemId)return;
   const pr=P[it.key];if(!pr||!pr.fill||pr.range===0)return;
+  const p=toC(it.x,it.y);
 
+  // ── SIRÈNES : propagation sonore (cercles concentriques, passe à travers les murs)
+  if(pr.sound){
+    const R=pr.range*ST.scale;
+    ctx.save();
+    // 3 anneaux concentriques décroissants simulant l'atténuation sonore
+    [1,.65,.35].forEach((ratio,i)=>{
+      const r=R*ratio;
+      ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      ctx.strokeStyle=pr.col+(i===0?'88':i===1?'55':'33');
+      ctx.lineWidth=i===0?1.5:1;
+      ctx.setLineDash(i===0?[6,4]:i===1?[4,5]:[3,6]);
+      ctx.stroke();ctx.setLineDash([]);
+      if(i===0){ctx.fillStyle=pr.fill;ctx.fill();}
+    });
+    // Label portée
+    if(R>30){
+      ctx.font='9px DM Mono';ctx.fillStyle=pr.col;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(`♪ ${pr.range}m`,p.x,p.y-R*.55);
+    }
+    ctx.restore();
+    return;
+  }
+
+  // ── DÉTECTEURS / CAMÉRAS : raycasting wall-aware ─────────────────────────
   const segs=wallSegs();
   const poly=visPolygon(it,segs);
   if(!poly||poly.length<2)return;
-
   ctx.save();
   ctx.fillStyle=pr.fill;
   ctx.beginPath();
-  const f=toC(poly[0].x,poly[0].y);
-  ctx.moveTo(f.x,f.y);
+  const f=toC(poly[0].x,poly[0].y);ctx.moveTo(f.x,f.y);
   for(let i=1;i<poly.length;i++){const q=toC(poly[i].x,poly[i].y);ctx.lineTo(q.x,q.y);}
-  ctx.closePath();
-  ctx.fill();
+  ctx.closePath();ctx.fill();
   ctx.strokeStyle=pr.col+'55';ctx.lineWidth=.8;ctx.stroke();
-
-  // Center direction line for directional devices
   if(pr.angle<360){
     const rotRad=(it.rot-90)*Math.PI/180;
-    const p=toC(it.x,it.y);
     const t=castRay(it.x,it.y,Math.cos(rotRad),Math.sin(rotRad),pr.range,segs);
     const ep=toC(it.x+Math.cos(rotRad)*t,it.y+Math.sin(rotRad)*t);
     ctx.setLineDash([3,3]);ctx.strokeStyle=pr.col+'66';ctx.lineWidth=.7;
     ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(ep.x,ep.y);ctx.stroke();ctx.setLineDash([]);
   }
-
-  // Range label at centroid
   if(pr.range*ST.scale>36){
     const cx2=poly.reduce((s,p)=>s+p.x,0)/poly.length;
     const cy2=poly.reduce((s,p)=>s+p.y,0)/poly.length;
