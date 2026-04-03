@@ -1496,7 +1496,6 @@ cv.addEventListener('mousedown',e=>{
   if(tg.type in dragTypes&&tg.type!=='empty'){
     if(ST.locked.has(tg.obj.id)){doSel(tg.obj.id,tg.type);return;}
     doSel(tg.obj.id,tg.type);
-    // If multi-select active and dragging one of the group: drag all
     if(ST.multiSel.size>1&&ST.multiSel.has(`${tg.type}:${tg.obj.id}`)){
       ST.drag=true;ST.dragObj={multiGroup:true,ref:tg.obj,refX:tg.obj.x,refY:tg.obj.y};
       ST.dox=m.x-tg.obj.x;ST.doy=m.y-tg.obj.y;cv.style.cursor='grabbing';
@@ -1504,9 +1503,13 @@ cv.addEventListener('mousedown',e=>{
       startDrag(tg.obj,e);
     }
   } else {
-    // Start rubber-band on empty
-    ST.rubber={sx:m.x,sy:m.y,ex:m.x,ey:m.y};
-    ST.pan=false;ST.selId=null;render();
+    // Shift+drag → rubber band selection ; clic simple → pan
+    if(e.shiftKey){
+      ST.rubber={sx:m.x,sy:m.y,ex:m.x,ey:m.y};
+      ST.selId=null;render();
+    } else {
+      gopan(e);
+    }
   }
 });
 
@@ -1591,7 +1594,7 @@ function showCtxMenu(e,tg){
 
   document.getElementById('ctx-copy').style.display=isEl?'flex':'none';
   document.getElementById('ctx-paste').style.display=ST.clipboard?'flex':'none';
-  document.getElementById('ctx-rotate').style.display=isItem||tg.type==='open'?'flex':'none';
+  document.getElementById('ctx-rotate').style.display=(isItem&&(()=>{const it=CF().items.find(i=>i.id===tg.obj.id);return it&&P[it.key]&&P[it.key].angle>0&&P[it.key].angle<360;})()||tg.type==='open')?'flex':'none';
   document.getElementById('ctx-zone').style.display=isItem?'flex':'none';
   document.getElementById('ctx-note').style.display=isItem?'flex':'none';
   // Heat / coverage options
@@ -1649,9 +1652,8 @@ function ctxDelete(){
 }
 function ctxRotate(){
   if(!ctxTarget)return;
-  ST.showRot=true;
   doSel(ctxTarget.obj.id,ctxTarget.type);
-  ST.showRot=true;
+  ST.showRot=true;// force even if doSel set false (e.g. manual override)
   hideCtxMenu();render();
 }
 function ctxZone(){
@@ -1846,7 +1848,17 @@ function nudge(d){let o=null;if(ST.selType==='item')o=CF().items.find(i=>i.id===
 // SELECTION & CONTROLS
 // ══════════════════════════════════════════════════════
 function doSel(id,type){
-  ST.selId=id;ST.selType=type;ST.showRot=false;
+  ST.selId=id;ST.selType=type;
+  // Auto-show rotation widget only for products with a directional range (angle > 0 && < 360)
+  // Not for hub, keypad, doorprotect, nvr, rex, multitransmitter, sirens 360°, fire 360°
+  if(type==='item'){
+    const pr=P[id]||CF().items.find(i=>i.id===id)&&P[CF().items.find(i=>i.id===id).key];
+    const item=CF().items.find(i=>i.id===id);
+    const prod=item?P[item.key]:null;
+    ST.showRot=prod?prod.angle>0&&prod.angle<360:false;
+  } else {
+    ST.showRot=false;
+  }
   let o=null;
   if(type==='item')o=CF().items.find(i=>i.id===id);
   else if(type==='room')o=CF().rooms.find(i=>i.id===id);
