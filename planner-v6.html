@@ -1257,8 +1257,8 @@ function drawRoom(r){
   ctx.strokeStyle=brd;ctx.lineWidth=ST.locked.has(r.id)?wt*1.5:wt;ctx.strokeRect(p.x,p.y,w,h);
   const fs=Math.max(8,Math.min(13,ST.scale*.19));
   ctx.font=`600 ${fs}px 'DM Sans'`;ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillStyle=ST.dark?'rgba(255,255,255,.55)':'rgba(0,0,0,.45)';ctx.fillText(r.n,p.x+w/2,p.y+h/2);
-  if(w>65&&h>38){ctx.font=`500 ${Math.max(7,fs*.76)}px 'DM Mono'`;ctx.fillStyle=ST.dark?'rgba(255,255,255,.32)':'rgba(0,0,0,.28)';ctx.fillText(`${(r.w*r.h).toFixed(0)} m²`,p.x+w/2,p.y+h/2+fs);}
+  ctx.fillStyle=ST.dark?'rgba(255,255,255,.85)':'rgba(0,0,0,.75)';ctx.fillText(r.n,p.x+w/2,p.y+h/2);
+  if(w>65&&h>38){ctx.font=`600 ${Math.max(7,fs*.76)}px 'DM Mono'`;ctx.fillStyle=ST.dark?'rgba(255,255,255,.7)':'rgba(0,0,0,.65)';ctx.fillText(`${(r.w*r.h).toFixed(0)} m²`,p.x+w/2,p.y+h/2+fs);}
 }
 
 function drawOpen(o){
