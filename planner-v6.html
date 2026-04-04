@@ -69,7 +69,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 #note-popup .np-footer{display:flex;gap:4px;margin-top:5px;justify-content:flex-end}
 .npb{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
 .npb.s{background:var(--bo);color:var(--rt)}.npb.p{background:var(--br);color:#fff}
-/* CONTEXT MENU */
+/* PRODUCT DETAIL POPUP */
+#prod-detail{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:420px;max-width:96vw;background:var(--sbg);border:1px solid var(--bo);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);z-index:500;display:none;overflow:hidden;max-height:90vh;overflow-y:auto}
+#prod-detail.show{display:block}
+#pd-header{background:#25262d;padding:14px 16px;display:flex;align-items:center;gap:10px}
+#pd-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+#pd-title{flex:1}
+#pd-title h3{font-size:14px;font-weight:700;color:#fff;margin:0}
+#pd-title span{font-size:11px;color:rgba(255,255,255,.5)}
+#pd-close{color:rgba(255,255,255,.5);background:none;border:none;font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
+#pd-close:hover{color:#fff}
+#pd-body{padding:14px 16px}
+.pd-row{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.pd-chip{background:var(--lt);border:1px solid var(--bo);border-radius:5px;padding:4px 9px;font-size:10.5px;font-weight:600;color:var(--rt)}
+.pd-chip span{color:var(--rm);font-weight:400;margin-left:3px}
+.pd-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--rm);margin:10px 0 5px}
+.pd-price{font-size:18px;font-weight:700;color:var(--br);margin:8px 0 4px}
+.pd-btns{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.pd-btn{padding:7px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all .12s;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.pd-btn.primary{background:var(--br);color:#fff}.pd-btn.primary:hover{background:var(--brd)}
+.pd-btn.sec{background:var(--lt);color:var(--rt);border:1px solid var(--bo)}.pd-btn.sec:hover{background:var(--bo)}
+.pd-btn.pdf{background:#ef4444;color:#fff}.pd-btn.pdf:hover{background:#dc2626}
 #ctx-menu{position:fixed;display:none;z-index:300;background:var(--sbg);border:1px solid var(--bo);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.22);padding:4px 0;min-width:170px;font-family:'DM Sans',sans-serif}
 .ctx-item{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:11px;font-weight:500;cursor:pointer;color:var(--rt);transition:background .1s}
 .ctx-item:hover{background:var(--lt)}.ctx-item.red{color:#dc2626}.ctx-item.red:hover{background:#fef2f2}
@@ -211,38 +231,41 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   <div class="pi" data-k="o_gar"     onclick="sel('o_gar')">     <div class="ic" style="background:#6366f1">GR</div><div class="pla"><div class="pn">Porte garage</div><div class="ps">2.5m</div></div></div>
   <div class="sp"></div>
   <div class="cat">⬡ Centrale</div>
-  <div class="pi" data-k="hub"  onclick="sel('hub')">  <div class="ic" style="background:#1a1a2e">H</div><div class="pla"><div class="pn">Hub 2 (4G)</div></div><div class="pp">309€</div></div>
+  <div class="pi" data-k="hub"  onclick="sel('hub')">  <div class="ic" style="background:#1a1a2e">H</div><div class="pla"><div class="pn">Hub 2 (4G)</div><div class="ps">Centrale d'alarme</div></div><div class="pp">309€</div></div>
+  <div class="pi" data-k="hub_h" onclick="sel('hub_h')"><div class="ic" style="background:#0f172a">HH</div><div class="pla"><div class="pn">Hub Hybrid 4G</div><div class="ps">Centrale hybride</div></div><div class="pp">379€</div></div>
   <div class="sp"></div>
-  <div class="cat">◈ PIR</div>
-  <div class="pi" data-k="mp"   onclick="sel('mp')">   <div class="ic" style="background:#E85D04">M</div><div class="pla"><div class="pn">MotionProtect</div><div class="ps">12m·88°</div></div><div class="pp">55€</div></div>
-  <div class="pi" data-k="mp_p" onclick="sel('mp_p')"> <div class="ic" style="background:#d05502">M+</div><div class="pla"><div class="pn">MotionProtect+</div><div class="ps">12m·dual</div></div><div class="pp">75€</div></div>
-  <div class="pi" data-k="mp_o" onclick="sel('mp_o')"> <div class="ic" style="background:#2d6a4f">MO</div><div class="pla"><div class="pn">Motion Outdoor</div><div class="ps">15m·90°</div></div><div class="pp">85€</div></div>
-  <div class="pi" data-k="mc_o" onclick="sel('mc_o')"> <div class="ic" style="background:#1b5e34">CO</div><div class="pla"><div class="pn">MotionCam Out.</div><div class="ps">15m·photo</div></div><div class="pp">149€</div></div>
-  <div class="pi" data-k="cb"   onclick="sel('cb')">   <div class="ic" style="background:#7b2d8b">CB</div><div class="pla"><div class="pn">CombiProtect</div><div class="ps">12m+bris</div></div><div class="pp">65€</div></div>
-  <div class="pi" data-k="cu"   onclick="sel('cu')">   <div class="ic" style="background:#92400e">CU</div><div class="pla"><div class="pn">Curtain Outdoor</div><div class="ps">12m·rideau</div></div><div class="pp">89€</div></div>
+  <div class="cat">◈ PIR — Mouvement</div>
+  <div class="pi" data-k="mp"   onclick="sel('mp')">   <div class="ic" style="background:#E85D04">M</div><div class="pla"><div class="pn">MotionProtect</div><div class="ps">Détecteur · 12m · 88°</div></div><div class="pp">55€</div></div>
+  <div class="pi" data-k="mp_p" onclick="sel('mp_p')"> <div class="ic" style="background:#d05502">M+</div><div class="pla"><div class="pn">MotionProtect+</div><div class="ps">Détecteur dual · 12m</div></div><div class="pp">75€</div></div>
+  <div class="pi" data-k="mp_o" onclick="sel('mp_o')"> <div class="ic" style="background:#2d6a4f">MO</div><div class="pla"><div class="pn">Motion Outdoor</div><div class="ps">Détecteur ext. · 15m</div></div><div class="pp">85€</div></div>
+  <div class="pi" data-k="mc"   onclick="sel('mc')">   <div class="ic" style="background:#c2410c">MC</div><div class="pla"><div class="pn">MotionCam</div><div class="ps">Détecteur + photo · 12m</div></div><div class="pp">95€</div></div>
+  <div class="pi" data-k="mc_p" onclick="sel('mc_p')"> <div class="ic" style="background:#9a3412">MP</div><div class="pla"><div class="pn">MotionCam PhOD</div><div class="ps">Photo à la demande · 12m</div></div><div class="pp">115€</div></div>
+  <div class="pi" data-k="mc_o" onclick="sel('mc_o')"> <div class="ic" style="background:#1b5e34">CO</div><div class="pla"><div class="pn">MotionCam Out.</div><div class="ps">Détecteur photo ext. · 15m</div></div><div class="pp">149€</div></div>
+  <div class="pi" data-k="cb"   onclick="sel('cb')">   <div class="ic" style="background:#7b2d8b">CB</div><div class="pla"><div class="pn">CombiProtect</div><div class="ps">Mouvement + brisvitre · 12m</div></div><div class="pp">65€</div></div>
+  <div class="pi" data-k="cu"   onclick="sel('cu')">   <div class="ic" style="background:#92400e">CU</div><div class="pla"><div class="pn">Curtain Outdoor</div><div class="ps">Rideau extérieur · 12m</div></div><div class="pp">89€</div></div>
   <div class="sp"></div>
-  <div class="cat">▭ Contacts</div>
-  <div class="pi" data-k="dp"   onclick="sel('dp')">   <div class="ic" style="background:#7c3aed">D</div><div class="pla"><div class="pn">DoorProtect</div></div><div class="pp">32€</div></div>
-  <div class="pi" data-k="dp_p" onclick="sel('dp_p')"> <div class="ic" style="background:#5b21b6">D+</div><div class="pla"><div class="pn">DoorProtect+</div></div><div class="pp">45€</div></div>
+  <div class="cat">▭ Contacts ouverture</div>
+  <div class="pi" data-k="dp"   onclick="sel('dp')">   <div class="ic" style="background:#7c3aed">D</div><div class="pla"><div class="pn">DoorProtect</div><div class="ps">Contact porte / fenêtre</div></div><div class="pp">32€</div></div>
+  <div class="pi" data-k="dp_p" onclick="sel('dp_p')"> <div class="ic" style="background:#5b21b6">D+</div><div class="pla"><div class="pn">DoorProtect+</div><div class="ps">Contact inclinaison</div></div><div class="pp">45€</div></div>
   <div class="sp"></div>
-  <div class="cat">◎ Détect.</div>
-  <div class="pi" data-k="gp"   onclick="sel('gp')">   <div class="ic" style="background:#059669">G</div><div class="pla"><div class="pn">GlassProtect</div><div class="ps">9m·360°</div></div><div class="pp">45€</div></div>
+  <div class="cat">◎ Brisvitre</div>
+  <div class="pi" data-k="gp"   onclick="sel('gp')">   <div class="ic" style="background:#059669">G</div><div class="pla"><div class="pn">GlassProtect</div><div class="ps">Détecteur brisvitre · 9m</div></div><div class="pp">45€</div></div>
   <div class="sp"></div>
   <div class="cat">◬ Sirènes</div>
-  <div class="pi" data-k="hs"   onclick="sel('hs')">   <div class="ic" style="background:#dc2626">S</div><div class="pla"><div class="pn">HomeSiren</div><div class="ps">100dB</div></div><div class="pp">55€</div></div>
-  <div class="pi" data-k="ss"   onclick="sel('ss')">   <div class="ic" style="background:#991b1b">SE</div><div class="pla"><div class="pn">StreetSiren</div><div class="ps">113dB</div></div><div class="pp">119€</div></div>
+  <div class="pi" data-k="hs"   onclick="sel('hs')">   <div class="ic" style="background:#dc2626">S</div><div class="pla"><div class="pn">HomeSiren</div><div class="ps">Sirène intérieure · 100dB</div></div><div class="pp">55€</div></div>
+  <div class="pi" data-k="ss"   onclick="sel('ss')">   <div class="ic" style="background:#991b1b">SE</div><div class="pla"><div class="pn">StreetSiren</div><div class="ps">Sirène extérieure · 113dB</div></div><div class="pp">119€</div></div>
   <div class="sp"></div>
   <div class="cat">⌨ Claviers</div>
-  <div class="pi" data-k="kp"   onclick="sel('kp')">   <div class="ic" style="background:#4a4e69">K</div><div class="pla"><div class="pn">Keypad</div></div><div class="pp">75€</div></div>
-  <div class="pi" data-k="kp_p" onclick="sel('kp_p')"> <div class="ic" style="background:#22223b">K+</div><div class="pla"><div class="pn">Keypad Plus</div><div class="ps">RFID</div></div><div class="pp">95€</div></div>
+  <div class="pi" data-k="kp"   onclick="sel('kp')">   <div class="ic" style="background:#4a4e69">K</div><div class="pla"><div class="pn">Keypad</div><div class="ps">Clavier de commande</div></div><div class="pp">75€</div></div>
+  <div class="pi" data-k="kp_p" onclick="sel('kp_p')"> <div class="ic" style="background:#22223b">K+</div><div class="pla"><div class="pn">Keypad Plus</div><div class="ps">Clavier + lecteur RFID</div></div><div class="pp">95€</div></div>
   <div class="sp"></div>
   <div class="cat">📷 Caméras</div>
-  <div class="pi" data-k="bc28" onclick="sel('bc28')"><div class="ic" style="background:#0077b6">BC</div><div class="pla"><div class="pn">BulletCam 2.8</div><div class="ps">100°·35m</div></div><div class="pp">165€</div></div>
-  <div class="pi" data-k="bc4"  onclick="sel('bc4')"> <div class="ic" style="background:#0077b6">BC</div><div class="pla"><div class="pn">BulletCam 4mm</div><div class="ps">75°·35m</div></div><div class="pp">165€</div></div>
-  <div class="pi" data-k="dc28" onclick="sel('dc28')"><div class="ic" style="background:#0096c7">DC</div><div class="pla"><div class="pn">DomeCam 2.8</div><div class="ps">107°·15m</div></div><div class="pp">155€</div></div>
-  <div class="pi" data-k="dc4"  onclick="sel('dc4')"> <div class="ic" style="background:#0096c7">DC</div><div class="pla"><div class="pn">DomeCam 4mm</div><div class="ps">84°·15m</div></div><div class="pp">155€</div></div>
-  <div class="pi" data-k="tc28" onclick="sel('tc28')"><div class="ic" style="background:#00b4d8">TC</div><div class="pla"><div class="pn">TurretCam 2.8</div><div class="ps">107°·50m</div></div><div class="pp">175€</div></div>
-  <div class="pi" data-k="tc4"  onclick="sel('tc4')"> <div class="ic" style="background:#00b4d8">TC</div><div class="pla"><div class="pn">TurretCam 4mm</div><div class="ps">84°·50m</div></div><div class="pp">175€</div></div>
+  <div class="pi" data-k="bc28" onclick="sel('bc28')"><div class="ic" style="background:#0077b6">BC</div><div class="pla"><div class="pn">BulletCam 2.8mm</div><div class="ps">Caméra tube · 100°H · 35m IR</div></div><div class="pp">165€</div></div>
+  <div class="pi" data-k="bc4"  onclick="sel('bc4')"> <div class="ic" style="background:#0077b6">BC</div><div class="pla"><div class="pn">BulletCam 4mm</div><div class="ps">Caméra tube · 75°H · 35m IR</div></div><div class="pp">165€</div></div>
+  <div class="pi" data-k="dc28" onclick="sel('dc28')"><div class="ic" style="background:#0096c7">DC</div><div class="pla"><div class="pn">DomeCam Mini 2.8mm</div><div class="ps">Caméra dôme · 107°H · 15m IR</div></div><div class="pp">155€</div></div>
+  <div class="pi" data-k="dc4"  onclick="sel('dc4')"> <div class="ic" style="background:#0096c7">DC</div><div class="pla"><div class="pn">DomeCam Mini 4mm</div><div class="ps">Caméra dôme · 84°H · 15m IR</div></div><div class="pp">155€</div></div>
+  <div class="pi" data-k="tc28" onclick="sel('tc28')"><div class="ic" style="background:#00b4d8">TC</div><div class="pla"><div class="pn">TurretCam 2.8mm</div><div class="ps">Caméra tourelle · 107°H · 50m</div></div><div class="pp">175€</div></div>
+  <div class="pi" data-k="tc4"  onclick="sel('tc4')"> <div class="ic" style="background:#00b4d8">TC</div><div class="pla"><div class="pn">TurretCam 4mm</div><div class="ps">Caméra tourelle · 84°H · 50m</div></div><div class="pp">175€</div></div>
   <div class="sp"></div>
   <div class="cat">🧱 Cloisons</div>
   <div class="pi" onclick="startWall('interior')"> <div class="ic" style="background:#374151">━</div><div class="pla"><div class="pn">Cloison int.</div><div class="ps">tracer · Esc pour finir</div></div></div>
@@ -519,11 +542,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   </div>
 </div>
 
+<!-- PRODUCT DETAIL POPUP -->
+<div id="prod-detail">
+  <div id="pd-header">
+    <div id="pd-icon"></div>
+    <div id="pd-title"><h3 id="pd-name">—</h3><span id="pd-label">—</span></div>
+    <button id="pd-close" onclick="closeProductDetail()">×</button>
+  </div>
+  <div id="pd-body">
+    <div class="pd-price" id="pd-price">—</div>
+    <div id="pd-img-area"></div>
+    <div class="pd-section">Caractéristiques</div>
+    <div class="pd-row" id="pd-chips"></div>
+    <div class="pd-section" id="pd-dims-title" style="display:none">Dimensions</div>
+    <div id="pd-dims" style="font-size:11px;color:var(--rt)"></div>
+    <div class="pd-btns" id="pd-btns"></div>
+  </div>
+</div>
+
 <!-- CONTEXT MENU CLIC DROIT -->
 <div id="ctx-menu">
   <div class="ctx-item" id="ctx-copy"      onclick="ctxCopy()">   📋 Copier</div>
   <div class="ctx-item" id="ctx-paste"     onclick="ctxPaste()">  📌 Coller</div>
   <div class="ctx-sep" id="ctx-sep1"></div>
+  <div class="ctx-item" id="ctx-details"   onclick="ctxDetails()">🔍 Voir les détails</div>
   <div class="ctx-item" id="ctx-rotate"    onclick="ctxRotate()"> ↻ Afficher rotation</div>
   <div class="ctx-item" id="ctx-zone"      onclick="ctxZone()">   📡 Attribuer zone Ajax</div>
   <div class="ctx-item" id="ctx-note"      onclick="ctxNote()">   📝 Ajouter une note</div>
@@ -543,7 +585,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 // ══════════════════════════════════════════════════════
 const TC={t_ext:{n:'Terrain ext.',col:'#c8e6c9',brd:'#81c784',pat:'grass'},t_route:{n:'Route',col:'#eeeeee',brd:'#bdbdbd',pat:'hatch'},t_allee:{n:'Allée',col:'#f5f5f5',brd:'#e0e0e0',pat:'dots'},t_parking:{n:'Parking',col:'#e8eaf6',brd:'#9fa8da',pat:'solid'},t_pelouse:{n:'Jardin',col:'#dcedc8',brd:'#aed581',pat:'grass'},t_piscine:{n:'Piscine',col:'#b3e5fc',brd:'#4fc3f7',pat:'water'},t_terr:{n:'Terrasse',col:'#efebe9',brd:'#bcaaa4',pat:'grid'}};
 const OC={o_porte:{n:'Porte',ow:.9,col:'#78716c',ot:'d1'},o_porte2:{n:'Double porte',ow:1.6,col:'#57534e',ot:'d2'},o_fen:{n:'Fenêtre',ow:1.2,col:'#0ea5e9',ot:'w'},o_baie:{n:'Baie vitrée',ow:2.4,col:'#0284c7',ot:'bv'},o_gar:{n:'Porte garage',ow:2.5,col:'#6366f1',ot:'gr'}};
-const P={hub:{n:'Hub 2 (4G)',cat:'c',col:'#1a1a2e',fill:null,range:0,angle:0,price:308.66,time:120},hub_h:{n:'Hub Hybrid (4G)',cat:'c',col:'#0f172a',fill:null,range:0,angle:0,price:378.90,note:'Centrale hybride radio+filaire',time:150},mp:{n:'MotionProtect',cat:'p',col:'#E85D04',fill:'rgba(232,93,4,.15)',range:12,angle:88.5,price:55.10,note:'PIR int·12m·88.5°',time:20},mp_p:{n:'MotionProtect+',cat:'p',col:'#d05502',fill:'rgba(208,85,2,.15)',range:12,angle:88.5,price:74.90,note:'PIR dual·12m',time:20},mp_o:{n:'Motion Outdoor',cat:'p',col:'#2d6a4f',fill:'rgba(45,106,79,.17)',range:15,angle:90,price:84.90,note:'PIR ext·15m·90°',time:25},mc_o:{n:'MotionCam Out.',cat:'p',col:'#1b5e34',fill:'rgba(27,94,52,.17)',range:15,angle:90,price:149,note:'PIR+photo·15m',time:30},cb:{n:'CombiProtect',cat:'p',col:'#7b2d8b',fill:'rgba(123,45,139,.14)',range:12,angle:88.5,price:64.90,note:'PIR+bris·12m',time:20},cu:{n:'Curtain Outdoor',cat:'p',col:'#92400e',fill:'rgba(146,64,14,.17)',range:12,angle:15,price:89,note:'Rideau·12m',time:25},dp:{n:'DoorProtect',cat:'d',col:'#7c3aed',fill:null,range:0,angle:0,price:32.48,time:15},dp_p:{n:'DoorProtect+',cat:'d',col:'#5b21b6',fill:null,range:0,angle:0,price:44.90,time:15},gp:{n:'GlassProtect',cat:'g',col:'#059669',fill:'rgba(5,150,105,.13)',range:9,angle:360,price:44.90,note:'Bris·9m·360°',time:20},fp:{n:'FireProtect',cat:'fire',col:'#ef4444',fill:'rgba(239,68,68,.13)',range:6,angle:360,price:68.90,note:'Fumée+chaleur·6m·360°',time:20},fp_p:{n:'FireProtect Plus',cat:'fire',col:'#dc2626',fill:'rgba(220,38,38,.13)',range:6,angle:360,price:88.90,note:'Fumée+CO+chaleur·360°',time:20},fp2:{n:'FireProtect 2 RB',cat:'fire',col:'#b91c1c',fill:'rgba(185,28,28,.13)',range:6,angle:360,price:108.90,note:'Fumée+CO·certifié EN·360°',time:20},hs:{n:'HomeSiren',cat:'s',col:'#dc2626',fill:'rgba(220,38,38,.09)',range:8,angle:360,price:55.10,note:'Sirène int·100dB',sound:true,time:25},ss:{n:'StreetSiren',cat:'s',col:'#991b1b',fill:'rgba(153,27,27,.09)',range:15,angle:360,price:119,note:'Sirène ext·113dB',sound:true,time:35},kp:{n:'Keypad',cat:'k',col:'#4a4e69',fill:null,range:0,angle:0,price:74.90,time:30},kp_p:{n:'Keypad Plus',cat:'k',col:'#22223b',fill:null,range:0,angle:0,price:94.90,time:30},bc28:{n:'BulletCam 2.8mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:100,price:164.9,note:'Bullet·100°H·IR35m',time:45},bc4:{n:'BulletCam 4mm',cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:75,price:164.9,note:'Bullet·75°H·IR35m',time:45},dc28:{n:'DomeCam 2.8mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:107,price:154.9,note:'Dôme·107°H·IR15m',time:45},dc4:{n:'DomeCam 4mm',cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:84,price:154.9,note:'Dôme·84°H·IR15m',time:45},tc28:{n:'TurretCam 2.8mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:107,price:174.9,note:'Tourelle·107°H·IR50m',time:50},tc4:{n:'TurretCam 4mm',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:84,price:174.9,note:'Tourelle·84°H·IR50m',time:50},nvr8:{n:'NVR Ajax 8 canaux',cat:'nvr',col:'#1e40af',fill:null,range:0,angle:0,price:388.90,note:'Enregistreur 8 caméras',time:60},nvr16:{n:'NVR Ajax 16 canaux',cat:'nvr',col:'#1e3a8a',fill:null,range:0,angle:0,price:548.90,note:'Enregistreur 16 caméras',time:90},mt:{n:'MultiTransmitter',cat:'a',col:'#64748b',fill:null,range:0,angle:0,price:118.90,note:'Intégration détecteurs filaires',time:45},rex:{n:'ReX 2',cat:'a',col:'#6b7280',fill:null,range:0,angle:0,price:88.90,time:20}};
+const P={
+  hub:  {n:'Hub 2 (4G)',    label:'Centrale d\'alarme',  cat:'c',col:'#1a1a2e',fill:null,range:0,angle:0,price:308.66,time:120, env:'Intérieur',alim:'100-240V AC',ip:'IP20', slug:'ajax-hub-2-4g-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png',slugNoir:'ajax-hub-2-4g-noir',  fiche:'https://support.ajax.systems/fr/manuals/hub-2/'},
+  hub_h:{n:'Hub Hybrid 4G', label:'Centrale hybride',    cat:'c',col:'#0f172a',fill:null,range:0,angle:0,price:378.90,time:150, env:'Intérieur',alim:'100-240V AC',ip:'IP20', slug:'ajax-hub-hybrid-4g-blanc',fiche:null},
+  mp:   {n:'MotionProtect', label:'Détecteur de mouvement',cat:'p',col:'#E85D04',fill:'rgba(232,93,4,.15)',range:12,angle:88.5,price:55.10,time:20, env:'Intérieur',alim:'Pile CR123A',ip:'IP30',dims:'163×65×44mm', slug:'motionprotect-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6928313c359219e7effa6010_Design%20sans%20titre%20(26).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/692831ea44e7f54603612448_Design%20sans%20titre%20(27).png',slugNoir:'ajax-motionprotect-noir',    fiche:'https://support.ajax.systems/fr/manuals/motionprotect/'},
+  mp_p: {n:'MotionProtect+',label:'Détecteur de mouvement dual',cat:'p',col:'#d05502',fill:'rgba(208,85,2,.15)',range:12,angle:88.5,price:74.90,time:20, env:'Intérieur',alim:'Pile CR123A',ip:'IP30',dims:'163×65×44mm', slug:'ajax-motionprotect-plus-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6928313c359219e7effa6010_Design%20sans%20titre%20(26).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/692831ea44e7f54603612448_Design%20sans%20titre%20(27).png',slugNoir:'ajax-motionprotect-plus-noir',fiche:'https://support.ajax.systems/fr/manuals/motionprotect-plus/'},
+  mp_o: {n:'Motion Outdoor',label:'Détecteur mouvement extérieur',cat:'p',col:'#2d6a4f',fill:'rgba(45,106,79,.17)',range:15,angle:90,price:84.90,time:25, env:'Extérieur',alim:'Pile CR123A',ip:'IP55',dims:'197×65×62mm', slug:'ajax-motionprotect-outdoor-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69247ddee63e9f3dada6ab2b_Design%20sans%20titre%20(5).png',fiche:'https://support.ajax.systems/fr/manuals/motionprotect-outdoor/'},
+  mc:   {n:'MotionCam',     label:'Détecteur avec vérification photo',cat:'p',col:'#c2410c',fill:'rgba(194,65,12,.15)',range:12,angle:88.5,price:94.90,time:25, env:'Intérieur',alim:'Pile CR123A',ip:'IP30',dims:'163×65×44mm', slug:'ajax-motioncam-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69281547b092a2a58aefde5f_Design%20sans%20titre%20(24).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69281616b4a3d1136a1ea304_Design%20sans%20titre%20(25).png',slugNoir:'ajax-motioncam-noir',fiche:'https://support.ajax.systems/fr/manuals/motioncam/'},
+  mc_p: {n:'MotionCam PhOD',label:'Détecteur photo à la demande',cat:'p',col:'#9a3412',fill:'rgba(154,52,18,.15)',range:12,angle:88.5,price:114.90,time:25, env:'Intérieur',alim:'Pile CR123A',ip:'IP30',dims:'163×65×44mm', slug:'ajax-motioncam-phod-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69281547b092a2a58aefde5f_Design%20sans%20titre%20(24).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69281616b4a3d1136a1ea304_Design%20sans%20titre%20(25).png',slugNoir:'ajax-motioncam-phod-noir',fiche:null},
+  mc_o: {n:'MotionCam Out.',label:'Détecteur photo extérieur',  cat:'p',col:'#1b5e34',fill:'rgba(27,94,52,.17)',range:15,angle:90,price:149,time:30, env:'Extérieur',alim:'Pile CR123A',ip:'IP55',dims:'197×65×62mm', slug:'ajax-motioncam-outdoor-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6924635a1ed512b9de9f1907_Design%20sans%20titre%20(4).png',fiche:'https://support.ajax.systems/fr/manuals/motioncam-outdoor/'},
+  cb:   {n:'CombiProtect',  label:'Détecteur mouvement + bris de vitre',cat:'p',col:'#7b2d8b',fill:'rgba(123,45,139,.14)',range:12,angle:88.5,price:64.90,time:20, env:'Intérieur',alim:'Pile CR123A',ip:'IP30',dims:'163×65×44mm', slug:'ajax-combiprotect-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6928313c359219e7effa6010_Design%20sans%20titre%20(26).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/692831ea44e7f54603612448_Design%20sans%20titre%20(27).png',slugNoir:'ajax-combiprotect-noir',fiche:'https://support.ajax.systems/fr/manuals/combiprotect/'},
+  cu:   {n:'Curtain Outdoor',label:'Rideau de détection extérieur',cat:'p',col:'#92400e',fill:'rgba(146,64,14,.17)',range:12,angle:15,price:89,time:25, env:'Extérieur',alim:'Pile CR123A',ip:'IP55', slug:'ajax-curtain-outdoor-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69280b94637c1d75288b46e0_Design%20sans%20titre%20(20).png',fiche:'https://support.ajax.systems/fr/manuals/curtain-outdoor/'},
+  dp:   {n:'DoorProtect',   label:'Contact d\'ouverture',     cat:'d',col:'#7c3aed',fill:null,range:0,angle:0,price:32.48,time:15, env:'Intérieur',alim:'Pile CR2016',ip:'IP20', slug:'ajax-doorprotect-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69283ecbe78f464f196eb73f_Design%20sans%20titre%20(30).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69283f2e18cb725912337541_Design%20sans%20titre%20(31).png',slugNoir:'ajax-doorprotect-noir',  fiche:'https://support.ajax.systems/fr/manuals/doorprotect/'},
+  dp_p: {n:'DoorProtect+',  label:'Contact d\'ouverture incliné',cat:'d',col:'#5b21b6',fill:null,range:0,angle:0,price:44.90,time:15, env:'Intérieur',alim:'Pile CR2016',ip:'IP20', slug:'ajax-doorprotect-plus-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69283ecbe78f464f196eb73f_Design%20sans%20titre%20(30).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69283f2e18cb725912337541_Design%20sans%20titre%20(31).png',slugNoir:'ajax-doorprotect-plus-noir',fiche:'https://support.ajax.systems/fr/manuals/doorprotect-plus/'},
+  gp:   {n:'GlassProtect',  label:'Détecteur bris de vitre',  cat:'g',col:'#059669',fill:'rgba(5,150,105,.13)',range:9,angle:360,price:44.90,time:20, env:'Intérieur',alim:'Pile CR2032',ip:'IP20',dims:'65×27×19mm', slug:'ajax-glassprotect-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/692839ce6c2347512c215a7b_Design%20sans%20titre%20(28).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69283a6dea39bc08decbe4e4_Design%20sans%20titre%20(29).png',slugNoir:'ajax-glassprotect-noir',  fiche:'https://support.ajax.systems/fr/manuals/glassprotect/'},
+  fp:   {n:'FireProtect',   label:'Détecteur incendie',       cat:'fire',col:'#ef4444',fill:'rgba(239,68,68,.13)',range:6,angle:360,price:68.90,time:20, env:'Intérieur',alim:'Pile CR2430',ip:'IP30',dims:'Ø76×27mm', slug:'ajax-fireprotect-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69150a76f04f9285a15af5e6_171.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6914fe63021472b954797597_DHI-NVR5216-EI%20(1).png',slugNoir:'ajax-fireprotect-noir',   fiche:'https://support.ajax.systems/fr/manuals/fireprotect/'},
+  fp_p: {n:'FireProtect Plus',label:'Détecteur fumée + CO',    cat:'fire',col:'#dc2626',fill:'rgba(220,38,38,.13)',range:6,angle:360,price:88.90,time:20, env:'Intérieur',alim:'Pile CR2430',ip:'IP30', slug:'fireprotect-plus-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/691596da264a3c99f68e1d2a_Design%20sans%20titre%20(3).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/691592e190949d53862f8cde_Design%20sans%20titre%20(2).png',slugNoir:'ajax-fireprotect-plus-noir',   fiche:'https://support.ajax.systems/fr/manuals/fireprotect-plus/'},
+  fp2:  {n:'FireProtect 2 RB',label:'Détecteur incendie certifié EN',cat:'fire',col:'#b91c1c',fill:'rgba(185,28,28,.13)',range:6,angle:360,price:108.90,time:20, env:'Intérieur',alim:'Pile AA',ip:'IP30', slug:'ajax-fireprotect-2-rb-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/691596da264a3c99f68e1d2a_Design%20sans%20titre%20(3).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/691592e190949d53862f8cde_Design%20sans%20titre%20(2).png',slugNoir:'ajax-fireprotect-2-rb-noir',fiche:'https://support.ajax.systems/fr/manuals/fireprotect-2-rb/'},
+  hs:   {n:'HomeSiren',     label:'Sirène intérieure',         cat:'s',col:'#dc2626',fill:'rgba(220,38,38,.09)',range:8,angle:360,price:55.10,time:25,sound:true, env:'Intérieur',alim:'Pile CR123A',ip:'IP30',dims:'160×90×40mm', slug:'ajax-homesiren-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/692809052fc9f046bdc9a637_Design%20sans%20titre%20(19).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69280860bdc3ba581946db58_Design%20sans%20titre%20(18).png',slugNoir:'ajax-homesiren-noir',     fiche:'https://support.ajax.systems/fr/manuals/homesiren/'},
+  ss:   {n:'StreetSiren',   label:'Sirène extérieure',         cat:'s',col:'#991b1b',fill:'rgba(153,27,27,.09)',range:15,angle:360,price:119,time:35,sound:true, env:'Extérieur',alim:'Pile CR123A',ip:'IP55',dims:'240×140×62mm', slug:'ajax-streetsiren-blanc',   fiche:'https://support.ajax.systems/fr/manuals/streetsiren/'},
+  kp:   {n:'Keypad',        label:'Clavier de commande',       cat:'k',col:'#4a4e69',fill:null,range:0,angle:0,price:74.90,time:30, env:'Intérieur',alim:'Pile 4×AA',ip:'IP30', slug:'ajax-keypad-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6927264754c405f62aa32ef3_Design%20sans%20titre%20(11).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/692725c045d74d5cedd27196_Design%20sans%20titre%20(10).png',slugNoir:'ajax-keypad-noir',        fiche:'https://support.ajax.systems/fr/manuals/keypad/'},
+  kp_p: {n:'Keypad Plus',   label:'Clavier RFID',              cat:'k',col:'#22223b',fill:null,range:0,angle:0,price:94.90,time:30, env:'Intérieur',alim:'Pile 4×AA',ip:'IP30', slug:'ajax-keypad-plus-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6927264754c405f62aa32ef3_Design%20sans%20titre%20(11).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/692725c045d74d5cedd27196_Design%20sans%20titre%20(10).png',slugNoir:'ajax-keypad-plus-noir',   fiche:'https://support.ajax.systems/fr/manuals/keypad-plus/'},
+  bc28: {n:'BulletCam 2.8mm',label:'Caméra tube grand angle',  cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:100,price:164.9,time:45, env:'Ext./Int.',alim:'PoE / 12V DC',ip:'IP67',dims:'255×75×75mm', slug:'ajax-bulletcam-blanche-5mp-2-8mm',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69c54add9b42009c2fb9116b_Bulletcam%205MP-2.8%20Blanche.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69c81a60bb5afb2f5d3c1322_Bulletcam%205MP-2.8%20noire%20.png',slugNoir:'camera-bullet-ajax-5mp-noire',fiche:'https://support.ajax.systems/fr/manuals/bulletcam/'},
+  bc4:  {n:'BulletCam 4mm', label:'Caméra tube téléobjectif',  cat:'cam',col:'#0077b6',fill:'rgba(0,119,182,.12)',range:35,angle:75,price:164.9,time:45, env:'Ext./Int.',alim:'PoE / 12V DC',ip:'IP67',dims:'255×75×75mm', slug:'camera-bullet-ajax-5mp-4mm-blanche',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69c54add9b42009c2fb9116b_Bulletcam%205MP-2.8%20Blanche.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69c81a60bb5afb2f5d3c1322_Bulletcam%205MP-2.8%20noire%20.png',slugNoir:'camera-bullet-ajax-5mp-4mm-noire',fiche:'https://support.ajax.systems/fr/manuals/bulletcam/'},
+  dc28: {n:'DomeCam 2.8mm', label:'Caméra dôme grand angle',   cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:107,price:154.9,time:45, env:'Ext./Int.',alim:'PoE / 12V DC',ip:'IP42',dims:'Ø100×72mm', slug:'camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69cb6f2d3696164fd91fff25_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20blanche.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ca8d0b53b8f1f9d7f31357_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20noire.png',slugNoir:'camera-dome-ajax-domecam-mini-5mp-2-8mm-noire',fiche:'https://support.ajax.systems/fr/manuals/domecam-mini/'},
+  dc4:  {n:'DomeCam 4mm',   label:'Caméra dôme téléobjectif',  cat:'cam',col:'#0096c7',fill:'rgba(0,150,199,.12)',range:15,angle:84,price:154.9,time:45, env:'Ext./Int.',alim:'PoE / 12V DC',ip:'IP42',dims:'Ø100×72mm', slug:'camera-dome-ajax-domecam-mini-5mp-4mm-blanche',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69cb6f2d3696164fd91fff25_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20blanche.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ca8d0b53b8f1f9d7f31357_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20noire.png',slugNoir:'camera-dome-ajax-domecam-mini-5mp-4mm-noire',fiche:'https://support.ajax.systems/fr/manuals/domecam-mini/'},
+  tc28: {n:'TurretCam 2.8mm',label:'Caméra tourelle grand angle',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:107,price:174.9,time:50, env:'Ext./Int.',alim:'PoE / 12V DC',ip:'IP67',dims:'Ø100×82mm', slug:'camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69cbca248634db3c54041e77_TurretCam%20blanche.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69cba6ddb7f897c56f45bb0f_TurretCam%20noire.png',slugNoir:'camera-tourelle-ajax-turretcam-5mp-2-8mm-noire',fiche:'https://support.ajax.systems/fr/manuals/turretcam/'},
+  tc4:  {n:'TurretCam 4mm', label:'Caméra tourelle téléobjectif',cat:'cam',col:'#00b4d8',fill:'rgba(0,180,216,.12)',range:50,angle:84,price:174.9,time:50, env:'Ext./Int.',alim:'PoE / 12V DC',ip:'IP67',dims:'Ø100×82mm', slug:'camera-tourelle-ajax-turretcam-5mp-4mm-blanche',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69cbca248634db3c54041e77_TurretCam%20blanche.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69cba6ddb7f897c56f45bb0f_TurretCam%20noire.png',slugNoir:'camera-tourelle-ajax-turretcam-5mp-4mm-noire',fiche:'https://support.ajax.systems/fr/manuals/turretcam/'},
+  nvr8: {n:'NVR Ajax 8 ch.',label:'Enregistreur vidéo 8 caméras',cat:'nvr',col:'#1e40af',fill:null,range:0,angle:0,price:388.90,time:60, env:'Intérieur',alim:'100-240V AC',ip:'IP20', slug:'enregistreur-nvr-ajax-8-canaux-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccd4ed737bd56e31d2c861_NVR%20Ajax%20noir.png',slugNoir:'enregistreur-nvr-ajax-8-canaux-noir',fiche:'https://support.ajax.systems/fr/manuals/nr108-ajax/'},
+  nvr16:{n:'NVR Ajax 16 ch.',label:'Enregistreur vidéo 16 caméras',cat:'nvr',col:'#1e3a8a',fill:null,range:0,angle:0,price:548.90,time:90, env:'Intérieur',alim:'100-240V AC',ip:'IP20', slug:'enregistreur-nvr-ajax-16-canaux-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccd4ed737bd56e31d2c861_NVR%20Ajax%20noir.png',slugNoir:'enregistreur-nvr-ajax-16-canaux-noir',fiche:'https://support.ajax.systems/fr/manuals/nr116-ajax/'},
+  mt:   {n:'MultiTransmitter',label:'Intégrateur détecteurs filaires',cat:'a',col:'#64748b',fill:null,range:0,angle:0,price:118.90,time:45, env:'Intérieur',alim:'12V DC',ip:'IP30', slug:'ajax-multitransmitter-blanc',imgBlanc:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69287866772372606fe26ac0_Design%20sans%20titre%20(37).png',imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/6928779ce2ae3db0e4d601ea_Design%20sans%20titre%20(36).png',slugNoir:'multitransmitter-noir',fiche:'https://support.ajax.systems/fr/manuals/multitransmitter/'},
+  rex:  {n:'ReX 2',          label:'Amplificateur de portée',   cat:'a',col:'#6b7280',fill:null,range:0,angle:0,price:88.90,time:20, env:'Intérieur',alim:'Pile CR123A',ip:'IP20', slug:'ajax-rex-2-blanc',         fiche:'https://support.ajax.systems/fr/manuals/rex-2/'},
+};
 const ALL={...TC,...OC,...P};
 const RC={living:'#fef3e8',bedroom:'#eff6ff',kitchen:'#f0fdf4',hallway:'#f5f5f5',bathroom:'#ecfeff',garage:'#f1f5f9',garden:'#dcfce7',office:'#f9fafb',storage:'#f8f8f8',other:'#faf5ff'};
 const RB={living:'#fbbf24',bedroom:'#93c5fd',kitchen:'#86efac',hallway:'#d1d5db',bathroom:'#67e8f9',garage:'#cbd5e1',garden:'#4ade80',office:'#e5e7eb',storage:'#e5e7eb',other:'#c4b5fd'};
@@ -1168,8 +1241,8 @@ function drawTE(t){
   ctx.fillStyle=mkPat(cfg.pat,cfg.col);ctx.fillRect(0,0,w,h);
   ctx.strokeStyle=ST.locked.has(t.id)?'rgba(232,93,4,.6)':cfg.brd;ctx.lineWidth=ST.locked.has(t.id)?2:1.5;ctx.strokeRect(0,0,w,h);
   const fs=Math.max(8,Math.min(12,ST.scale*.18));
-  if(w>40&&h>20){ctx.font=`500 ${fs}px 'DM Sans'`;ctx.fillStyle='rgba(0,0,0,.38)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(cfg.n,w/2,h/2);}
-  if(w>70&&h>35){ctx.font=`400 ${Math.max(7,fs*.8)}px 'DM Mono'`;ctx.fillStyle='rgba(0,0,0,.26)';ctx.fillText(`${t.w}×${t.h}m=${(t.w*t.h).toFixed(0)}m²`,w/2,h/2+fs);}
+  if(w>40&&h>20){ctx.font=`600 ${fs}px 'DM Sans'`;ctx.fillStyle='rgba(0,0,0,.7)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(cfg.n,w/2,h/2-(w>70&&h>35?fs*.6:0));}
+  if(w>70&&h>35){ctx.font=`500 ${Math.max(7,fs*.85)}px 'DM Mono'`;ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillText(`${(t.w*t.h).toFixed(0)} m²`,w/2,h/2+fs*.7);}
   ctx.restore();
 }
 
@@ -1731,7 +1804,10 @@ cv.addEventListener('mousedown',e=>{
     if(cfg.lay==='o'){const wp=snapToWall(m.x,m.y);CF().opens.push({id:ST.nid++,key:ST.selKey,ow:cfg.ow,x:wp?wp.x:sn(m.x),y:wp?wp.y:sn(m.y),rot:wp?wp.rot:0});ST.snapPt=null;render();updLP();updStat();return;}
     if(cfg.lay==='sym'){ST.symbols.push({id:ST.nid++,type:cfg.symType,x:sn(m.x),y:sn(m.y),rot:0,w:cfg.w||2,h:cfg.h||3,text:cfg.text||'Texte'});render();updLP();return;}
     const ni={id:ST.nid++,key:ST.selKey,x:sn(m.x),y:sn(m.y),rot:0,zoneId:'',note:''};
-    CF().items.push(ni);doSel(ni.id,'item');ST.heatDirty=true;render();updQ();updLP();updZones();updStat();checkAlerts();return;
+    CF().items.push(ni);doSel(ni.id,'item');ST.heatDirty=true;
+    // Single placement: after pose → auto-deselect product, switch to select mode
+    ST.selKey=null;document.querySelectorAll('.pi').forEach(el=>el.classList.remove('on'));
+    setMode('s');render();updQ();updLP();updZones();updStat();checkAlerts();return;
   }
 
   // Clear multi-select if clicking without shift
@@ -1838,6 +1914,7 @@ function showCtxMenu(e,tg){
   const isEl=tg.type!=='empty';
   const hasFilter=ST.heatRoomId||ST.covItemId;
 
+  document.getElementById('ctx-details').style.display=isItem?'flex':'none';
   document.getElementById('ctx-copy').style.display=isEl?'flex':'none';
   document.getElementById('ctx-paste').style.display=ST.clipboard?'flex':'none';
   document.getElementById('ctx-rotate').style.display=(isItem&&(()=>{const it=CF().items.find(i=>i.id===tg.obj.id);return it&&P[it.key]&&P[it.key].angle>0&&P[it.key].angle<360;})()||tg.type==='open')?'flex':'none';
@@ -1940,7 +2017,115 @@ function ctxResetFilter(){
   ST.heatDirty=true;render();hideCtxMenu();
 }
 
-document.addEventListener('click',e=>{if(!document.getElementById('ctx-menu').contains(e.target))hideCtxMenu();});
+// ── PRODUCT DETAILS POPUP ────────────────────────────────────────────────────
+let _pdKey=null;// current product key in popup
+let _pdColor='blanc';// 'blanc' or 'noir'
+
+function openProductDetail(key){
+  _pdKey=key;
+  const pr=P[key];if(!pr)return;
+  _pdColor=pr.imgBlanc?'blanc':'noir';// default to available color
+  _renderProductDetail(pr);
+  document.getElementById('prod-detail').classList.add('show');
+}
+
+function _renderProductDetail(pr){
+  document.getElementById('pd-icon').style.background=pr.col;
+  document.getElementById('pd-icon').textContent=CI[pr.cat]||'?';
+  document.getElementById('pd-name').textContent=pr.n;
+  document.getElementById('pd-label').textContent=pr.label||'';
+  document.getElementById('pd-price').textContent=pr.price?pr.price.toFixed(2)+' € HT':'—';
+
+  // ── Image + color switcher
+  const hasColor=pr.imgBlanc&&pr.imgNoir;
+  const imgUrl=_pdColor==='blanc'?(pr.imgBlanc||pr.imgNoir):(pr.imgNoir||pr.imgBlanc);
+  const curSlug=_pdColor==='noir'&&pr.slugNoir?pr.slugNoir:pr.slug;
+  const imgHtml=imgUrl?`<div style="text-align:center;background:#f9fafb;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid var(--bo)"><img src="${imgUrl}" alt="${pr.n}" style="max-height:130px;max-width:100%;object-fit:contain;"></div>`:'';
+  const colorHtml=hasColor?`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px">
+    <button onclick="_pdSwitchColor('blanc')" style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:2px solid ${_pdColor==='blanc'?'var(--br)':'var(--bo)'};background:${_pdColor==='blanc'?'var(--br)':'var(--lt)'};color:${_pdColor==='blanc'?'#fff':'var(--rt)'};font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">
+      <span style="width:10px;height:10px;border-radius:50%;background:#fff;border:1px solid #ccc;display:inline-block"></span>Blanc
+    </button>
+    <button onclick="_pdSwitchColor('noir')" style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:2px solid ${_pdColor==='noir'?'var(--br)':'var(--bo)'};background:${_pdColor==='noir'?'var(--br)':'var(--lt)'};color:${_pdColor==='noir'?'#fff':'var(--rt)'};font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">
+      <span style="width:10px;height:10px;border-radius:50%;background:#222;display:inline-block"></span>Noir
+    </button>
+  </div>`:pr.imgBlanc&&!pr.imgNoir?`<div style="text-align:center;font-size:10px;color:var(--rm);margin-bottom:4px">Disponible uniquement en Blanc</div>`:'';
+  document.getElementById('pd-img-area').innerHTML=imgHtml+colorHtml;
+
+  // Chips
+  const chips=[];
+  if(pr.range>0)chips.push(`<div class="pd-chip">Portée<span>${pr.range}m</span></div>`);
+  if(pr.angle>0&&pr.angle<360)chips.push(`<div class="pd-chip">Angle<span>${pr.angle}°</span></div>`);
+  if(pr.angle>=360)chips.push(`<div class="pd-chip">Couverture<span>360°</span></div>`);
+  if(pr.env)chips.push(`<div class="pd-chip">Env.<span>${pr.env}</span></div>`);
+  if(pr.alim)chips.push(`<div class="pd-chip">Alim.<span>${pr.alim}</span></div>`);
+  if(pr.ip)chips.push(`<div class="pd-chip">Protection<span>${pr.ip}</span></div>`);
+  if(pr.time)chips.push(`<div class="pd-chip">Pose<span>≈${pr.time<60?pr.time+'min':Math.floor(pr.time/60)+'h'+(pr.time%60?pr.time%60+'min':'')}</span></div>`);
+  document.getElementById('pd-chips').innerHTML=chips.join('');
+  const dimEl=document.getElementById('pd-dims');const dimT=document.getElementById('pd-dims-title');
+  if(pr.dims){dimT.style.display='block';dimEl.textContent=pr.dims;}else{dimT.style.display='none';dimEl.textContent='';}
+
+  // Buttons with correct slug for color
+  const btns=[];
+  if(curSlug)btns.push(`<a href="https://camprotect.fr/product/${curSlug}" target="_blank" class="pd-btn primary">🛒 Voir sur CamProtect</a>`);
+  if(pr.fiche)btns.push(`<a href="${pr.fiche}" target="_blank" class="pd-btn pdf">📖 Documentation officielle Ajax</a>`);
+  document.getElementById('pd-btns').innerHTML=btns.join('');
+}
+
+function _pdSwitchColor(col){
+  _pdColor=col;
+  if(_pdKey&&P[_pdKey])_renderProductDetail(P[_pdKey]);
+}
+
+function closeProductDetail(){document.getElementById('prod-detail').classList.remove('show');}
+function ctxDetails(){
+  if(!ctxTarget||ctxTarget.type!=='item')return;
+  const it=CF().items.find(i=>i.id===ctxTarget.obj.id);
+  if(it)openProductDetail(it.key);
+  hideCtxMenu();
+}
+
+// ── DRAG & DROP depuis sidebar ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{});// placeholder
+
+function initSidebarDrag(){
+  document.querySelectorAll('.pi[data-k]').forEach(el=>{
+    el.setAttribute('draggable','true');
+    el.addEventListener('dragstart',e=>{
+      e.dataTransfer.setData('text/plain',el.dataset.k);
+      e.dataTransfer.effectAllowed='copy';
+    });
+  });
+  // Also make sidebar wall/cable/symbol rows draggable via onclick only (no data-k needed for those)
+  cv.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';});
+  cv.addEventListener('drop',e=>{
+    e.preventDefault();
+    const key=e.dataTransfer.getData('text/plain');
+    if(!key)return;
+    const m=toM(e.offsetX,e.offsetY);
+    svH();
+    // TERRAIN
+    if(TC[key]){
+      ST.tels.push({id:ST.nid++,key,x:sn(m.x-4),y:sn(m.y-3),w:8,h:6,rot:0});
+      render();updLP();updStat();
+    }
+    // OUVERTURE
+    else if(OC[key]){
+      const cfg=OC[key];
+      const wp=snapToWall(m.x,m.y);
+      CF().opens.push({id:ST.nid++,key,ow:cfg.ow,x:wp?wp.x:sn(m.x),y:wp?wp.y:sn(m.y),rot:wp?wp.rot:0});
+      ST.snapPt=null;render();updLP();updStat();
+    }
+    // PRODUIT SÉCURITÉ
+    else if(P[key]){
+      const ni={id:ST.nid++,key,x:sn(m.x),y:sn(m.y),rot:0,zoneId:'',note:''};
+      CF().items.push(ni);doSel(ni.id,'item');ST.heatDirty=true;
+      render();updQ();updLP();updZones();updStat();checkAlerts();
+    }
+    // Deselect after drop
+    ST.selKey=null;document.querySelectorAll('.pi').forEach(el=>el.classList.remove('on'));
+    setMode('s');
+  });
+}
 
 cv.addEventListener('mousemove',e=>{
   const m=toM(e.offsetX,e.offsetY);
@@ -2121,9 +2306,10 @@ function doSel(id,type){
   else if(type==='symbol'){document.getElementById('sn').textContent={stairs:'Escalier',column:'Colonne/Pilier',north:'Flèche Nord',label:'Label texte'}[o.type]||o.type;document.getElementById('sd').textContent=o.text||'';document.getElementById('stags').innerHTML='';}
   else{
     document.getElementById('sn').textContent=type==='room'?o.n:(cfg.n||'—');
-    document.getElementById('sd').textContent=type==='room'?`${o.w}×${o.h}m · ${o.t}`:(cfg.note||'');
+    document.getElementById('sd').textContent=type==='room'?`${o.w}×${o.h}m · ${(o.w*o.h).toFixed(0)}m² · ${o.t}`:type==='tel'?`${o.w}m × ${o.h}m = ${(o.w*o.h).toFixed(0)} m²`:(cfg.note||'');
     const tags=document.getElementById('stags');tags.innerHTML='';
-    const pr=P[o.key];if(pr&&pr.range>0)tags.innerHTML+=`<span class="tag">${pr.range}m</span>`;if(pr&&pr.angle>0&&pr.angle<360)tags.innerHTML+=`<span class="tag">${pr.angle}°</span>`;if(pr&&pr.price)tags.innerHTML+=`<span class="tag">${pr.price.toFixed(0)}€</span>`;
+    if(type==='tel'){const tCfg=TC[o.key];if(tCfg)tags.innerHTML=`<span class="tag">${tCfg.n}</span><span class="tag">${(o.w*o.h).toFixed(0)} m²</span>`;}
+    else{const pr=P[o.key];if(pr&&pr.range>0)tags.innerHTML+=`<span class="tag">${pr.range}m</span>`;if(pr&&pr.angle>0&&pr.angle<360)tags.innerHTML+=`<span class="tag">${pr.angle}°</span>`;if(pr&&pr.price)tags.innerHTML+=`<span class="tag">${pr.price.toFixed(0)}€</span>`;}
   }
   const nums=getItemNums();const num=nums[id];
   const nd=document.getElementById('num-d');if(num&&type==='item'){nd.style.display='block';nd.textContent='N° '+num;}else nd.style.display='none';
@@ -2142,7 +2328,7 @@ function updCtrl(o,type){
 }
 function rotSel(v){let o=null;const srcs=[CF().items,CF().opens,ST.tels];for(const s of srcs){o=s?.find(i=>i.id===ST.selId);if(o)break;}if(!o)return;o.rot=+v;document.getElementById('v-rot').textContent=Math.round(v)+'°';render();}
 function rsz(dim,v){let o=null;if(ST.selType==='room')o=CF().rooms.find(i=>i.id===ST.selId);else if(ST.selType==='tel')o=ST.tels.find(i=>i.id===ST.selId);if(!o)return;o[dim]=+v;document.getElementById('v-'+dim).textContent=v+'m';showArea(o);ST.heatDirty=true;render();}
-function showArea(t){const el=document.getElementById('area-d');if(!t){el.style.display='none';return;}el.style.display='block';el.textContent=`${t.w}×${t.h}m = ${(t.w*t.h).toFixed(0)} m²`;}
+function showArea(t){const el=document.getElementById('area-d');if(!t){el.style.display='none';return;}el.style.display='block';el.textContent=`${(t.w*t.h).toFixed(0)} m²  (${t.w}m × ${t.h}m)`;}
 function assignZone(v){const it=CF().items.find(i=>i.id===ST.selId);if(!it)return;it.zoneId=v||'';svH();render();updZones();}
 function delSel(){
   svH();const del=(arr)=>arr.filter(i=>i.id!==ST.selId);
@@ -2500,6 +2686,15 @@ document.addEventListener('fullscreenchange',()=>{
   if(btn)btn.textContent=document.fullscreenElement?'✕ Quitter':'⛶';
 });
 fetchCatalog();
+// Click outside to close menus
+document.addEventListener('click',e=>{
+  const cm=document.getElementById('ctx-menu');
+  const pd=document.getElementById('prod-detail');
+  if(cm&&!cm.contains(e.target))hideCtxMenu();
+  if(pd&&pd.classList.contains('show')&&!pd.contains(e.target)&&!e.target.closest('.ctx-item'))closeProductDetail();
+});
+// Init drag & drop from sidebar
+initSidebarDrag();
 </script>
 </body>
 </html>
