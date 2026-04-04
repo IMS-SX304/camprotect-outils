@@ -1258,7 +1258,7 @@ function drawRoom(r){
   const fs=Math.max(8,Math.min(13,ST.scale*.19));
   ctx.font=`600 ${fs}px 'DM Sans'`;ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillStyle=ST.dark?'rgba(255,255,255,.55)':'rgba(0,0,0,.45)';ctx.fillText(r.n,p.x+w/2,p.y+h/2);
-  if(w>65&&h>38){ctx.font=`400 ${Math.max(7,fs*.76)}px 'DM Mono'`;ctx.fillStyle=ST.dark?'rgba(255,255,255,.28)':'rgba(0,0,0,.25)';ctx.fillText(`${r.w}×${r.h}m`,p.x+w/2,p.y+h/2+fs);}
+  if(w>65&&h>38){ctx.font=`500 ${Math.max(7,fs*.76)}px 'DM Mono'`;ctx.fillStyle=ST.dark?'rgba(255,255,255,.32)':'rgba(0,0,0,.28)';ctx.fillText(`${(r.w*r.h).toFixed(0)} m²`,p.x+w/2,p.y+h/2+fs);}
 }
 
 function drawOpen(o){
@@ -1705,7 +1705,7 @@ function drawRzH(o,showArea){
   const p=toC(o.x,o.y);const w=o.w*ST.scale,h=o.h*ST.scale;
   ctx.save();ctx.strokeStyle='#fbbf24';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.strokeRect(p.x-2,p.y-2,w+4,h+4);ctx.setLineDash([]);
   RZH.forEach(hd=>{const hx=p.x+hd.fx*w,hy=p.y+hd.fy*h;ctx.fillStyle='#fbbf24';ctx.strokeStyle='#1a1a2e';ctx.lineWidth=1;ctx.fillRect(hx-5,hy-5,10,10);ctx.strokeRect(hx-5,hy-5,10,10);});
-  if(showArea){ctx.fillStyle='rgba(232,93,4,.85)';ctx.font='bold 10px DM Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`${o.w}×${o.h}m=${(o.w*o.h).toFixed(0)}m²`,p.x+w/2,p.y+h/2);}
+  if(showArea){ctx.fillStyle='rgba(232,93,4,.85)';ctx.font='bold 10px DM Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`${(o.w*o.h).toFixed(0)} m²  (${o.w}×${o.h}m)`,p.x+w/2,p.y+h/2);}
   ctx.restore();
 }
 function drawSel2(o){const p=toC(o.x,o.y);ctx.save();ctx.strokeStyle='#fbbf24';ctx.lineWidth=2;ctx.strokeRect(p.x-8,p.y-8,16,16);ctx.restore();}
@@ -2042,10 +2042,10 @@ function _renderProductDetail(pr){
   const curSlug=_pdColor==='noir'&&pr.slugNoir?pr.slugNoir:pr.slug;
   const imgHtml=imgUrl?`<div style="text-align:center;background:#f9fafb;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid var(--bo)"><img src="${imgUrl}" alt="${pr.n}" style="max-height:130px;max-width:100%;object-fit:contain;"></div>`:'';
   const colorHtml=hasColor?`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px">
-    <button onclick="_pdSwitchColor('blanc')" style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:2px solid ${_pdColor==='blanc'?'var(--br)':'var(--bo)'};background:${_pdColor==='blanc'?'var(--br)':'var(--lt)'};color:${_pdColor==='blanc'?'#fff':'var(--rt)'};font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">
+    <button onclick="event.stopPropagation();_pdSwitchColor('blanc')" style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:2px solid ${_pdColor==='blanc'?'var(--br)':'var(--bo)'};background:${_pdColor==='blanc'?'var(--br)':'var(--lt)'};color:${_pdColor==='blanc'?'#fff':'var(--rt)'};font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">
       <span style="width:10px;height:10px;border-radius:50%;background:#fff;border:1px solid #ccc;display:inline-block"></span>Blanc
     </button>
-    <button onclick="_pdSwitchColor('noir')" style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:2px solid ${_pdColor==='noir'?'var(--br)':'var(--bo)'};background:${_pdColor==='noir'?'var(--br)':'var(--lt)'};color:${_pdColor==='noir'?'#fff':'var(--rt)'};font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">
+    <button onclick="event.stopPropagation();_pdSwitchColor('noir')" style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:2px solid ${_pdColor==='noir'?'var(--br)':'var(--bo)'};background:${_pdColor==='noir'?'var(--br)':'var(--lt)'};color:${_pdColor==='noir'?'#fff':'var(--rt)'};font-size:11px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">
       <span style="width:10px;height:10px;border-radius:50%;background:#222;display:inline-block"></span>Noir
     </button>
   </div>`:pr.imgBlanc&&!pr.imgNoir?`<div style="text-align:center;font-size:10px;color:var(--rm);margin-bottom:4px">Disponible uniquement en Blanc</div>`:'';
@@ -2451,8 +2451,8 @@ function togPanel(id){
 function updLP(){
   const el=document.getElementById('lpb');let html='';
   const lkBtn=(id)=>`<span class="llk${ST.locked.has(id)?' locked':''}" onclick="event.stopPropagation();toggleLock(${id})">${ST.locked.has(id)?'🔒':'🔓'}</span>`;
-  if(ST.tels.length){html+=`<div class="lcat">🌿 Terrain</div>`;ST.tels.forEach(t=>{const cfg=TC[t.key]||{};html+=`<div class="li${ST.selId===t.id?' on':''}" onclick="doSel(${t.id},'tel')"><div class="lic" style="background:${cfg.brd||'#4caf50'}">T</div><div class="lin">${cfg.n} ${t.w}×${t.h}m</div>${lkBtn(t.id)}<span class="lx" onclick="event.stopPropagation();delById(${t.id},'tel')">×</span></div>`;});}
-  if(CF().rooms.length){html+=`<div class="lcat">🏠 Pièces — ${CF().name}</div>`;CF().rooms.forEach(r=>{html+=`<div class="li${ST.selId===r.id?' on':''}" onclick="doSel(${r.id},'room')"><div class="lic" style="background:${RB[r.t]||'#d1d5db'}"></div><div class="lin">${r.n} ${r.w}×${r.h}m</div>${lkBtn(r.id)}<span class="lx" onclick="event.stopPropagation();delById(${r.id},'room')">×</span></div>`;});}
+  if(ST.tels.length){html+=`<div class="lcat">🌿 Terrain</div>`;ST.tels.forEach(t=>{const cfg=TC[t.key]||{};html+=`<div class="li${ST.selId===t.id?' on':''}" onclick="doSel(${t.id},'tel')"><div class="lic" style="background:${cfg.brd||'#4caf50'}">T</div><div class="lin">${cfg.n} · ${(t.w*t.h).toFixed(0)} m²</div>${lkBtn(t.id)}<span class="lx" onclick="event.stopPropagation();delById(${t.id},'tel')">×</span></div>`;});}
+  if(CF().rooms.length){html+=`<div class="lcat">🏠 Pièces — ${CF().name}</div>`;CF().rooms.forEach(r=>{html+=`<div class="li${ST.selId===r.id?' on':''}" onclick="doSel(${r.id},'room')"><div class="lic" style="background:${RB[r.t]||'#d1d5db'}"></div><div class="lin">${r.n} · ${(r.w*r.h).toFixed(0)} m²</div>${lkBtn(r.id)}<span class="lx" onclick="event.stopPropagation();delById(${r.id},'room')">×</span></div>`;});}
   if(ST.walls.length){html+=`<div class="lcat">🧱 Cloisons (${ST.walls.length})</div>`;ST.walls.forEach(w=>{const lbl={interior:'Cloison',exterior:'Mur ext.',fence:'Grillage'}[w.style]||'Cloison';const dx=w.x2-w.x1,dy=w.y2-w.y1;const d=Math.sqrt(dx*dx+dy*dy).toFixed(1);html+=`<div class="li${ST.selId===w.id?' on':''}" onclick="doSel(${w.id},'wall')"><div class="lic" style="background:#374151">🧱</div><div class="lin">${lbl} ${d}m</div><span class="lx" onclick="event.stopPropagation();delById(${w.id},'wall')">×</span></div>`;});}
   if(CF().opens.length){html+=`<div class="lcat">🚪 Ouvertures</div>`;CF().opens.forEach(o=>{const cfg=OC[o.key]||{};html+=`<div class="li${ST.selId===o.id?' on':''}" onclick="doSel(${o.id},'open')"><div class="lic" style="background:${cfg.col||'#78716c'}">O</div><div class="lin">${cfg.n||'?'}</div>${lkBtn(o.id)}<span class="lx" onclick="event.stopPropagation();delById(${o.id},'open')">×</span></div>`;});}
   if(ST.cables.length){html+=`<div class="lcat">🔌 Câblage (${ST.cables.length})</div>`;ST.cables.forEach(c=>{let tot=0;(c.pts||[]).forEach((p,i)=>{if(i>0){const dx=p.x-c.pts[i-1].x,dy=p.y-c.pts[i-1].y;tot+=Math.sqrt(dx*dx+dy*dy);}});const lbl={rj45:'RJ45',coax:'Coax',alim:'Alim'}[c.style]||'Câble';html+=`<div class="li${ST.selId===c.id?' on':''}" onclick="doSel(${c.id},'cable')"><div class="lic" style="background:#2563eb">🔌</div><div class="lin">${lbl} ${tot.toFixed(1)}m</div><span class="lx" onclick="event.stopPropagation();delById(${c.id},'cable')">×</span></div>`;});}
