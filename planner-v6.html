@@ -205,7 +205,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   <span id="hst"></span>
   <div id="hr">
     <span id="catalog-status" style="font-size:9px;color:rgba(255,255,255,.3);font-family:monospace"></span>
-    <span id="session-badge" title="Votre identifiant de session — vos données sont privées" style="font-size:8.5px;color:rgba(255,255,255,.22);font-family:monospace;cursor:pointer" onclick="copySession()">🔑 <span id="sid-short"></span></span>
+    <span id="session-badge" title="Cliquer pour copier votre ID de session" style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#fbbf24;font-family:monospace;cursor:pointer;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:2px 7px;white-space:nowrap" onclick="copySession()">🔑 ID de session : <span id="sid-short">—</span></span>
+    <button class="t" onclick="showSessionRestore()" title="Charger une session existante" style="font-size:10px;color:#fbbf24;border-color:rgba(251,191,36,.3)">↩ Charger session</button>
     <button class="hb g" onclick="showRM()">+ Pièce</button>
     <button class="hb d" onclick="clearAll()">↺ Reset</button>
     <button class="hb p" onclick="doPrint()">Imprimer</button>
@@ -408,6 +409,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
     </div>
   </div>
 </div>
+</div>
+
+<!-- SESSION RESTORE MODAL -->
+<div id="session-modal" class="modal-bg">
+  <div class="modal-box" style="width:420px">
+    <div class="mh"><h2>🔑 Charger une session</h2><p>Entrez votre ID de session pour retrouver votre plan</p></div>
+    <div class="mb">
+      <div class="fr"><label>Votre ID de session</label>
+        <input type="text" id="session-input" placeholder="cp6u-xxxxxxxx-xxxxxx" style="font-family:monospace;font-size:12px;letter-spacing:1px">
+      </div>
+      <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.6);margin-top:6px;line-height:1.6">
+        ⚠️ Votre session actuelle sera remplacée par celle de l'ID entré.<br>
+        Exportez votre plan en JSON avant de continuer si nécessaire.
+      </div>
+      <div id="session-error" style="color:#ef4444;font-size:11px;margin-top:6px;display:none"></div>
+    </div>
+    <div class="mf">
+      <button class="mb-s" onclick="closeModal('session-modal')">Annuler</button>
+      <button class="mb-p" onclick="doSessionRestore()">Charger ce plan</button>
+    </div>
+  </div>
 </div>
 
 <!-- NOTE POPUP -->
@@ -2702,9 +2724,34 @@ function copySession(){
   navigator.clipboard.writeText(full).then(()=>{
     const el=document.getElementById('session-badge');
     const orig=el.innerHTML;
-    el.innerHTML='✓ Copié !';el.style.color='rgba(16,185,129,.8)';
-    setTimeout(()=>{el.innerHTML=orig;el.style.color='rgba(255,255,255,.22)';},1800);
+    el.innerHTML='✓ ID copié !';el.style.color='#10b981';
+    setTimeout(()=>{el.innerHTML=orig;el.style.color='#fbbf24';},1800);
   }).catch(()=>alert('ID session : '+full));
+}
+
+function showSessionRestore(){
+  document.getElementById('session-input').value='';
+  document.getElementById('session-error').style.display='none';
+  showModal('session-modal');
+  setTimeout(()=>document.getElementById('session-input').focus(),100);
+}
+
+function doSessionRestore(){
+  const input=document.getElementById('session-input').value.trim();
+  const errEl=document.getElementById('session-error');
+  errEl.style.display='none';
+  if(!input){errEl.textContent='Veuillez entrer un ID de session.';errEl.style.display='block';return;}
+  // Validate format loosely
+  if(!input.startsWith('cp6u-')){errEl.textContent="L'ID doit commencer par cp6u-";errEl.style.display='block';return;}
+  // Check if this session has saved data
+  const planKey='cp6_plan_'+input;
+  const saved=localStorage.getItem(planKey);
+  if(!saved){errEl.textContent="Aucun plan trouvé pour cet ID. Vérifiez l'ID ou le navigateur utilisé.";errEl.style.display='block';return;}
+  // Switch UID — store the new UID as current
+  try{localStorage.setItem('cp6_uid',input);}catch(e){}
+  closeModal('session-modal');
+  // Reload page to apply new UID
+  window.location.reload();
 }
 fetchCatalog();
 // Click outside to close menus
