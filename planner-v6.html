@@ -627,6 +627,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   <div class="ctx-item" id="ctx-rotate"    onclick="ctxRotate()"> ↻ Afficher rotation</div>
   <div class="ctx-item" id="ctx-zone"      onclick="ctxZone()">   📡 Attribuer zone Ajax</div>
   <div class="ctx-item" id="ctx-note"      onclick="ctxNote()">   📝 Ajouter une note</div>
+  <div class="ctx-sep" id="ctx-sep-mount"></div>
+  <div class="ctx-item" id="ctx-mount-int"  onclick="ctxSetMount('int')"> 🔲 Face intérieure</div>
+  <div class="ctx-item" id="ctx-mount-ext"  onclick="ctxSetMount('ext')"> 🔳 Face extérieure</div>
+  <div class="ctx-item" id="ctx-mount-free" onclick="ctxSetMount(null)">  ⊕  Position libre</div>
   <div class="ctx-sep"  id="ctx-sep-heat"></div>
   <div class="ctx-item" id="ctx-heat-room" onclick="ctxHeatRoom()">🌡 Heatmap de cette zone</div>
   <div class="ctx-item" id="ctx-heat-all"  onclick="ctxHeatAll()"> 🌡 Heatmap globale</div>
@@ -1419,7 +1423,7 @@ function computeHeatmap(){
               const diff=Math.abs(((pa-it.rot)+180+360)%360-180);
               if(diff>pr.angle/2)continue;
             }
-            if(hasLOS(it.x,it.y,mx,my,segs)){covered=true;break;}
+            const iSegs2=segsForItem(it);if(hasLOS(it.x,it.y,mx,my,iSegs2)){covered=true;break;}
           }
           const p=toC(mx-step/2,my-step/2);const ps=step*ST.scale;
           ox.fillStyle=covered?'rgba(16,185,129,.24)':'rgba(239,68,68,.16)';
@@ -1540,53 +1544,110 @@ function visPolygon(it,segs,orig){
   return pts;
 }
 
-// Segments LOS selon la position d'un item — TOUTES les parois dans tous les cas
-// L'origine des rayons est décalée vers l'extérieur pour les items posés sur un mur
-function segsForItem(it){
-  const userSegs=wallSegs();
-  const allWalls=allRoomWallSegs();
-  return[...userSegs,...allWalls];
+// ── DISSOCIATION INTÉRIEUR / EXTÉRIEUR ──────────────────────────────────────
+// Produits extérieurs = env:'Extérieur' ou 'Ext./Int.' dans le catalogue P{}
+function isOutdoor(it){
+  const pr=P[it.key];
+  return pr&&(pr.env==='Extérieur'||pr.env==='Ext./Int.');
 }
 
-// Calcule l'origine effective des rayons pour les items posés sur/dans un mur ou un coin
-// - Détecteurs directionnels : décalage dans la direction de visée (rotation)
-// - Détecteurs omnidirectionnels : décalage vers le centroïde de la pièce la plus proche
-// Cela permet de placer un détecteur DANS UN COIN et de choisir la pièce couverte via la rotation
+// Tous les murs bloquent dans tous les cas — intérieur et extérieur
+// Seule la direction du nudge (nudgeOrig) change selon mount
+// Un faisceau extérieur est bloqué par TOUTE paroi qu'il rencontre (intérieure ou extérieure)
+function segsForItem(it){
+  return[...wallSegs(),...allRoomWallSegs()];
+}
+
+// Origine effective des rayons selon it.mount
+// mount='int' → décalage vers l'intérieur du mur (face intérieure)
+// mount='ext' → décalage vers l'extérieur du mur (face extérieure)
+// mount=null  → pas de décalage (item libre, pas sur un mur)
 function nudgeOrig(it){
-  const eps=0.32;const nudge=0.09;// 9cm
-  // Vérifier si l'item touche un mur de pièce
+  const eps=0.32;const nudge=0.10;
+  if(!it.mount)return{x:it.x,y:it.y};// position libre → pas de nudge
+
   const allWalls=allRoomWallSegs();
-  let touchingWall=false;
+  const touching=[];
   for(const[x1,y1,x2,y2]of allWalls){
     const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
     if(len<1e-10)continue;
     const t=Math.max(0,Math.min(1,((it.x-x1)*dx+(it.y-y1)*dy)/(len*len)));
-    const px=x1+t*dx-it.x,py=y1+t*dy-it.y;
-    if(Math.sqrt(px*px+py*py)<=eps){touchingWall=true;break;}
+    const cx=x1+t*dx,cy=y1+t*dy;
+    const dist=Math.sqrt((cx-it.x)**2+(cy-it.y)**2);
+    if(dist<=eps){
+      let nx=-dy/len,ny=dx/len;
+      const testX=cx+nx*.1,testY=cy+ny*.1;
+      const inR=CF().rooms.some(r=>testX>r.x&&testX<r.x+r.w&&testY>r.y&&testY<r.y+r.h);
+      if(inR){nx=-nx;ny=-ny;}// nx,ny = normale sortante
+      touching.push({dist,nx,ny,inNx:-nx,inNy:-ny});
+    }
   }
-  if(!touchingWall)return{x:it.x,y:it.y};// loin des murs : pas de décalage
+  if(touching.length===0)return{x:it.x,y:it.y};
+
+  // Pour les coins : choisir le mur dont la normale s'aligne le mieux avec la rotation
+  function pickWall(normalKey){
+    const pr=P[it.key];
+    if(touching.length===1||!pr||pr.angle>=360)return touching[0];
+    const rotRad=(it.rot-90)*Math.PI/180;
+    const fx=Math.cos(rotRad),fy=Math.sin(rotRad);
+    let best=touching[0],bestDot=-Infinity;
+    for(const w of touching){
+      const dot=w[normalKey+'x']*fx+w[normalKey+'y']*fy;
+      if(dot>bestDot){bestDot=dot;best=w;}
+    }
+    return best;
+  }
+
+  if(it.mount==='ext'){const w=pickWall('n');  return{x:it.x+w.nx*nudge,  y:it.y+w.ny*nudge};}
+  else             {const w=pickWall('inN');return{x:it.x+w.inNx*nudge,y:it.y+w.inNy*nudge};}
+}
+
+function nudgeOrig(it){
+  const eps=0.32;const nudge=0.10;
+  const allWalls=allRoomWallSegs();
+  const touching=[];
+  for(const[x1,y1,x2,y2]of allWalls){
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    if(len<1e-10)continue;
+    const t=Math.max(0,Math.min(1,((it.x-x1)*dx+(it.y-y1)*dy)/(len*len)));
+    const cx=x1+t*dx,cy=y1+t*dy;
+    const dist=Math.sqrt((cx-it.x)**2+(cy-it.y)**2);
+    if(dist<=eps){
+      let nx=-dy/len,ny=dx/len;
+      // Normale sortante = côté hors des pièces
+      const testX=cx+nx*.1,testY=cy+ny*.1;
+      const inR=CF().rooms.some(r=>testX>r.x&&testX<r.x+r.w&&testY>r.y&&testY<r.y+r.h);
+      if(inR){nx=-nx;ny=-ny;}
+      touching.push({dist,nx,ny,inNx:-nx,inNy:-ny});
+    }
+  }
+  if(touching.length===0)return{x:it.x,y:it.y};
 
   const pr=P[it.key];
-  // Détecteur directionnel (angle < 360°) : nudge dans la direction de visée
-  // → l'utilisateur oriente la rotation vers la pièce/zone voulue
-  if(pr&&pr.angle>0&&pr.angle<360){
+  const outdoor=isOutdoor(it);
+
+  // Sélection du mur de référence selon la rotation (pour les coins)
+  function pickWall(normalKey){
+    if(touching.length===1||!pr||pr.angle>=360)return touching[0];
     const rotRad=(it.rot-90)*Math.PI/180;
-    return{x:it.x+Math.cos(rotRad)*nudge,y:it.y+Math.sin(rotRad)*nudge};
+    const fx=Math.cos(rotRad),fy=Math.sin(rotRad);
+    let best=touching[0],bestDot=-Infinity;
+    for(const w of touching){
+      const dot=w[normalKey+'x']*fx+w[normalKey+'y']*fy;
+      if(dot>bestDot){bestDot=dot;best=w;}
+    }
+    return best;
   }
-  // Détecteur omnidirectionnel (360° ou range=0) : nudge vers le centroïde de la pièce la plus proche
-  const rooms=CF().rooms;
-  let best=null,bestDist=Infinity;
-  for(const r of rooms){
-    const cx=r.x+r.w/2,cy=r.y+r.h/2;
-    const d=Math.sqrt((cx-it.x)**2+(cy-it.y)**2);
-    if(d<bestDist){bestDist=d;best={x:cx,y:cy};}
+
+  if(outdoor){
+    // Extérieur : nudge vers l'extérieur (normale sortante)
+    const w=pickWall('n');
+    return{x:it.x+w.nx*nudge,y:it.y+w.ny*nudge};
+  } else {
+    // Intérieur : nudge vers l'intérieur de la pièce (normale rentrante)
+    const w=pickWall('inN');
+    return{x:it.x+w.inNx*nudge,y:it.y+w.inNy*nudge};
   }
-  if(best){
-    const dx=best.x-it.x,dy=best.y-it.y;
-    const len=Math.sqrt(dx*dx+dy*dy);
-    if(len>0.01)return{x:it.x+dx/len*nudge,y:it.y+dy/len*nudge};
-  }
-  return{x:it.x,y:it.y};
 }
 
 // Tous les segments de parois de pièces (intérieur + extérieur) — pour bloquer la couverture
@@ -1729,7 +1790,12 @@ function render(){
     });
   }
   // Couverture
-  if(ST.cov){CF().items.forEach(it=>drawCov(it));}
+  if(ST.cov){
+    // Extérieurs en premier (grand polygone derrière), intérieurs dessus
+    const allIt=CF().items;
+    allIt.filter(it=>isOutdoor(it)).forEach(it=>drawCov(it));
+    allIt.filter(it=>!isOutdoor(it)).forEach(it=>drawCov(it));
+  }
   // Items
   const nums=getItemNums();
   const multiKeys=new Set([...ST.multiSel.keys()].map(k=>k.split(':')[1]));
@@ -1843,9 +1909,9 @@ function drawTE(t){
   ctx.strokeStyle=t.id===ST.selId?'#fbbf24':cfg.brd||'#4caf50';
   ctx.lineWidth=t.id===ST.selId?2.5:1;ctx.strokeRect(p.x,p.y,w,h);
   if(w>40&&h>25){
-    ctx.fillStyle='rgba(0,0,0,.7)';ctx.font=`500 ${Math.max(7,Math.min(12,w/12))}px 'DM Sans'`;
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(`${(t.w*t.h).toFixed(0)} m²`,p.x+w/2,p.y+h/2);
+    ctx.fillStyle='rgba(0,0,0,.65)';ctx.font=`500 ${Math.max(7,Math.min(11,w/14))}px 'DM Sans'`;
+    ctx.textAlign='left';ctx.textBaseline='bottom';
+    ctx.fillText(`${(t.w*t.h).toFixed(0)} m²`,p.x+7,p.y+h-6);
   }
   ctx.restore();
 }
@@ -1988,6 +2054,7 @@ function drawItem(it,sel,nums){
   ctx.fillStyle=pr.col;ctx.beginPath();ctx.arc(0,0,sz,0,7);ctx.fill();
   ctx.shadowColor='transparent';
   if(pr.angle<360&&pr.angle>0){ctx.save();ctx.rotate(it.rot*Math.PI/180);ctx.fillStyle='rgba(255,255,255,.6)';ctx.beginPath();ctx.moveTo(0,-sz*.35);ctx.lineTo(-sz*.25,sz*.18);ctx.lineTo(sz*.25,sz*.18);ctx.closePath();ctx.fill();ctx.restore();}
+  if(it.mount){ctx.font=`${Math.max(7,sz*.5)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(it.mount==='ext'?'🔳':'🔲',0,sz*.4);}
   ctx.fillStyle='#fff';ctx.font=`700 ${Math.max(6,sz*.6)}px 'DM Sans'`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(CI[pr.cat]||'?',0,0);
   ctx.restore();
   // Item number label
@@ -2176,8 +2243,9 @@ cv.addEventListener('mousedown',e=>{
     setMode('s');render();updQ();updLP();updZones();updStat();checkAlerts();return;
   }
 
-  // Clear multi-select if clicking without shift
-  if(!e.shiftKey&&ST.multiSel.size>0){ST.multiSel.clear();}
+  // Clear multi-select dès qu'on clique sans Shift — AVANT tout traitement
+  // (évite que des éléments fantômes en multiSel soient supprimés accidentellement)
+  if(!e.shiftKey){ST.multiSel.clear();}
 
   // Clic × rouge câble
   if(tg.type==='cable_del'){
@@ -2324,6 +2392,15 @@ function showCtxMenu(e,tg){
   document.getElementById('ctx-sep-heat').style.display=(isItem||isRoom||isTerrain)?'block':'none';
   document.getElementById('ctx-heat-room').style.display=(isRoom||isTerrain)?'flex':'none';
   document.getElementById('ctx-heat-all').style.display=(isItem||isTerrain)?'flex':'none';
+  const mountItem=isItem&&(()=>{const it2=CF().items.find(i=>i.id===tg.obj.id);return it2&&P[it2.key]&&P[it2.key].range>0;})();
+  document.getElementById('ctx-sep-mount').style.display=mountItem?'block':'none';
+  ['ctx-mount-int','ctx-mount-ext','ctx-mount-free'].forEach(id=>document.getElementById(id).style.display=mountItem?'flex':'none');
+  if(mountItem){
+    const _it=CF().items.find(i=>i.id===tg.obj.id);const _m=_it&&_it.mount;
+    document.getElementById('ctx-mount-int').style.fontWeight=_m==='int'?'700':'normal';
+    document.getElementById('ctx-mount-ext').style.fontWeight=_m==='ext'?'700':'normal';
+    document.getElementById('ctx-mount-free').style.fontWeight=(!_m)?'700':'normal';
+  }
   document.getElementById('ctx-cov-item').style.display=isItem?'flex':'none';
   document.getElementById('ctx-reset-flt').style.display=hasFilter?'flex':'none';
   document.getElementById('ctx-sep1').style.display=isEl?'block':'none';
@@ -2415,6 +2492,12 @@ function ctxHeatAll(){
   render();hideCtxMenu();
 }
 // Isoler la couverture d'un seul équipement
+function ctxSetMount(mountVal){
+  if(!ctxTarget||ctxTarget.type!=='item')return;
+  svH();const it=CF().items.find(i=>i.id===ctxTarget.obj.id);
+  if(it){it.mount=mountVal;}
+  render();hideCtxMenu();
+}
 function ctxCovItem(){
   if(!ctxTarget||ctxTarget.type!=='item')return;
   ST.cov=true;ST.covItemId=ctxTarget.obj.id;ST.heatRoomId=null;
@@ -2650,6 +2733,9 @@ cv.addEventListener('mouseup',e=>{
   // Rubber band: select elements inside rectangle
   if(ST.rubber){
     const r=ST.rubber;
+    // Annuler le rubber band si le drag est trop petit (clic accidentel)
+    const rbDist=Math.sqrt((r.ex-r.sx)**2+(r.ey-r.sy)**2)*ST.scale;
+    if(rbDist<8){ST.rubber=null;render();return;}
     const minX=Math.min(r.sx,r.ex),maxX=Math.max(r.sx,r.ex);
     const minY=Math.min(r.sy,r.ey),maxY=Math.max(r.sy,r.ey);
     if(Math.abs(maxX-minX)>0.3||Math.abs(maxY-minY)>0.3){
