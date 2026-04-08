@@ -800,12 +800,16 @@ function saveProjectFile(){
   const name=ST.client.chantier||ST.client.name||'plan-securite';
   const slug=_projectSlug(name);
   const date=new Date().toISOString().slice(0,10);
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/octet-stream'});
+  const json=JSON.stringify(payload,null,2);
+  // Use data URL — compatible avec les iframes (createObjectURL bloqué)
+  const dataURL='data:application/octet-stream;charset=utf-8,'+encodeURIComponent(json);
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
+  a.href=dataURL;
   a.download=slug+'-'+date+'.cp6';
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  document.body.removeChild(a);
+  _toast('✓ Fichier '+slug+'-'+date+'.cp6 téléchargé','#10b981');
 }
 
 function openProjectFile(input){
