@@ -205,6 +205,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   <span id="hst"></span>
   <div id="hr">
     <span id="catalog-status" style="font-size:9px;color:rgba(255,255,255,.3);font-family:monospace"></span>
+    <span id="session-badge" title="Votre identifiant de session — vos données sont privées" style="font-size:8.5px;color:rgba(255,255,255,.22);font-family:monospace;cursor:pointer" onclick="copySession()">🔑 <span id="sid-short"></span></span>
     <button class="hb g" onclick="showRM()">+ Pièce</button>
     <button class="hb d" onclick="clearAll()">↺ Reset</button>
     <button class="hb p" onclick="doPrint()">Imprimer</button>
@@ -618,6 +619,13 @@ const P={
   rex:  {n:'ReX 2',          label:'Amplificateur de portée',   cat:'a',col:'#6b7280',fill:null,range:0,angle:0,price:88.90,time:20, env:'Intérieur',alim:'Pile CR123A',ip:'IP20', slug:'ajax-rex-2-blanc',         fiche:'https://support.ajax.systems/fr/manuals/rex-2/'},
 };
 const ALL={...TC,...OC,...P};
+// ══════════════════════════════════════════════════════
+// SESSION ISOLATION — clé unique par navigateur
+// ══════════════════════════════════════════════════════
+function _genUID(){return'cp6u-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);}
+const _UID=(()=>{let id=localStorage.getItem('cp6_uid');if(!id){id=_genUID();try{localStorage.setItem('cp6_uid',id);}catch(e){}}return id;})();
+const _K=k=>k+'_'+_UID;// préfixe toutes les clés avec l'UID unique du navigateur
+
 const RC={living:'#fef3e8',bedroom:'#eff6ff',kitchen:'#f0fdf4',hallway:'#f5f5f5',bathroom:'#ecfeff',garage:'#f1f5f9',garden:'#dcfce7',office:'#f9fafb',storage:'#f8f8f8',other:'#faf5ff'};
 const RB={living:'#fbbf24',bedroom:'#93c5fd',kitchen:'#86efac',hallway:'#d1d5db',bathroom:'#67e8f9',garage:'#cbd5e1',garden:'#4ade80',office:'#e5e7eb',storage:'#e5e7eb',other:'#c4b5fd'};
 const CI={c:'H',p:'M',d:'D',g:'G',s:'S',k:'K',cam:'C',a:'R',fire:'F',nvr:'N'};
@@ -665,11 +673,11 @@ function undo(){if(!HIST.length)return;const p=JSON.parse(HIST.pop());ST.floors=
 // AUTO-SAVE / LOAD / EXPORT / IMPORT
 // ══════════════════════════════════════════════════════
 let saveT;
-function autoSave(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem('cp6_plan',JSON.stringify({floors:ST.floors,tels:ST.tels,walls:ST.walls,symbols:ST.symbols,cables:ST.cables,locked:[...ST.locked],client:ST.client,scale:ST.scale,ox:ST.ox,oy:ST.oy,dark:ST.dark}));}catch(e){}},800);}
+function autoSave(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(_K('cp6_plan'),JSON.stringify({floors:ST.floors,tels:ST.tels,walls:ST.walls,symbols:ST.symbols,cables:ST.cables,locked:[...ST.locked],client:ST.client,scale:ST.scale,ox:ST.ox,oy:ST.oy,dark:ST.dark}));}catch(e){}},800);}
 
 function loadSave(){
   try{
-    const s=localStorage.getItem('cp6_plan')||localStorage.getItem('cp5_plan');
+    const s=localStorage.getItem(_K('cp6_plan'))||localStorage.getItem(_K('cp5_plan'));
     if(!s)return false;
     const d=JSON.parse(s);
     if(d.floors)ST.floors=d.floors;
@@ -718,16 +726,16 @@ function importJSON(input){
 // VERSION HISTORY
 function saveVersion(){
   const name=document.getElementById('vh-name').value||'Snapshot '+(new Date().toLocaleTimeString('fr'));
-  const versions=JSON.parse(localStorage.getItem('cp6_vh')||'[]');
+  const versions=JSON.parse(localStorage.getItem(_K('cp6_vh'))||'[]');
   versions.unshift({name,date:new Date().toISOString(),data:{floors:ST.floors,tels:ST.tels,walls:ST.walls,symbols:ST.symbols,cables:ST.cables,locked:[...ST.locked]}});
   if(versions.length>3)versions.pop();
-  localStorage.setItem('cp6_vh',JSON.stringify(versions));
+  localStorage.setItem(_K('cp6_vh'),JSON.stringify(versions));
   document.getElementById('vh-name').value='';
   updVersionList();
 }
 
 function restoreVersion(i){
-  const versions=JSON.parse(localStorage.getItem('cp6_vh')||'[]');
+  const versions=JSON.parse(localStorage.getItem(_K('cp6_vh'))||'[]');
   if(!versions[i])return;
   if(!confirm('Restaurer ce snapshot ? Le plan actuel sera remplacé.'))return;
   svH();
@@ -741,7 +749,7 @@ function restoreVersion(i){
 }
 
 function updVersionList(){
-  const versions=JSON.parse(localStorage.getItem('cp6_vh')||'[]');
+  const versions=JSON.parse(localStorage.getItem(_K('cp6_vh'))||'[]');
   const el=document.getElementById('vh-list');
   if(!versions.length){el.innerHTML='<div class="lpmt">Aucun snapshot</div>';return;}
   el.innerHTML='<div id="vh-list">'+versions.map((v,i)=>`
@@ -765,7 +773,7 @@ function loadBg(input){
 function loadLogo(input){
   const f=input.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=e=>{ST.logoB64=e.target.result;try{localStorage.setItem('cp6_logo',e.target.result);}catch(e){}};
+  r.onload=e=>{ST.logoB64=e.target.result;try{localStorage.setItem(_K('cp6_logo'),e.target.result);}catch(e){}};
   r.readAsDataURL(f);
 }
 
@@ -2664,7 +2672,7 @@ async function fetchCatalog(){
 // ══════════════════════════════════════════════════════
 window.addEventListener('resize',resize);
 // Restore saved logo
-try{const lg=localStorage.getItem('cp6_logo');if(lg)ST.logoB64=lg;}catch(e){}
+try{const lg=localStorage.getItem(_K('cp6_logo'));if(lg)ST.logoB64=lg;}catch(e){}
 // Load saved plan
 if(loadSave()&&ST.floors.some(f=>f.rooms.length>0)){
   closeModal('wiz');
@@ -2680,11 +2688,24 @@ document.getElementById('tb-g').classList.add('on');
 document.getElementById('tb-c').classList.add('on');
 document.getElementById('tb-sn').classList.add('on');
 document.getElementById('r-bgop').addEventListener('input',function(){ST.bgOp=this.value/100;document.getElementById('v-bgop').textContent=this.value+'%';render();});
+// Display short session UID
+const sidEl=document.getElementById('sid-short');
+if(sidEl)sidEl.textContent=_UID.slice(-6).toUpperCase();
 // Fullscreen listener
 document.addEventListener('fullscreenchange',()=>{
   const btn=document.getElementById('tb-fs');
   if(btn)btn.textContent=document.fullscreenElement?'✕ Quitter':'⛶';
 });
+// SESSION
+function copySession(){
+  const full=_UID;
+  navigator.clipboard.writeText(full).then(()=>{
+    const el=document.getElementById('session-badge');
+    const orig=el.innerHTML;
+    el.innerHTML='✓ Copié !';el.style.color='rgba(16,185,129,.8)';
+    setTimeout(()=>{el.innerHTML=orig;el.style.color='rgba(255,255,255,.22)';},1800);
+  }).catch(()=>alert('ID session : '+full));
+}
 fetchCatalog();
 // Click outside to close menus
 document.addEventListener('click',e=>{
