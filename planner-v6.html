@@ -198,14 +198,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   <div id="logo"><div class="dot"></div>CamProtect<span class="badge">v6</span></div>
   <div id="hm">
     <button class="hb g" onclick="undo()" title="Ctrl+Z">↩</button>
-    <button class="hb g" onclick="showModal('save-modal')">💾 Sauvegarder</button>
+    <button class="hb g" onclick="showSaveModal()">💾 Sauvegarder</button>
     <button class="hb g" onclick="autoPlace()">🧩 Auto-placer</button>
     <button class="hb g" onclick="showModal('client-modal')">👤 Client</button>
   </div>
   <span id="hst"></span>
   <div id="hr">
     <span id="catalog-status" style="font-size:9px;color:rgba(255,255,255,.3);font-family:monospace"></span>
-    <span id="session-badge" title="Cliquer pour copier votre ID de session" style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#fbbf24;font-family:monospace;cursor:pointer;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:2px 7px;white-space:nowrap" onclick="copySession()">🔑 ID de session : <span id="sid-short">—</span></span>
+    <span id="session-badge" title="Cliquer pour gérer votre projet" style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#fbbf24;font-family:monospace;cursor:pointer;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:2px 7px;white-space:nowrap" onclick="showSaveModal()">🔑 ID de session : <span id="sid-short">—</span></span>
     <button class="t" onclick="showSessionRestore()" title="Charger une session existante" style="font-size:10px;color:#fbbf24;border-color:rgba(251,191,36,.3)">↩ Charger session</button>
     <button class="hb g" onclick="showRM()">+ Pièce</button>
     <button class="hb d" onclick="clearAll()">↺ Reset</button>
@@ -496,19 +496,47 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   </div>
 </div>
 
-<!-- SAVE / EXPORT MODAL -->
+<!-- SAVE / PROJET MODAL -->
 <div id="save-modal" class="modal-bg">
-  <div class="modal-box" style="width:420px">
-    <div class="mh"><h2>💾 Sauvegarder & Exporter</h2><p>Le plan est auto-sauvegardé dans le navigateur</p></div>
+  <div class="modal-box" style="width:460px">
+    <div class="mh"><h2>💾 Mon projet</h2><p id="proj-modal-sub">Nom du projet et sauvegarde</p></div>
     <div class="mb">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <button class="wb2 s" style="padding:10px;display:flex;flex-direction:column;align-items:center;gap:4px;height:auto" onclick="exportJSON()"><span style="font-size:20px">📥</span><span>Export JSON</span><span style="font-size:9px;color:var(--rm)">Télécharger le plan</span></button>
-        <label style="cursor:pointer"><div class="wb2 s" style="padding:10px;display:flex;flex-direction:column;align-items:center;gap:4px;height:auto;width:100%"><span style="font-size:20px">📤</span><span>Import JSON</span><span style="font-size:9px;color:var(--rm)">Charger un plan</span></div><input type="file" accept=".json" onchange="importJSON(this)" style="display:none"></label>
+
+      <!-- Nom du projet -->
+      <div style="background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#fbbf24;margin-bottom:6px">🏷 Nom du projet</div>
+        <input type="text" id="proj-name" placeholder="Ex : Villa Dupont — Résidence Les Pins" style="width:100%;padding:6px 9px;border:1px solid var(--bo);border-radius:5px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--sbg);color:var(--rt);margin-bottom:6px">
+        <button class="wb2 p" style="width:100%;font-size:11px" onclick="setProjectName()">✓ Appliquer ce nom</button>
+        <div id="proj-id-display" style="font-size:10px;color:rgba(255,255,255,.4);margin-top:6px;font-family:monospace;text-align:center"></div>
       </div>
+
+      <!-- Actions fichier -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <button class="wb2 p" style="padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;height:auto" onclick="saveProjectFile()">
+          <span style="font-size:22px">💾</span>
+          <span style="font-weight:700">Enregistrer le plan</span>
+          <span style="font-size:9px;color:rgba(255,255,255,.6)">Télécharge un fichier .cp6</span>
+        </button>
+        <label style="cursor:pointer">
+          <div class="wb2 s" style="padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;height:auto;width:100%">
+            <span style="font-size:22px">📂</span>
+            <span style="font-weight:700">Ouvrir un plan</span>
+            <span style="font-size:9px;color:var(--rm)">Charger un fichier .cp6</span>
+          </div>
+          <input type="file" accept=".cp6,.json" onchange="openProjectFile(this)" style="display:none">
+        </label>
+      </div>
+
+      <div style="font-size:10px;color:rgba(255,255,255,.35);text-align:center;margin-bottom:12px;line-height:1.5">
+        Le fichier <strong style="color:rgba(255,255,255,.5)">.cp6</strong> contient votre plan complet.<br>
+        Ouvrez-le sur n'importe quel ordinateur pour retrouver votre travail.
+      </div>
+
+      <!-- Historique snapshots -->
       <div class="wl">Historique des versions (3 max)</div>
       <div style="margin-bottom:8px">
         <input type="text" id="vh-name" placeholder="Nom du snapshot (ex: Plan final client X)" style="width:100%;padding:5px 7px;border:1px solid var(--bo);border-radius:5px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--sbg);color:var(--rt);margin-bottom:6px">
-        <button class="wb2 p" style="width:100%" onclick="saveVersion()">📸 Créer un snapshot</button>
+        <button class="wb2 s" style="width:100%" onclick="saveVersion()">📸 Créer un snapshot de secours</button>
       </div>
       <div id="vh-list"><div class="lpmt">Aucun snapshot</div></div>
     </div>
@@ -718,34 +746,124 @@ function loadSave(){
   }catch(e){return false;}
 }
 
-function exportJSON(){
-  const data=JSON.stringify({v:6,floors:ST.floors,tels:ST.tels,walls:ST.walls,symbols:ST.symbols,cables:ST.cables,locked:[...ST.locked],client:ST.client},null,2);
-  const a=document.createElement('a');
-  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
-  a.download='plan-securite-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();
+// ══════════════════════════════════════════════════════
+// SYSTÈME DE PROJETS — fichier .cp6
+// ══════════════════════════════════════════════════════
+function _projectSlug(name){
+  return name.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'')
+    .substring(0,40).toLowerCase()||'plan-securite';
 }
 
-function importJSON(input){
+function _getProjectPayload(){
+  return{
+    format:'cp6',
+    version:6,
+    projectName:ST.client.chantier||ST.client.name||'Plan sécurité',
+    projectId:_UID,
+    savedAt:new Date().toISOString(),
+    floors:ST.floors,
+    tels:ST.tels,
+    walls:ST.walls,
+    symbols:ST.symbols,
+    cables:ST.cables,
+    locked:[...ST.locked],
+    client:ST.client,
+    remise:ST.remise,
+    moHours:ST.moHours,
+    moRate:ST.moRate,
+  };
+}
+
+function setProjectName(){
+  const name=document.getElementById('proj-name').value.trim();
+  if(!name)return;
+  if(!ST.client.chantier)ST.client.chantier=name;
+  autoSave();
+  updProjDisplay();
+  document.getElementById('proj-name').value='';
+}
+
+function updProjDisplay(){
+  const el=document.getElementById('proj-id-display');
+  if(!el)return;
+  const name=ST.client.chantier||ST.client.name||'';
+  if(name)el.textContent='Projet : '+name+' · ID : '+_UID.slice(-8).toUpperCase();
+  else el.textContent='ID session : '+_UID.slice(-8).toUpperCase();
+  // Also update header badge
+  const sid=document.getElementById('sid-short');
+  if(sid)sid.textContent=name?(name.substring(0,18)+(name.length>18?'…':'')):_UID.slice(-6).toUpperCase();
+}
+
+function saveProjectFile(){
+  const payload=_getProjectPayload();
+  const name=ST.client.chantier||ST.client.name||'plan-securite';
+  const slug=_projectSlug(name);
+  const date=new Date().toISOString().slice(0,10);
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/octet-stream'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=slug+'-'+date+'.cp6';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function openProjectFile(input){
   const f=input.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=e=>{try{
-    const d=JSON.parse(e.target.result);
-    if(!d.floors)throw new Error();
-    svH();
-    ST.floors=d.floors;ST.tels=d.tels||[];
-    ST.walls=d.walls||[];ST.symbols=d.symbols||[];ST.cables=d.cables||[];
-    ST.locked=new Set(d.locked||[]);
-    if(d.client)ST.client=d.client;
-    ST.cur=0;ST.selId=null;ST.heatDirty=true;
-    updFloorBar();render();updQ();updLP();updZones();updStat();checkAlerts();
-    closeModal('save-modal');
-    alert('Plan importé avec succès !');
-  }catch(err){alert('Fichier JSON invalide.');}};
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.floors)throw new Error('Format invalide');
+      svH();
+      ST.floors=d.floors;
+      ST.tels=d.tels||[];
+      ST.walls=d.walls||[];
+      ST.symbols=d.symbols||[];
+      ST.cables=d.cables||[];
+      ST.locked=new Set(d.locked||[]);
+      if(d.client)ST.client=d.client;
+      if(d.remise!=null)ST.remise=d.remise;
+      if(d.moHours!=null)ST.moHours=d.moHours;
+      if(d.moRate!=null)ST.moRate=d.moRate;
+      ST.cur=0;ST.selId=null;ST.heatDirty=true;
+      closeModal('save-modal');
+      updFloorBar();fitAll();render();updQ();updLP();updZones();updStat();checkAlerts();
+      updProjDisplay();
+      // Sync sliders
+      if(ST.remise){const r=document.getElementById('r-remise');if(r){r.value=ST.remise;document.getElementById('v-remise').textContent=ST.remise+'%';}}
+      if(ST.moHours){const m=document.getElementById('inp-mo');if(m)m.value=ST.moHours;}
+      if(ST.moRate){const rt=document.getElementById('inp-rate');if(rt)rt.value=ST.moRate;}
+      const pname=d.projectName||d.client?.chantier||'';
+      const pid=d.projectId?d.projectId.slice(-8).toUpperCase():'';
+      const msg=pname?`✓ Projet "${pname}" chargé${pid?' (ID : '+pid+')':''}`:
+                      '✓ Plan chargé avec succès';
+      // Show brief toast
+      _toast(msg,'#10b981');
+    }catch(err){_toast('Fichier .cp6 invalide ou corrompu','#ef4444');}
+  };
   r.readAsText(f);
+  input.value='';// allow re-opening same file
 }
 
-// VERSION HISTORY
+function _toast(msg,color='#10b981'){
+  let t=document.getElementById('cp6-toast');
+  if(!t){t=document.createElement('div');t.id='cp6-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;z-index:9999;pointer-events:none;transition:opacity .3s;font-family:DM Sans,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3)';document.body.appendChild(t);}
+  t.textContent=msg;t.style.background=color;t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(()=>{t.style.opacity='0';},2800);
+}
+
+// Legacy compat
+function exportJSON(){saveProjectFile();}
+function importJSON(input){openProjectFile(input);}
+
+function showSaveModal(){
+  const nameEl=document.getElementById('proj-name');
+  if(nameEl&&!nameEl.value)nameEl.placeholder=ST.client.chantier||ST.client.name||'Nom du projet...';
+  updProjDisplay();
+  updVH();
+  showModal('save-modal');
+}
 function saveVersion(){
   const name=document.getElementById('vh-name').value||'Snapshot '+(new Date().toLocaleTimeString('fr'));
   const versions=JSON.parse(localStorage.getItem(_K('cp6_vh'))||'[]');
@@ -2713,6 +2831,7 @@ document.getElementById('r-bgop').addEventListener('input',function(){ST.bgOp=th
 // Display short session UID
 const sidEl=document.getElementById('sid-short');
 if(sidEl)sidEl.textContent=_UID.slice(-6).toUpperCase();
+updProjDisplay();
 // Fullscreen listener
 document.addEventListener('fullscreenchange',()=>{
   const btn=document.getElementById('tb-fs');
