@@ -209,7 +209,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
     <button class="t" onclick="showSessionRestore()" title="Charger une session existante" style="font-size:10px;color:#fbbf24;border-color:rgba(251,191,36,.3)">↩ Charger session</button>
     <button class="hb g" onclick="showRM()">+ Pièce</button>
     <button class="hb d" onclick="clearAll()">↺ Reset</button>
-    <button class="hb p" onclick="doPrint()">Imprimer</button>
+    <button class="hb p" onclick="doPrint()">📄 Devis PDF</button>
   </div>
 </div>
 
@@ -1070,85 +1070,109 @@ function doPrint(){
   const cpLogoUrl='https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg';
   const logo=(c.useCpLogo!==false)?cpLogoUrl:(ST.logoB64||cpLogoUrl);
   const s=calcSurface();
+  // Calcul date validité (1 mois)
+  const validDate=new Date();validDate.setMonth(validDate.getMonth()+1);
+  const validStr=validDate.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+
   const w=window.open('');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Devis ${ref}</title>
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Devis ${ref} — CamProtect</title>
 <style>
+@page{size:A4;margin:12mm 14mm 12mm 14mm}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;font-size:13px;color:#000;position:relative}
-.top-left-bg{position:fixed;top:20px;left:20px;width:160px;height:58px;background:#25262d;border-radius:4px;z-index:10}
-.top-left-content{position:fixed;top:20px;left:20px;width:300px;height:58px;z-index:11;display:flex;align-items:center;padding:5px}
-.top-left-content img{max-height:48px;max-width:140px}
-.title-devis{position:fixed;top:20px;right:30px;font-size:26px;font-weight:700;color:#000;z-index:12;letter-spacing:1px}
-.main{max-width:760px;margin:100px auto 30px;padding:0 20px}
-.info-row{display:flex;gap:16px;margin-bottom:14px}
-.info-box{flex:1;border:1px solid #E85D04;font-size:11.5px}
-.info-box h4{background:#E85D04;color:#fff;padding:5px 10px;font-size:12px;font-weight:700;margin:0}
-.info-box-body{padding:8px 10px;line-height:1.6}
-.plan-img{width:100%;border:1px solid #e5e7eb;margin:14px 0 6px;border-radius:3px}
-h2{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin:14px 0 8px;font-weight:700}
-table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{background:#E85D04;color:#fff;padding:7px 10px;text-align:left;font-size:11px;font-weight:700}
-tbody td{border:1px solid #e5e7eb;padding:6px 10px}
+body{font-family:Arial,sans-serif;font-size:12px;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+/* ── EN-TÊTE DOCUMENT ── */
+.doc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #E85D04}
+.logo-wrap{background:#25262d;border-radius:4px;padding:6px 10px;display:flex;align-items:center;height:52px}
+.logo-wrap img{max-height:40px;max-width:140px}
+.doc-title{font-size:30px;font-weight:700;color:#000;letter-spacing:2px}
+/* ── ENCARTS INFO ── */
+.info-row{display:flex;gap:14px;margin-bottom:12px}
+.info-box{flex:1;border:1px solid #E85D04;font-size:11px}
+.info-box h4{background:#E85D04;color:#fff;padding:4px 9px;font-size:11px;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:.5px}
+.info-box-body{padding:7px 9px;line-height:1.65}
+/* ── PLAN ── */
+.section-title{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:3px;margin:12px 0 7px;font-weight:700}
+.plan-img{width:100%;border:1px solid #e5e7eb;border-radius:2px;display:block}
+/* ── TABLEAU ── */
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:2px}
+thead th{background:#E85D04;color:#fff;padding:6px 9px;text-align:left;font-size:10.5px;font-weight:700}
+tbody td{border:1px solid #e5e7eb;padding:5px 9px}
 tbody tr:nth-child(even) td{background:#fafafa}
-.totals{margin-top:12px;text-align:right;font-size:12px}
+/* ── TOTAUX ── */
+.totals{margin-top:10px;text-align:right;font-size:11.5px}
 .tot-row{display:flex;justify-content:flex-end;gap:20px;padding:3px 0;border-bottom:1px solid #f3f4f6}
-.tot-row.main-tot{border-top:2px solid #E85D04;margin-top:4px;font-weight:700;font-size:13px;color:#E85D04}
-.footer{margin-top:20px;padding-top:8px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:9px;color:#9ca3af}
-@media print{.top-left-bg,.top-left-content,.title-devis{position:absolute}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.tot-row.main-tot{border-top:2px solid #E85D04;margin-top:4px;padding-top:5px;font-weight:700;font-size:13px;color:#E85D04}
+/* ── VALIDITÉ ── */
+.validity{margin-top:10px;padding:6px 10px;background:#fff7ed;border-left:3px solid #E85D04;font-size:11px;color:#92400e;font-style:italic}
+/* ── PIED DE PAGE ── */
+.footer{margin-top:16px;padding-top:7px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#9ca3af}
 </style></head><body>
-<div class="top-left-bg"></div>
-<div class="top-left-content"><img src="${logo}" alt="Logo"></div>
-<div class="title-devis">DEVIS</div>
-<div class="main">
-  <div class="info-row">
-    <div class="info-box"><h4>N° DEVIS</h4><div class="info-box-body"><strong>${ref}</strong></div></div>
-    <div class="info-box"><h4>DATE</h4><div class="info-box-body">${dateStr}</div></div>
+<!-- EN-TÊTE : Logo gauche | DEVIS droite -->
+<div class="doc-header">
+  <div class="logo-wrap"><img src="${logo}" alt="CamProtect"></div>
+  <div class="doc-title">DEVIS</div>
+</div>
+<!-- ENCARTS N° DEVIS + DATE -->
+<div class="info-row">
+  <div class="info-box">
+    <h4>N° Devis</h4>
+    <div class="info-box-body"><strong style="font-size:13px">${ref}</strong></div>
   </div>
-  <div class="info-row">
-    <div class="info-box">
-      <h4>CLIENT</h4>
-      <div class="info-box-body">
-        ${c.societe?`<strong>${c.societe}</strong><br>`:''}
-        ${c.name||'—'}<br>
-        ${c.tel?c.tel+'<br>':''}
-        ${c.email?c.email+'<br>':''}
-        ${c.addr||''}
-      </div>
+  <div class="info-box">
+    <h4>Date</h4>
+    <div class="info-box-body"><strong>${dateStr}</strong></div>
+  </div>
+</div>
+<!-- ENCARTS CLIENT + CHANTIER -->
+<div class="info-row">
+  <div class="info-box">
+    <h4>Client</h4>
+    <div class="info-box-body">
+      ${c.societe?`<strong>${c.societe}</strong><br>`:''}
+      ${c.name||'—'}<br>
+      ${c.tel?c.tel+'<br>':''}
+      ${c.email?c.email+'<br>':''}
+      ${c.addr||''}
     </div>
-    <div class="info-box">
-      <h4>CHANTIER / PROJET</h4>
-      <div class="info-box-body">
-        <strong>${c.chantier||'—'}</strong><br>
-        ${c.chantierAddr||''}
-        ${ST.floors.length>1?'<br><em>'+ST.floors.length+' étages</em>':''}
-        ${s.total>0?`<br>${s.covered}/${s.total} m² couverts (${s.pct}%)`:''}
-      </div>
+  </div>
+  <div class="info-box">
+    <h4>Chantier / Projet</h4>
+    <div class="info-box-body">
+      <strong>${c.chantier||'—'}</strong><br>
+      ${c.chantierAddr||''}
+      ${ST.floors.length>1?'<br><em>'+ST.floors.length+' étages</em>':''}
+      ${s.total>0?`<br>${s.covered}/${s.total} m² couverts (${s.pct}%)`:''}
     </div>
   </div>
-  <h2>Plan d'implantation — ${CF().name}</h2>
-  <img class="plan-img" src="${dataURL}">
-  <h2>Détail des équipements</h2>
-  <table>
-    <thead><tr><th>#</th><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:right">Prix unit. HT</th><th style="text-align:right">Total HT</th></tr></thead>
-    <tbody>${rows}
-    ${remise>0?`<tr><td colspan="4" style="text-align:right;font-style:italic">Remise ${remise}%</td><td style="text-align:right;color:#10b981">-${(matHT*remise/100).toFixed(2)} €</td></tr>`:''}
-    ${moTotal>0?`<tr><td colspan="2">Main d'œuvre (${ST.moHours}h × ${ST.moRate}€/h)</td><td colspan="2"></td><td style="text-align:right;font-weight:600">${moTotal.toFixed(2)} €</td></tr>`:''}
-    </tbody>
-  </table>
-  <div class="totals">
-    ${remise>0?`<div class="tot-row"><span>Matériel HT</span><span>${matHT.toFixed(2)} €</span></div>
-    <div class="tot-row"><span>Remise ${remise}%</span><span>-${(matHT*remise/100).toFixed(2)} €</span></div>`:''}
-    ${moTotal>0?`<div class="tot-row"><span>Main d'œuvre HT</span><span>${moTotal.toFixed(2)} €</span></div>`:''}
-    <div class="tot-row"><span><strong>Total HT</strong></span><span><strong>${totalHT.toFixed(2)} €</strong></span></div>
-    <div class="tot-row"><span>TVA 20%</span><span>${tva.toFixed(2)} €</span></div>
-    <div class="tot-row main-tot"><span>TOTAL TTC</span><span>${ttc.toFixed(2)} €</span></div>
-  </div>
-  ${mins>0?`<div style="text-align:right;font-size:11px;color:#6b7280;margin-top:8px">⏱ Durée de pose estimée : ${h}h${mi>0?mi+'min':''}</div>`:''}
-  ${c.notes?`<div style="margin-top:12px;font-size:11.5px;background:#f9fafb;padding:8px 12px;border-left:3px solid #E85D04"><strong>Notes :</strong> ${c.notes}</div>`:''}
-  <div class="footer">
-    <span>CamProtect.fr · Devis non contractuel · Prix HT</span>
-    <span>Généré le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</span>
-  </div>
+</div>
+<!-- PLAN -->
+<div class="section-title">Plan d'implantation — ${CF().name}</div>
+<img class="plan-img" src="${dataURL}">
+<!-- ÉQUIPEMENTS -->
+<div class="section-title">Détail des équipements</div>
+<table>
+  <thead><tr><th>#</th><th>Désignation</th><th style="text-align:center">Qté</th><th style="text-align:right">Prix unit. HT</th><th style="text-align:right">Total HT</th></tr></thead>
+  <tbody>${rows}
+  ${remise>0?`<tr><td colspan="4" style="text-align:right;font-style:italic">Remise ${remise}%</td><td style="text-align:right;color:#059669;font-weight:600">-${(matHT*remise/100).toFixed(2)} €</td></tr>`:''}
+  ${moTotal>0?`<tr><td colspan="2">Main d'œuvre (${ST.moHours}h × ${ST.moRate} €/h)</td><td colspan="2"></td><td style="text-align:right;font-weight:600">${moTotal.toFixed(2)} €</td></tr>`:''}
+  </tbody>
+</table>
+<div class="totals">
+  ${remise>0?`<div class="tot-row"><span>Matériel HT</span><span>${matHT.toFixed(2)} €</span></div>
+  <div class="tot-row"><span>Remise ${remise}%</span><span>-${(matHT*remise/100).toFixed(2)} €</span></div>`:''}
+  ${moTotal>0?`<div class="tot-row"><span>Main d'œuvre HT</span><span>${moTotal.toFixed(2)} €</span></div>`:''}
+  <div class="tot-row"><span><strong>Total HT</strong></span><span><strong>${totalHT.toFixed(2)} €</strong></span></div>
+  <div class="tot-row"><span>TVA 20%</span><span>${tva.toFixed(2)} €</span></div>
+  <div class="tot-row main-tot"><span>TOTAL TTC</span><span>${ttc.toFixed(2)} €</span></div>
+</div>
+${mins>0?`<div style="text-align:right;font-size:10px;color:#6b7280;margin-top:7px">⏱ Durée de pose estimée : ${h}h${mi>0?mi+'min':''}</div>`:''}
+${c.notes?`<div style="margin-top:10px;font-size:11px;background:#f9fafb;padding:7px 10px;border-left:3px solid #E85D04"><strong>Notes :</strong> ${c.notes}</div>`:''}
+<!-- VALIDITÉ -->
+<div class="validity">Devis valable 1 mois à compter de la date d'édition, soit jusqu'au ${validStr}.</div>
+<!-- PIED DE PAGE -->
+<div class="footer">
+  <span>CamProtect.fr · Devis non contractuel · Prix exprimés HT</span>
+  <span>Généré le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</span>
 </div>
 <script>setTimeout(()=>window.print(),600)<\/script>
 </body></html>`);
