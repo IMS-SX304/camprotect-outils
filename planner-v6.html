@@ -1552,11 +1552,16 @@ function isOutdoor(it){
   return pr&&(pr.env==='Extérieur'||pr.env==='Ext./Int.');
 }
 
-// Tous les murs bloquent dans tous les cas — intérieur et extérieur
-// Seule la direction du nudge (nudgeOrig) change selon mount
-// Un faisceau extérieur est bloqué par TOUTE paroi qu'il rencontre (intérieure ou extérieure)
+// Tous les murs physiques dans tous les cas
+// Pour mount='int' avec roomId : le clip canvas garantit le confinement à la pièce
+// segsForItem peut utiliser seulement les cloisons utilisateur dans ce cas
+// (les parois de pièce servent de clip via ctx.clip(), pas besoin de les doubler en LOS)
 function segsForItem(it){
-  return[...wallSegs(),...allRoomWallSegs()];
+  const u=wallSegs();
+  // Interior avec pièce assignée : cloisons utilisateur suffisent,
+  // le ctx.clip() sur la pièce empêche tout débordement
+  if(it.mount==='int'&&it.roomId)return u;
+  return[...u,...allRoomWallSegs()];
 }
 
 // Origine effective des rayons selon it.mount et it.roomId
@@ -1589,7 +1594,10 @@ function nudgeOrig(it){
     const dx=cx-it.x,dy=cy-it.y;
     const len=Math.sqrt(dx*dx+dy*dy);
     if(len<0.01)return{x:it.x,y:it.y};
-    return{x:it.x+(dx/len)*Math.min(nudge,len*.25),y:it.y+(dy/len)*Math.min(nudge,len*.25)};
+    // Nudge fort vers le centroïde (40% du chemin) pour sortir clairement du coin
+    // Garantit que l'origine est bien à l'intérieur, loin des parois de coin
+    const d=len*0.40;
+    return{x:it.x+(dx/len)*d,y:it.y+(dy/len)*d};
   }
 
   // mount='ext' : normale sortante du mur de montage
@@ -1771,6 +1779,14 @@ function drawCov(it){
   const poly=visPolygon(it,segs,orig);
   if(!poly||poly.length<2)return;
   ctx.save();
+  // Clip à la pièce assignée si mount='int' avec roomId → débordement impossible
+  if(it.mount==='int'&&it.roomId){
+    const hr=CF().rooms.find(r=>r.id===it.roomId);
+    if(hr){
+      const rp=toC(hr.x,hr.y);
+      ctx.beginPath();ctx.rect(rp.x,rp.y,hr.w*ST.scale,hr.h*ST.scale);ctx.clip();
+    }
+  }
   ctx.fillStyle=pr.fill;ctx.beginPath();
   const f=toC(poly[0].x,poly[0].y);ctx.moveTo(f.x,f.y);
   for(let i=1;i<poly.length;i++){const q=toC(poly[i].x,poly[i].y);ctx.lineTo(q.x,q.y);}
@@ -1778,8 +1794,8 @@ function drawCov(it){
   ctx.strokeStyle=pr.col+'55';ctx.lineWidth=.8;ctx.stroke();
   if(pr.angle<360){
     const rotRad=(it.rot-90)*Math.PI/180;
-    const t=castRay(it.x,it.y,Math.cos(rotRad),Math.sin(rotRad),pr.range,segs);
-    const ep=toC(it.x+Math.cos(rotRad)*t,it.y+Math.sin(rotRad)*t);
+    const t=castRay(orig.x,orig.y,Math.cos(rotRad),Math.sin(rotRad),pr.range,segs);
+    const ep=toC(orig.x+Math.cos(rotRad)*t,orig.y+Math.sin(rotRad)*t);
     ctx.setLineDash([3,3]);ctx.strokeStyle=pr.col+'66';ctx.lineWidth=.7;
     ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(ep.x,ep.y);ctx.stroke();ctx.setLineDash([]);
   }
@@ -2581,6 +2597,14 @@ function ctxHeatAll(){
   render();hideCtxMenu();
 }
 // Isoler la couverture d'un seul équipement
+function ctxPickRoom(){
+  if(!ctxTarget||ctxTarget.type!=='item')return;
+  ST._pickRoomForId=ctxTarget.obj.id;
+  setMode('pickRoom');
+  const ib=document.getElementById('ib');
+  if(ib)ib.textContent='🏠 Cliquez sur la pièce à associer au détecteur — Échap pour annuler';
+  hideCtxMenu();
+}
 function ctxSetMount(mountVal){
   if(!ctxTarget||ctxTarget.type!=='item')return;
   svH();const it=CF().items.find(i=>i.id===ctxTarget.obj.id);
@@ -2862,6 +2886,8 @@ function doRMB(e){// Legacy — now handled via context menu
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
   if(e.key==='Escape'){
+    // Annuler le mode sélection de pièce
+    if(ST.mode==='pickRoom'){ST._pickRoomForId=null;const ib=document.getElementById('ib');if(ib)ib.textContent='';}
     // Wall mode: finish current wall chain
     if(ST.mode==='wall'){ST.wallStart=null;if(!e.shiftKey){setMode('s');}}
     // Cable mode: finish cable
