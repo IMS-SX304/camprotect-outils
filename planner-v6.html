@@ -631,6 +631,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   <div class="ctx-item" id="ctx-mount-int"  onclick="ctxSetMount('int')"> 🔲 Face intérieure</div>
   <div class="ctx-item" id="ctx-mount-ext"  onclick="ctxSetMount('ext')"> 🔳 Face extérieure</div>
   <div class="ctx-item" id="ctx-mount-free" onclick="ctxSetMount(null)">  ⊕  Position libre</div>
+  <div class="ctx-item" id="ctx-assign-room" onclick="ctxPickRoom()">  🏠 Associer à une pièce</div>
   <div class="ctx-sep"  id="ctx-sep-heat"></div>
   <div class="ctx-item" id="ctx-heat-room" onclick="ctxHeatRoom()">🌡 Heatmap de cette zone</div>
   <div class="ctx-item" id="ctx-heat-all"  onclick="ctxHeatAll()"> 🌡 Heatmap globale</div>
@@ -1558,10 +1559,64 @@ function segsForItem(it){
   return[...wallSegs(),...allRoomWallSegs()];
 }
 
-// Origine effective des rayons selon it.mount
-// mount='int' → décalage vers l'intérieur du mur (face intérieure)
-// mount='ext' → décalage vers l'extérieur du mur (face extérieure)
-// mount=null  → pas de décalage (item libre, pas sur un mur)
+// Origine effective des rayons selon it.mount et it.roomId
+// mount='int' → centroïde de la pièce assignée ou la plus alignée avec la rotation
+// mount='ext' → normale sortante du mur touché
+// mount=null  → pas de nudge
+function nudgeOrig(it){
+  const eps=0.32;const nudge=0.12;
+  if(!it.mount)return{x:it.x,y:it.y};
+
+  if(it.mount==='int'){
+    const rooms=CF().rooms;
+    let targetRoom=null;
+    if(it.roomId)targetRoom=rooms.find(r=>r.id===it.roomId);
+    if(!targetRoom){
+      // Pièce dont le centroïde est le plus aligné avec la rotation
+      const rotRad=(it.rot-90)*Math.PI/180;
+      const fx=Math.cos(rotRad),fy=Math.sin(rotRad);
+      let bestDot=-Infinity;
+      for(const r of rooms){
+        const dx=(r.x+r.w/2)-it.x,dy=(r.y+r.h/2)-it.y;
+        const len=Math.sqrt(dx*dx+dy*dy);
+        if(len<0.01)continue;
+        const dot=(dx/len)*fx+(dy/len)*fy;
+        if(dot>bestDot){bestDot=dot;targetRoom=r;}
+      }
+    }
+    if(!targetRoom)return{x:it.x,y:it.y};
+    const cx=targetRoom.x+targetRoom.w/2,cy=targetRoom.y+targetRoom.h/2;
+    const dx=cx-it.x,dy=cy-it.y;
+    const len=Math.sqrt(dx*dx+dy*dy);
+    if(len<0.01)return{x:it.x,y:it.y};
+    return{x:it.x+(dx/len)*Math.min(nudge,len*.25),y:it.y+(dy/len)*Math.min(nudge,len*.25)};
+  }
+
+  // mount='ext' : normale sortante du mur de montage
+  const allWalls=allRoomWallSegs();const touching=[];
+  for(const[x1,y1,x2,y2]of allWalls){
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    if(len<1e-10)continue;
+    const t=Math.max(0,Math.min(1,((it.x-x1)*dx+(it.y-y1)*dy)/(len*len)));
+    const cx=x1+t*dx,cy=y1+t*dy;
+    const dist=Math.sqrt((cx-it.x)**2+(cy-it.y)**2);
+    if(dist<=eps){
+      let nx=-dy/len,ny=dx/len;
+      const testX=cx+nx*.1,testY=cy+ny*.1;
+      const inR=CF().rooms.some(r=>testX>r.x&&testX<r.x+r.w&&testY>r.y&&testY<r.y+r.h);
+      if(inR){nx=-nx;ny=-ny;}
+      touching.push({dist,nx,ny});
+    }
+  }
+  if(touching.length===0)return{x:it.x,y:it.y};
+  const pr=P[it.key];
+  if(touching.length===1||!pr||pr.angle>=360){const w=touching[0];return{x:it.x+w.nx*nudge,y:it.y+w.ny*nudge};}
+  const rotRad=(it.rot-90)*Math.PI/180;const fx=Math.cos(rotRad),fy=Math.sin(rotRad);
+  let best=touching[0],bestDot=-Infinity;
+  for(const w of touching){const dot=w.nx*fx+w.ny*fy;if(dot>bestDot){bestDot=dot;best=w;}}
+  return{x:it.x+best.nx*nudge,y:it.y+best.ny*nudge};
+}
+
 function nudgeOrig(it){
   const eps=0.32;const nudge=0.10;
   if(!it.mount)return{x:it.x,y:it.y};// position libre → pas de nudge
@@ -2201,6 +2256,23 @@ cv.addEventListener('mousedown',e=>{
     return;
   }
 
+  // Mode sélection de pièce pour association détecteur
+  if(ST.mode==='pickRoom'){
+    const tgPR=getTarget(e.offsetX,e.offsetY);
+    if(tgPR.type==='room'){
+      svH();
+      const it=CF().items.find(i=>i.id===ST._pickRoomForId);
+      if(it){it.roomId=tgPR.obj.id;}
+      ST._pickRoomForId=null;setMode('s');if(it)doSel(it.id,'item');
+      render();updLP();
+      const ib=document.getElementById('ib');
+      if(ib){ib.textContent='✓ Associé : '+tgPR.obj.n;setTimeout(()=>ib.textContent='',2000);}
+    } else {
+      ST._pickRoomForId=null;setMode('s');render();
+    }
+    return;
+  }
+
   // CABLE DRAWING MODE
   if(ST.cableDrawing){
     // Clic sur câble existant → terminer tracé en cours + sélectionner
@@ -2400,6 +2472,11 @@ function showCtxMenu(e,tg){
     document.getElementById('ctx-mount-int').style.fontWeight=_m==='int'?'700':'normal';
     document.getElementById('ctx-mount-ext').style.fontWeight=_m==='ext'?'700':'normal';
     document.getElementById('ctx-mount-free').style.fontWeight=(!_m)?'700':'normal';
+    document.getElementById('ctx-assign-room').style.display=(_m==='int')?'flex':'none';
+    if(_m==='int'&&_it&&_it.roomId){
+      const _r=CF().rooms.find(r=>r.id===_it.roomId);
+      document.getElementById('ctx-assign-room').textContent='🏠 Pièce: '+(_r?_r.n:'?');
+    } else {document.getElementById('ctx-assign-room').textContent='🏠 Associer à une pièce';}
   }
   document.getElementById('ctx-cov-item').style.display=isItem?'flex':'none';
   document.getElementById('ctx-reset-flt').style.display=hasFilter?'flex':'none';
@@ -2723,7 +2800,7 @@ cv.addEventListener('mousemove',e=>{
   else if(tg.type==='cable_del')cv.style.cursor='pointer';
   else if(tg.type==='cable_vtx')cv.style.cursor='crosshair';
   else if(['item','room','tel','open','wall','cable','symbol','measure'].includes(tg.type)&&!ST.locked.has(tg.obj.id))cv.style.cursor='move';
-  else cv.style.cursor=ST.mode==='m'||ST.mode==='wall'?'crosshair':ST.selKey&&ST.mode==='p'?'crosshair':'grab';
+  else cv.style.cursor=['m','wall','pickRoom'].includes(ST.mode)?'crosshair':ST.selKey&&ST.mode==='p'?'crosshair':'grab';
 });
 
 cv.addEventListener('mouseup',e=>{
