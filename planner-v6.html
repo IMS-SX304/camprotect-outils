@@ -1548,34 +1548,45 @@ function segsForItem(it){
   return[...userSegs,...allWalls];
 }
 
-// Calcule l'origine effective des rayons pour un item posé sur un mur extérieur
-// → décale légèrement vers l'extérieur pour que le mur de montage bloque les rayons entrants
+// Calcule l'origine effective des rayons pour les items posés sur/dans un mur ou un coin
+// - Détecteurs directionnels : décalage dans la direction de visée (rotation)
+// - Détecteurs omnidirectionnels : décalage vers le centroïde de la pièce la plus proche
+// Cela permet de placer un détecteur DANS UN COIN et de choisir la pièce couverte via la rotation
 function nudgeOrig(it){
-  const eps=0.3;const nudge=0.08;// 8cm vers l'extérieur
+  const eps=0.32;const nudge=0.09;// 9cm
+  // Vérifier si l'item touche un mur de pièce
   const allWalls=allRoomWallSegs();
-  let bestDist=Infinity;let ox=it.x,oy=it.y;
-  // Est-ce que l'item est strictement intérieur ?
-  const interior=CF().rooms.some(r=>
-    it.x>r.x+eps&&it.x<r.x+r.w-eps&&it.y>r.y+eps&&it.y<r.y+r.h-eps
-  );
-  if(interior)return{x:it.x,y:it.y};// intérieur : pas de décalage
+  let touchingWall=false;
   for(const[x1,y1,x2,y2]of allWalls){
     const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
     if(len<1e-10)continue;
     const t=Math.max(0,Math.min(1,((it.x-x1)*dx+(it.y-y1)*dy)/(len*len)));
-    const cx=x1+t*dx,cy=y1+t*dy;
-    const dist=Math.sqrt((cx-it.x)**2+(cy-it.y)**2);
-    if(dist<eps&&dist<bestDist){
-      bestDist=dist;
-      // Normale perpendiculaire au segment
-      const nx=-dy/len,ny=dx/len;
-      // Tester quel côté est extérieur (pas dans une pièce)
-      const inR=CF().rooms.some(r=>(cx+nx*.1)>=r.x&&(cx+nx*.1)<=r.x+r.w&&(cy+ny*.1)>=r.y&&(cy+ny*.1)<=r.y+r.h);
-      const outNx=inR?-nx:nx;const outNy=inR?-ny:ny;
-      ox=it.x+outNx*nudge;oy=it.y+outNy*nudge;
-    }
+    const px=x1+t*dx-it.x,py=y1+t*dy-it.y;
+    if(Math.sqrt(px*px+py*py)<=eps){touchingWall=true;break;}
   }
-  return{x:ox,y:oy};
+  if(!touchingWall)return{x:it.x,y:it.y};// loin des murs : pas de décalage
+
+  const pr=P[it.key];
+  // Détecteur directionnel (angle < 360°) : nudge dans la direction de visée
+  // → l'utilisateur oriente la rotation vers la pièce/zone voulue
+  if(pr&&pr.angle>0&&pr.angle<360){
+    const rotRad=(it.rot-90)*Math.PI/180;
+    return{x:it.x+Math.cos(rotRad)*nudge,y:it.y+Math.sin(rotRad)*nudge};
+  }
+  // Détecteur omnidirectionnel (360° ou range=0) : nudge vers le centroïde de la pièce la plus proche
+  const rooms=CF().rooms;
+  let best=null,bestDist=Infinity;
+  for(const r of rooms){
+    const cx=r.x+r.w/2,cy=r.y+r.h/2;
+    const d=Math.sqrt((cx-it.x)**2+(cy-it.y)**2);
+    if(d<bestDist){bestDist=d;best={x:cx,y:cy};}
+  }
+  if(best){
+    const dx=best.x-it.x,dy=best.y-it.y;
+    const len=Math.sqrt(dx*dx+dy*dy);
+    if(len>0.01)return{x:it.x+dx/len*nudge,y:it.y+dy/len*nudge};
+  }
+  return{x:it.x,y:it.y};
 }
 
 // Tous les segments de parois de pièces (intérieur + extérieur) — pour bloquer la couverture
