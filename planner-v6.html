@@ -1912,6 +1912,14 @@ function render(){
     });
     ctx.setLineDash([]);ctx.restore();
   }
+  // Mode pickRoom : highlight des pièces sélectionnables
+  if(ST.mode==='pickRoom'){
+    ctx.save();ctx.strokeStyle='#f59e0b';ctx.lineWidth=3;ctx.setLineDash([6,3]);
+    CF().rooms.forEach(r=>{
+      const p=toC(r.x,r.y);ctx.strokeRect(p.x,p.y,r.w*ST.scale,r.h*ST.scale);
+    });
+    ctx.setLineDash([]);ctx.restore();
+  }
   drawMinimap();
   updScale();
 }
@@ -2222,6 +2230,27 @@ cv.addEventListener('mousedown',e=>{
   if(e.button!==0)return;
   const m=toM(e.offsetX,e.offsetY);
 
+  // MODE SÉLECTION PIÈCE — doit être en TOUT PREMIER avant tout autre handler
+  if(ST.mode==='pickRoom'){
+    // Chercher directement une pièce au point cliqué (bypass getTarget)
+    const clickedRoom=[...CF().rooms].reverse().find(r=>m.x>=r.x&&m.x<=r.x+r.w&&m.y>=r.y&&m.y<=r.y+r.h);
+    if(clickedRoom){
+      svH();
+      const it=CF().items.find(i=>i.id===ST._pickRoomForId);
+      if(it){it.roomId=clickedRoom.id;}
+      ST._pickRoomForId=null;setMode('s');if(it)doSel(it.id,'item');
+      render();updLP();
+      const ib=document.getElementById('ib');
+      if(ib){ib.textContent='✓ Associé : '+clickedRoom.n;setTimeout(()=>ib.textContent='',2000);}
+    } else {
+      // Clic hors pièce → annuler le mode
+      ST._pickRoomForId=null;setMode('s');
+      const ib=document.getElementById('ib');if(ib)ib.textContent='';
+      render();
+    }
+    return;
+  }
+
   // MEASURE MODE
   if(ST.mode==='m'){
     if(!ST.mS){ST.mS={x:sn(m.x),y:sn(m.y)};ST.mE=null;}
@@ -2252,23 +2281,6 @@ cv.addEventListener('mousedown',e=>{
       ST.walls.push({id:ST.nid++,x1:ST.wallStart.x,y1:ST.wallStart.y,x2:sn(m.x),y2:sn(m.y),style:ST.wallStyle});
       ST.wallStart={x:sn(m.x),y:sn(m.y)};// chain next wall from endpoint
       ST.heatDirty=true;render();updLP();
-    }
-    return;
-  }
-
-  // Mode sélection de pièce pour association détecteur
-  if(ST.mode==='pickRoom'){
-    const tgPR=getTarget(e.offsetX,e.offsetY);
-    if(tgPR.type==='room'){
-      svH();
-      const it=CF().items.find(i=>i.id===ST._pickRoomForId);
-      if(it){it.roomId=tgPR.obj.id;}
-      ST._pickRoomForId=null;setMode('s');if(it)doSel(it.id,'item');
-      render();updLP();
-      const ib=document.getElementById('ib');
-      if(ib){ib.textContent='✓ Associé : '+tgPR.obj.n;setTimeout(()=>ib.textContent='',2000);}
-    } else {
-      ST._pickRoomForId=null;setMode('s');render();
     }
     return;
   }
