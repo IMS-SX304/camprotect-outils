@@ -203,33 +203,64 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 .gw-card{background:#1a2233;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:36px 40px;max-width:480px;width:90%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5)}
 .gw-logo{width:52px;height:52px;background:#E85D04;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 18px}
 .gw-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:8px}
-.gw-sub{font-size:13px;color:#94a3b8;margin-bottom:28px;line-height:1.6}
+.gw-sub{font-size:13px;color:#e2e8f0;margin-bottom:28px;line-height:1.6}
 .gw-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
 .gw-btn{padding:11px 22px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s}
 .gw-btn.primary{background:#E85D04;color:#fff}.gw-btn.primary:hover{background:#c24b00}
 .gw-btn.secondary{background:rgba(255,255,255,.08);color:#e2e8f0;border:1px solid rgba(255,255,255,.12)}.gw-btn.secondary:hover{background:rgba(255,255,255,.14)}
+.guide-hl{outline:2px solid #E85D04 !important;outline-offset:3px;background:rgba(232,93,4,.15) !important;border-radius:6px;animation:guide-pulse 1.2s infinite alternate}
+@keyframes guide-pulse{from{outline-color:#E85D04;box-shadow:0 0 0 0 rgba(232,93,4,.4)}to{outline-color:#fbbf24;box-shadow:0 0 10px 3px rgba(232,93,4,.25)}}
 .gw-skip{display:flex;align-items:center;justify-content:center;gap:7px;font-size:11.5px;color:#64748b;cursor:pointer}
 .gw-skip input{accent-color:#E85D04}
+.guide-highlight{animation:guideHl 1.1s ease-in-out infinite;outline:3px solid #E85D04 !important;outline-offset:3px;border-radius:4px;position:relative;z-index:999}
+@keyframes guideHl{0%,100%{box-shadow:0 0 0 0 rgba(232,93,4,.6)}55%{box-shadow:0 0 0 10px rgba(232,93,4,0)}}
 /* Spotlight */
 #guide-overlay{pointer-events:none}
 #guide-spotlight{position:fixed;pointer-events:none;z-index:10001;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.72);transition:all .35s cubic-bezier(.4,0,.2,1)}
 /* Tooltip bulle */
-#guide-tip{position:fixed;z-index:10002;max-width:300px;background:#1e293b;border:1px solid rgba(232,93,4,.5);border-radius:12px;padding:16px 18px;box-shadow:0 12px 32px rgba(0,0,0,.5);pointer-events:auto}
+#guide-tip{position:fixed;z-index:10002;width:260px;max-height:none;height:auto;background:#1e293b;border:1px solid rgba(232,93,4,.5);border-radius:12px;padding:12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.5);pointer-events:auto;box-sizing:border-box}
 #guide-tip::before{content:'';position:absolute;width:10px;height:10px;background:#1e293b;border:1px solid rgba(232,93,4,.5);transform:rotate(45deg)}
-.gt-step{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#E85D04;margin-bottom:6px}
-.gt-title{font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:6px}
-.gt-body{font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:14px}
+.gt-step{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#E85D04;margin-bottom:4px}
+.gt-title{font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:4px}
+.gt-body{font-size:11.5px;color:#e2e8f0;line-height:1.5;margin-bottom:10px}
 .gt-btns{display:flex;gap:8px;justify-content:flex-end}
 .gt-btn{padding:6px 14px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
 .gt-btn.next{background:#E85D04;color:#fff}.gt-btn.next:hover{background:#c24b00}
 .gt-btn.prev{background:rgba(255,255,255,.08);color:#e2e8f0}.gt-btn.prev:hover{background:rgba(255,255,255,.14)}
 .gt-btn.skip{background:transparent;color:#64748b;margin-right:auto}.gt-btn.skip:hover{color:#94a3b8}
-.gt-dots{display:flex;gap:5px;align-items:center;margin-right:auto}
+.gt-progress{display:flex;justify-content:center;gap:5px;margin-bottom:10px}
+.gt-dots{display:flex;justify-content:center;gap:5px;align-items:center;margin-bottom:10px}
 .gt-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .2s}
 .gt-dot.active{background:#E85D04;width:18px;border-radius:3px}
 /* Animation intro */
 @keyframes gw-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 .gw-card{animation:gw-in .25s ease}
+
+/* ── MODALE D'AIDE ──────────────────────────────────────────────────────── */
+#help-modal{position:fixed;inset:0;z-index:10500;background:rgba(10,14,22,.88);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center}
+#help-modal.open{display:flex}
+.hm-box{background:#1a2233;border:1px solid rgba(255,255,255,.12);border-radius:14px;width:680px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.hm-head{padding:18px 22px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hm-head h2{font-size:17px;font-weight:700;color:#fff;margin:0}
+.hm-head p{font-size:11px;color:#64748b;margin:3px 0 0}
+.hm-close{background:rgba(255,255,255,.07);border:none;color:#94a3b8;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.hm-close:hover{background:rgba(220,38,38,.2);color:#ef4444}
+.hm-body{overflow-y:auto;padding:18px 22px;flex:1}
+.hm-body::-webkit-scrollbar{width:4px}.hm-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+.hm-sec{margin-bottom:22px}
+.hm-sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#E85D04;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.hm-sec-title::after{content:'';flex:1;height:1px;background:rgba(232,93,4,.25)}
+.hm-item{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.hm-icon{width:26px;height:26px;border-radius:6px;background:rgba(232,93,4,.15);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.hm-item-txt{flex:1}
+.hm-item-txt strong{font-size:11.5px;color:#f1f5f9;font-weight:600;display:block;margin-bottom:2px}
+.hm-item-txt span{font-size:11px;color:#94a3b8;line-height:1.5}
+.hm-item-txt span b{color:#cbd5e1}
+.hm-foot{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:10px}
+.hm-foot p{font-size:10.5px;color:#475569;margin:0}
+.hm-btn{padding:8px 18px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+.hm-btn.primary{background:#E85D04;color:#fff}.hm-btn.primary:hover{background:#c24b00}
+.hm-btn.secondary{background:rgba(255,255,255,.07);color:#e2e8f0;border:1px solid rgba(255,255,255,.1)}.hm-btn.secondary:hover{background:rgba(255,255,255,.12)}
 </style>
 </head>
 <body>
@@ -247,7 +278,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
     <span id="session-badge" title="Cliquer pour gérer votre projet" style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#fbbf24;font-family:monospace;cursor:pointer;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:2px 7px;white-space:nowrap" onclick="showSaveModal()">🔑 ID de session : <span id="sid-short">—</span></span>
     <button class="t" onclick="showSessionRestore()" title="Charger une session existante" style="font-size:10px;color:#fbbf24;border-color:rgba(251,191,36,.3)">↩ Charger session</button>
     <button class="hb g" onclick="showRM()">+ Pièce</button>
-    <button class="hb" onclick="guideReopen()" title="Guide d'utilisation" style="font-size:13px;padding:3px 7px">?</button>
+    <button class="hb" onclick="helpOpen()" title="Aide & documentation" style="font-size:13px;padding:3px 7px">?</button>
     <button class="hb d" onclick="clearAll()">↺ Reset</button>
     <button class="hb p" onclick="doPrint()">📄 Devis PDF</button>
   </div>
@@ -1239,35 +1270,6 @@ ${c.notes?`<div style="margin-top:10px;font-size:11px;background:#f9fafb;padding
   <span>Généré le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</span>
 </div>
 <script>setTimeout(()=>window.print(),600)<\/script>
-<!-- GUIDE D'UTILISATION -->
-<div id="guide-welcome" style="display:none">
-  <div class="gw-card">
-    <div class="gw-logo">🎯</div>
-    <div class="gw-title">Bienvenue sur CamProtect Planner</div>
-    <div class="gw-sub">L'outil de planification pour vos installations de sécurité Ajax.<br>Est-ce votre première utilisation&nbsp;?</div>
-    <div class="gw-btns">
-      <button class="gw-btn primary" onclick="guideStart()">🚀 Première utilisation — me guider</button>
-      <button class="gw-btn secondary" onclick="guideClose()">Je connais l'outil</button>
-    </div>
-    <label class="gw-skip">
-      <input type="checkbox" id="guide-no-show"> Ne plus afficher ce message
-    </label>
-  </div>
-</div>
-<!-- SPOTLIGHT + TOOLTIP -->
-<div id="guide-spotlight" style="display:none"></div>
-<div id="guide-tip" style="display:none">
-  <div class="gt-step" id="gt-step"></div>
-  <div class="gt-title" id="gt-title"></div>
-  <div class="gt-body" id="gt-body"></div>
-  <div class="gt-btns">
-    <div class="gt-dots" id="gt-dots"></div>
-    <button class="gt-btn skip" onclick="guideSkip()">Passer le guide</button>
-    <button class="gt-btn prev" id="gt-prev" onclick="guideNav(-1)">← Précédent</button>
-    <button class="gt-btn next" id="gt-next" onclick="guideNav(1)">Suivant →</button>
-  </div>
-</div>
-
 </body></html>`);
 }
 
@@ -3197,25 +3199,212 @@ document.addEventListener('click',e=>{
 initSidebarDrag();
 </script>
 
+
+
+<!-- MODALE D'AIDE COMPLÈTE -->
+<div id="help-modal">
+<div class="hm-box">
+  <div class="hm-head">
+    <div>
+      <h2>📖 Guide de l'outil</h2>
+      <p>Référence complète du Planificateur CamProtect</p>
+    </div>
+    <button class="hm-close" onclick="helpClose()">✕</button>
+  </div>
+  <div class="hm-body">
+
+    <div class="hm-sec">
+      <div class="hm-sec-title">🗺 Navigation sur le plan</div>
+      <div class="hm-item"><div class="hm-icon">🖱</div><div class="hm-item-txt"><strong>Pan / Déplacement</strong><span>Cliquer-glisser sur une zone vide. Le curseur passe en main.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔍</div><div class="hm-item-txt"><strong>Zoom</strong><span>Molette de la souris, centré sur le curseur. Barre d'échelle en haut à droite.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">⛶</div><div class="hm-item-txt"><strong>Plein écran</strong><span>Bouton <b>⛶</b> dans la barre de contrôles. Échap pour quitter.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🗺</div><div class="hm-item-txt"><strong>Minimap</strong><span>Aperçu en bas à droite du plan. Le rectangle orange représente la vue courante.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">↺</div><div class="hm-item-txt"><strong>Undo / Annuler</strong><span>Ctrl+Z pour annuler la dernière action. Jusqu'à 60 niveaux d'historique.</span></div></div>
+    </div>
+
+    <div class="hm-sec">
+      <div class="hm-sec-title">🏗 Construction du plan</div>
+      <div class="hm-item"><div class="hm-icon">🏠</div><div class="hm-item-txt"><strong>Pièces</strong><span>Bouton <b>+ Pièce</b> → assistant avec gabarits. Déplacer par glisser-déposer. Redimensionner avec les 8 poignées.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🌿</div><div class="hm-item-txt"><strong>Terrains extérieurs</strong><span>Sidebar gauche → section Terrain. Glisser sur le plan : jardin, route, allée, parking, piscine, terrasse.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🚪</div><div class="hm-item-txt"><strong>Ouvertures</strong><span>Porte, double porte, fenêtre, baie vitrée, porte de garage. Snap automatique sur les murs.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🧱</div><div class="hm-item-txt"><strong>Cloisons</strong><span>Bouton <b>Cloison</b> → tracé point à point. Types : intérieure, mur extérieur, grillage. Échap pour terminer.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">✏️</div><div class="hm-item-txt"><strong>Renommer</strong><span>Dans le panneau <b>Couches</b> → double-cliquer sur le nom ou cliquer sur ✏️. Entrée pour valider.</span></div></div>
+    </div>
+
+    <div class="hm-sec">
+      <div class="hm-sec-title">📦 Équipements Ajax</div>
+      <div class="hm-item"><div class="hm-icon">⬡</div><div class="hm-item-txt"><strong>Centrales Hub</strong><span>Hub 2 (4G), Hub 2 Plus, Hub 2 (2G). Glisser sur le plan. Gère jusqu'à 100 périphériques.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">◈</div><div class="hm-item-txt"><strong>Détecteurs PIR</strong><span>MotionProtect, MotionProtect+, MotionCam, Curtain Outdoor, DualCurtain… Placer dans les pièces ou sur les murs.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔊</div><div class="hm-item-txt"><strong>Sirènes</strong><span>HomeSiren (intérieur), StreetSiren (extérieur). Les anneaux concentriques = portée sonore.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">📷</div><div class="hm-item-txt"><strong>Caméras</strong><span>BulletCam, DomeCam, TurretCam. <b>⚠️ Requiert NVR Ajax + Switch PoE + câble RJ45.</b></span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔥</div><div class="hm-item-txt"><strong>Détecteurs incendie</strong><span>FireProtect, FireProtect Plus, FireProtect 2 RB. Placer au plafond ou en hauteur.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">⌨</div><div class="hm-item-txt"><strong>Claviers & accessoires</strong><span>Keypad, Keypad Plus, KeyPad TouchScreen, ReX 2 (amplificateur), MultiTransmitter.</span></div></div>
+    </div>
+
+    <div class="hm-sec">
+      <div class="hm-sec-title">🎯 Faisceaux de couverture</div>
+      <div class="hm-item"><div class="hm-icon">◎</div><div class="hm-item-txt"><strong>Activer la couverture</strong><span>Bouton <b>◎ Couv. ▾</b> → dropdown pour filtrer : caméras, détecteurs, sirènes, incendie.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔲</div><div class="hm-item-txt"><strong>Face intérieure</strong><span>Clic droit sur un équipement → 🔲 Face intérieure → 🏠 Associer à une pièce. Le faisceau se limite à la pièce choisie.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔳</div><div class="hm-item-txt"><strong>Face extérieure</strong><span>Clic droit → 🔳 Face extérieure. Le faisceau couvre le terrain, bloqué par le bâtiment.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">↻</div><div class="hm-item-txt"><strong>Rotation</strong><span>Widget de rotation (cercle jaune autour du produit). Boutons ↻ / ↺ pour rotation par pas de 15°.</span></div></div>
+    </div>
+
+    <div class="hm-sec">
+      <div class="hm-sec-title">🔌 Câblage</div>
+      <div class="hm-item"><div class="hm-icon">🔌</div><div class="hm-item-txt"><strong>Tracer un câble</strong><span>Bouton <b>Cloison</b> → choisir RJ45, Coaxial ou Alimentation. Clic pour chaque nœud, double-clic pour terminer.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">↔</div><div class="hm-item-txt"><strong>Modifier un câble</strong><span>Sélectionner → handles blancs sur les nœuds pour les déplacer. Glisser la ligne pour déplacer l'ensemble.</span></div></div>
+    </div>
+
+    <div class="hm-sec">
+      <div class="hm-sec-title">📐 Outils avancés</div>
+      <div class="hm-item"><div class="hm-icon">📏</div><div class="hm-item-txt"><strong>Mesure</strong><span>Bouton <b>Mesure</b> → clic point départ, clic point arrivée. Distance affichée en mètres sur le plan.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">📐</div><div class="hm-item-txt"><strong>Symboles</strong><span>Escalier, colonne, flèche Nord, label texte. Drag & drop depuis la sidebar. Double-clic pour éditer.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔒</div><div class="hm-item-txt"><strong>Verrouillage</strong><span>🔓 dans Couches pour verrouiller un élément. Empêche tout déplacement accidentel.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">☐</div><div class="hm-item-txt"><strong>Multi-sélection</strong><span>Shift + clic ou Shift + glisser (rubber band) pour sélectionner plusieurs éléments simultanément.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🌗</div><div class="hm-item-txt"><strong>Mode Nuit</strong><span>Bouton <b>Nuit</b> pour basculer thème clair/sombre. Préférence sauvegardée automatiquement.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🖼</div><div class="hm-item-txt"><strong>Fond de plan</strong><span>Bouton <b>Fond</b> pour importer une image de référence. Opacité réglable.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🏷</div><div class="hm-item-txt"><strong>Logo installateur</strong><span>Bouton <b>Logo</b> pour charger votre logo. Apparaît dans le devis PDF généré.</span></div></div>
+    </div>
+
+    <div class="hm-sec">
+      <div class="hm-sec-title">💾 Sauvegarde & Projets</div>
+      <div class="hm-item"><div class="hm-icon">💾</div><div class="hm-item-txt"><strong>Sauvegarder</strong><span>Exporte un fichier <b>.cp6</b> rechargeable. Autosave local automatique toutes les 800ms.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔑</div><div class="hm-item-txt"><strong>Session</strong><span>ID unique par navigateur (badge jaune). Partageable entre postes via <b>Charger session</b>.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔄</div><div class="hm-item-txt"><strong>Reset</strong><span>Bouton <b>Reset</b> pour réinitialiser complètement le plan. Action irréversible.</span></div></div>
+    </div>
+
+    <div class="hm-sec">
+      <div class="hm-sec-title">📄 Devis PDF</div>
+      <div class="hm-item"><div class="hm-icon">📄</div><div class="hm-item-txt"><strong>Générer le devis</strong><span>Bouton orange <b>Devis PDF</b> → devis complet avec plan, équipements, prix HT/TTC, durée de pose.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">👤</div><div class="hm-item-txt"><strong>Informations client</strong><span>Bouton <b>Client</b> → nom, société, adresse, référence chantier, notes. Intégré automatiquement dans le devis.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">%</div><div class="hm-item-txt"><strong>Remise & main d'œuvre</strong><span>Panneau droit → curseur remise (%), heures de MO et taux horaire. Calcul automatique TTC.</span></div></div>
+    </div>
+
+  </div>
+  <div class="hm-foot">
+    <p>CamProtect Planner v6 — Tous droits réservés</p>
+    <div style="display:flex;gap:8px">
+      <button class="hm-btn secondary" onclick="helpClose()">Fermer</button>
+      <button class="hm-btn primary" onclick="helpClose();guideReopen()">🚀 Relancer le guide</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- GUIDE D'UTILISATION -->
+<div id="guide-welcome" style="display:none">
+  <div class="gw-card">
+    <div class="gw-logo">🎯</div>
+    <div class="gw-title">Bienvenue sur CamProtect Planner</div>
+    <div class="gw-sub">L'outil de planification pour vos installations de sécurité Ajax.<br>Est-ce votre première utilisation&nbsp;?</div>
+    <div class="gw-btns">
+      <button class="gw-btn primary" onclick="guideStart()">🚀 Première utilisation — me guider</button>
+      <button class="gw-btn secondary" onclick="guideClose()">Je connais l'outil</button>
+    </div>
+    <label class="gw-skip">
+      <input type="checkbox" id="guide-no-show"> Ne plus afficher ce message
+    </label>
+  </div>
+</div>
+<!-- SPOTLIGHT + TOOLTIP -->
+<div id="guide-spotlight" style="display:none"></div>
+<div id="guide-tip" style="display:none">
+  <div class="gt-dots" id="gt-dots"></div>
+  <div class="gt-step" id="gt-step"></div>
+  <div class="gt-title" id="gt-title"></div>
+  <div class="gt-body" id="gt-body"></div>
+  <div class="gt-btns">
+    <button class="gt-btn skip" onclick="guideSkip()">Passer le guide</button>
+    <button class="gt-btn prev" id="gt-prev" onclick="guideNav(-1)">← Précédent</button>
+    <button class="gt-btn next" id="gt-next" onclick="guideNav(1)">Suivant →</button>
+  </div>
+</div>
 <script>
 // ── GUIDE D'UTILISATION ────────────────────────────────────────────────────
 const GUIDE_STEPS=[
-  {title:"Commençons par créer votre plan",body:"Cliquez sur <strong>+ Pièce</strong> dans la barre du haut pour ouvrir l'assistant de démarrage.",target:'button.hb.g',pos:'bottom'},
-  {title:"Choisissez un type de bâtiment",body:"Sélectionnez le gabarit : <strong>Appartement, Maison, Commerce, Bureau ou Entrepôt</strong>. Validez avec <strong>Créer le plan →</strong>.",target:'#wiz',pos:'center'},
-  {title:"Votre plan est créé !",body:"Les pièces s'affichent sur le canvas. Déplacez-les par glisser-déposer. Redimensionnez avec les <strong>8 poignées</strong> aux coins et milieux.",target:'#cv',pos:'center'},
-  {title:"Placez la centrale Hub",body:"Dans la sidebar à gauche, section <strong>⬡ Centrale</strong>, glissez un <strong>Hub 2</strong> sur le plan. C'est le cerveau du système Ajax.",target:null,pos:'center'},
-  {title:"Ajoutez un détecteur PIR",body:"Section <strong>◈ PIR — Mouvement</strong> : glissez un <strong>MotionProtect</strong> dans une pièce. Le <strong>widget de rotation</strong> (cercle jaune) oriente le faisceau.",target:null,pos:'center'},
-  {title:"Activez la couverture",body:"Cliquez sur <strong>◎ Couv. ▾</strong> pour afficher les faisceaux. Le menu filtre par catégorie : caméras, détecteurs, sirènes, incendie.",target:'#tb-c',pos:'bottom'},
-  {title:"Posez une sirène extérieure",body:"Section <strong>◬ Sirènes</strong> : ajoutez une <strong>StreetSiren</strong> sur une façade. Les 3 anneaux concentriques représentent la portée sonore.",target:null,pos:'center'},
-  {title:"Placez une caméra",body:"Section <strong>📷 Caméras</strong> : posez une <strong>BulletCam</strong>. Clic droit → <strong>🔳 Face extérieure</strong> pour orienter le faisceau vers le terrain.",target:null,pos:'center'},
-  {title:"Renommez vos pièces",body:"Dans <strong>Couches</strong> à droite, <strong>double-cliquez</strong> sur le nom d'une pièce ou cliquez sur ✏️ pour la renommer.",target:'#lpb',pos:'left'},
-  {title:"Verrouillez les éléments",body:"Cliquez sur 🔓 dans Couches pour <strong>verrouiller</strong> un élément. Cliquez sur 🔒 pour déverrouiller.",target:'#lpb',pos:'left'},
-  {title:"Générez votre devis",body:"Cliquez sur <strong>📄 Devis PDF</strong> pour générer un devis complet : plan, équipements, prix HT/TTC, durée de pose estimée.",target:'#hr',pos:'bottom'},
-  {title:"🎉 Vous êtes prêt !",body:"Vous maîtrisez les bases du Planificateur CamProtect. Explorez : zones Ajax, câblage, mesures, symboles, fond de plan et bien plus encore !",target:null,pos:'center'}
+  {// 1
+    title:"Configurez votre espace",
+    body:"Choisissez un <span style='color:#E85D04'>type de bâtiment</span> : Appartement, Maison, Commerce, Bureau ou Entrepôt. Modifiez les dimensions, puis cliquez sur <span style='color:#E85D04'>Créer le plan →</span>.",
+    target:'#wiz',pos:'bottom',onEnter:null,onLeave:null
+  },
+  {// 2
+    title:"Votre plan est créé !",
+    body:"• <span style='color:#E85D04'>Déplacer</span> : glisser-déposer une pièce<br>• <span style='color:#E85D04'>Redimensionner</span> : tirer les 8 poignées<br>• <span style='color:#E85D04'>Zoomer</span> : molette de la souris",
+    target:'#cv',pos:'bottom',onEnter:null,onLeave:null
+  },
+  {// 3
+    title:"Ajoutez du terrain extérieur",
+    body:"Section <span style='color:#E85D04'>🌿 Terrain</span> dans la sidebar : glissez <span style='color:#E85D04'>Terrain ext.</span> sur le canvas. Tirez les poignées pour couvrir l'extérieur.",
+    target:null,pos:'bottom-left',onEnter:'guideHighlightTerrain(true)',onLeave:'guideHighlightTerrain(false)'
+  },
+  {// 4 — Hub surligné
+    title:"Placez la centrale Hub",
+    body:"Section <span style='color:#E85D04'>⬡ Centrale</span> dans la sidebar (surligné) : glissez un <span style='color:#E85D04'>Hub 2</span> sur le plan. C'est le cerveau Ajax, il gère jusqu'à <span style='color:#E85D04'>100 périphériques</span>.",
+    target:null,pos:'bottom-left',onEnter:'guideHLHub(true)',onLeave:'guideHLHub(false)'
+  },
+  {// 5 — Détecteur surligné
+    title:"Ajoutez un détecteur PIR",
+    body:"Section <span style='color:#E85D04'>◈ PIR</span> (surligné) : glissez un <span style='color:#E85D04'>MotionProtect</span> dans un <span style='color:#E85D04'>coin de pièce</span>.<br><br>➀ Clic droit → <span style='color:#E85D04'>🔲 Face intérieure</span><br>➁ Clic droit → <span style='color:#E85D04'>🏠 Associer à une pièce</span>",
+    target:null,pos:'bottom-left',onEnter:'guideHLDet(true)',onLeave:'guideHLDet(false)'
+  },
+  {// 6
+    title:"Activez la couverture",
+    body:"Cliquez sur <span style='color:#E85D04'>◎ Couv. ▾</span> pour afficher les faisceaux. Filtrez par : <span style='color:#E85D04'>caméras, détecteurs, sirènes, incendie</span>.",
+    target:'#tb-c',pos:'bottom',onEnter:null,onLeave:null
+  },
+  {// 7 — Sirène surlignée
+    title:"Posez une sirène extérieure",
+    body:"Section <span style='color:#E85D04'>◬ Sirènes</span> (surligné) : posez une <span style='color:#E85D04'>StreetSiren</span> sur une façade. Clic droit → <span style='color:#E85D04'>🔳 Face extérieure</span>. Les anneaux = portée sonore.",
+    target:null,pos:'bottom-left',onEnter:'guideHLSiren(true)',onLeave:'guideHLSiren(false)'
+  },
+  {// 8 — Caméra surlignée + NVR
+    title:"Placez une caméra",
+    body:"Section <span style='color:#E85D04'>📷 Caméras</span> (surligné) : posez une <span style='color:#E85D04'>BulletCam</span>. Clic droit → <span style='color:#E85D04'>🔳 Face extérieure</span>.<br><br><span style='color:#fbbf24'>⚠️ Requis :</span> <span style='color:#E85D04'>NVR Ajax</span> + <span style='color:#E85D04'>Switch PoE</span> + <span style='color:#E85D04'>câble RJ45</span>",
+    target:null,pos:'bottom-left',onEnter:'guideHLCam(true)',onLeave:'guideHLCam(false)'
+  },
+  {// 9
+    title:"Renommez vos pièces",
+    body:"Dans <span style='color:#E85D04'>Couches</span>, <span style='color:#E85D04'>double-cliquez</span> sur un nom ou cliquez <span style='color:#E85D04'>✏️</span>. Tapez le nouveau nom → <span style='color:#E85D04'>Entrée</span>.",
+    target:'#lpb',pos:'left',onEnter:null,onLeave:null
+  },
+  {// 10
+    title:"Verrouillez les éléments",
+    body:"<span style='color:#E85D04'>🔓</span> dans Couches = <span style='color:#E85D04'>verrouiller</span> (empêche les déplacements). <span style='color:#E85D04'>🔒</span> = déverrouiller.",
+    target:'#lpb',pos:'left',onEnter:null,onLeave:null
+  },
+  {// 11
+    title:"Informations client",
+    body:"Bouton <span style='color:#E85D04'>Client</span> (barre du haut) : saisissez <span style='color:#E85D04'>nom, adresse, référence, notes</span> du chantier. Ces données s'intègrent dans le devis.",
+    target:'button.hb.g[onclick*="client"]',pos:'bottom',onEnter:null,onLeave:null
+  },
+  {// 12
+    title:"Générez votre devis PDF",
+    body:"Bouton <span style='color:#E85D04'>📄 Devis PDF</span> (haut droite) : plan, équipements, <span style='color:#E85D04'>prix HT/TTC</span>, durée de pose, validité <span style='color:#E85D04'>1 mois</span>.",
+    target:'.hb.p',pos:'bottom',onEnter:null,onLeave:null
+  },
+  {// 13
+    title:"🎉 Vous êtes prêt !",
+    body:"Bases maîtrisées ! Pour l'aide avancée, le <span style='color:#E85D04'>bouton ?</span> en haut relance ce guide à tout moment.<br>Bonne installation !",
+    target:null,pos:'bottom-left',onEnter:null,onLeave:null
+  }
 ];
 
-let _gStep=0;
+let _gStep=0,_gPrevStep=-1;
 
+
+function guideHL(selector,on){
+  document.querySelectorAll(selector).forEach(el=>el.classList.toggle('guide-hl',on));
+}
+function guideHLHub(on){guideHL('[data-k="hub"],[data-k="hub_p"],[data-k="hub_2g"]',on);}
+function guideHLDet(on){guideHL('[data-k="mp"],[data-k="mp_p"]',on);}
+function guideHLSiren(on){guideHL('[data-k="ss"],[data-k="hs"]',on);}
+function guideHLCam(on){guideHL('[data-k="bc28"],[data-k="bc4"]',on);}
+function guideHighlightTerrain(on){guideHL('[data-k="t_ext"],[data-k="t_pelouse"],[data-k="t_allee"]',on);}
+
+function helpOpen(){const m=document.getElementById('help-modal');if(m)m.classList.add('open');}
+function helpClose(){const m=document.getElementById('help-modal');if(m)m.classList.remove('open');}
+// Fermer sur clic backdrop
+document.addEventListener('click',function(e){const m=document.getElementById('help-modal');if(m&&m.classList.contains('open')&&e.target===m)helpClose();});
 function guideInit(){
   const el=document.getElementById('guide-welcome');
   if(el)el.style.display='flex';
@@ -3236,6 +3425,7 @@ function guideStart(){
 }
 
 function guideSkip(){
+  guideCleanupHighlights();
   const sl=document.getElementById('guide-spotlight');
   const tip=document.getElementById('guide-tip');
   if(sl)sl.style.display='none';
@@ -3252,6 +3442,18 @@ function guideReopen(){
   guideShow();
 }
 
+function guideHighlightTerrain(on){
+  document.querySelectorAll('.pi[data-k="t_ext"]').forEach(el=>{
+    on?el.classList.add('guide-highlight'):el.classList.remove('guide-highlight');
+  });
+  const cats=[...document.querySelectorAll('.cat')].filter(el=>el.textContent.includes('Terrain'));
+  cats.forEach(el=>{el.style.color=on?'#E85D04':'';el.style.fontWeight=on?'700':'';});
+}
+
+function guideCleanupHighlights(){
+  GUIDE_STEPS.forEach(s=>{if(s.onLeave)try{eval(s.onLeave);}catch(e){}});
+}
+
 function guideShow(){
   const step=GUIDE_STEPS[_gStep];
   if(!step){guideSkip();return;}
@@ -3265,6 +3467,14 @@ function guideShow(){
   const prevBtn=document.getElementById('gt-prev');
   const nextBtn=document.getElementById('gt-next');
   if(!stepEl||!titleEl||!bodyEl||!dotsEl||!prevBtn||!nextBtn)return;
+  // onLeave de l'étape précédente
+  if(_gPrevStep>=0&&_gPrevStep!==_gStep){
+    const ps=GUIDE_STEPS[_gPrevStep];
+    if(ps&&ps.onLeave)try{eval(ps.onLeave);}catch(e){}
+  }
+  _gPrevStep=_gStep;
+  // onEnter de l'étape courante
+  if(step.onEnter)try{eval(step.onEnter);}catch(e){}
   stepEl.textContent='Étape '+(_gStep+1)+' / '+GUIDE_STEPS.length;
   titleEl.textContent=step.title;
   bodyEl.innerHTML=step.body;
@@ -3278,12 +3488,22 @@ function guideShow(){
     nextBtn.onclick=function(){guideNav(1);};
   }
   tip.style.display='block';
+
   let targetEl=null;
   if(step.target) targetEl=document.querySelector(step.target);
-  if(!targetEl||step.pos==='center'){
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const tipW=260;
+  const noTarget=!targetEl||step.pos==='center'||step.pos==='bottom-left'||step.pos==='bottomleft';
+
+  if(noTarget){
     sl.style.display='none';
-    tip.style.position='fixed';tip.style.top='50%';tip.style.left='50%';
-    tip.style.transform='translate(-50%,-50%)';tip.style.maxWidth='340px';
+    tip.style.position='fixed';tip.style.width='300px';
+    if(step.pos==='bottom-left'||step.pos==='bottomleft'||(!targetEl&&step.pos!=='center'&&step.pos!=='bottomleft')){
+      tip.style.left='50%';tip.style.bottom='24px';tip.style.top='';tip.style.height='auto';tip.style.transform='translateX(-50%)';
+    } else {
+      tip.style.bottom='';tip.style.top='50%';tip.style.left='50%';tip.style.height='auto';
+      tip.style.transform='translate(-50%,-50%)';
+    }
     const s=document.getElementById('guide-arrow-style')||document.createElement('style');
     s.id='guide-arrow-style';s.textContent='#guide-tip::before{display:none}';
     document.head.appendChild(s);
@@ -3294,16 +3514,18 @@ function guideShow(){
   sl.style.display='block';sl.style.position='fixed';
   sl.style.top=(rect.top-pad)+'px';sl.style.left=(rect.left-pad)+'px';
   sl.style.width=(rect.width+pad*2)+'px';sl.style.height=(rect.height+pad*2)+'px';
-  const tipW=290,vw=window.innerWidth,vh=window.innerHeight;
   let tx,ty;
-  if(step.pos==='bottom'){tx=Math.max(8,Math.min(vw-tipW-8,rect.left+rect.width/2-tipW/2));ty=rect.bottom+pad+14;}
-  else if(step.pos==='top'){tx=Math.max(8,Math.min(vw-tipW-8,rect.left+rect.width/2-tipW/2));ty=rect.top-220-pad-14;}
-  else if(step.pos==='right'){tx=rect.right+pad+14;ty=Math.max(8,rect.top+rect.height/2-90);}
-  else{tx=rect.left-tipW-pad-14;ty=Math.max(8,rect.top+rect.height/2-90);}
+  if(step.pos==='bottom'){
+    tx=Math.max(8,Math.min(vw-tipW-8,rect.left+rect.width/2-tipW/2));
+    ty=Math.min(rect.bottom+pad+14,vh-260);
+  }
+  else if(step.pos==='top'){tx=Math.max(8,Math.min(vw-tipW-8,rect.left+rect.width/2-tipW/2));ty=Math.max(8,rect.top-260-pad);}
+  else if(step.pos==='right'){tx=Math.min(vw-tipW-8,rect.right+pad+14);ty=Math.max(8,rect.top+rect.height/2-100);}
+  else{tx=Math.max(8,rect.left-tipW-pad-14);ty=Math.max(8,rect.top+rect.height/2-100);}
   if(tx+tipW>vw-8)tx=vw-tipW-8;if(tx<8)tx=8;
-  if(ty+220>vh-8)ty=vh-228;if(ty<8)ty=8;
+  if(ty+260>vh-8)ty=vh-268;if(ty<8)ty=8;
   tip.style.transform='none';tip.style.position='fixed';
-  tip.style.top=ty+'px';tip.style.left=tx+'px';tip.style.maxWidth=tipW+'px';
+  tip.style.top=ty+'px';tip.style.left=tx+'px';tip.style.bottom='';tip.style.height='auto';tip.style.width='260px';
   const arrowStyle=document.getElementById('guide-arrow-style')||document.createElement('style');
   arrowStyle.id='guide-arrow-style';
   const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
