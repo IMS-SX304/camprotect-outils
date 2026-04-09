@@ -196,6 +196,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 .vh-date{color:var(--rm);font-size:9px;font-family:'DM Mono',monospace}
 .vh-restore{padding:2px 6px;border:1px solid var(--bo);border-radius:3px;font-size:9px;cursor:pointer;background:var(--lt);color:var(--rt);font-family:'DM Sans',sans-serif}
 .vh-restore:hover{background:var(--br);color:#fff;border-color:var(--br)}
+
+/* ── GUIDE D'UTILISATION ─────────────────────────────────────────────────── */
+#guide-welcome,#guide-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center}
+#guide-welcome{background:rgba(10,14,22,.82);backdrop-filter:blur(6px)}
+.gw-card{background:#1a2233;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:36px 40px;max-width:480px;width:90%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.gw-logo{width:52px;height:52px;background:#E85D04;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 18px}
+.gw-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:8px}
+.gw-sub{font-size:13px;color:#94a3b8;margin-bottom:28px;line-height:1.6}
+.gw-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.gw-btn{padding:11px 22px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s}
+.gw-btn.primary{background:#E85D04;color:#fff}.gw-btn.primary:hover{background:#c24b00}
+.gw-btn.secondary{background:rgba(255,255,255,.08);color:#e2e8f0;border:1px solid rgba(255,255,255,.12)}.gw-btn.secondary:hover{background:rgba(255,255,255,.14)}
+.gw-skip{display:flex;align-items:center;justify-content:center;gap:7px;font-size:11.5px;color:#64748b;cursor:pointer}
+.gw-skip input{accent-color:#E85D04}
+/* Spotlight */
+#guide-overlay{pointer-events:none}
+#guide-spotlight{position:fixed;pointer-events:none;z-index:10001;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.72);transition:all .35s cubic-bezier(.4,0,.2,1)}
+/* Tooltip bulle */
+#guide-tip{position:fixed;z-index:10002;max-width:300px;background:#1e293b;border:1px solid rgba(232,93,4,.5);border-radius:12px;padding:16px 18px;box-shadow:0 12px 32px rgba(0,0,0,.5);pointer-events:auto}
+#guide-tip::before{content:'';position:absolute;width:10px;height:10px;background:#1e293b;border:1px solid rgba(232,93,4,.5);transform:rotate(45deg)}
+.gt-step{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#E85D04;margin-bottom:6px}
+.gt-title{font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:6px}
+.gt-body{font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:14px}
+.gt-btns{display:flex;gap:8px;justify-content:flex-end}
+.gt-btn{padding:6px 14px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+.gt-btn.next{background:#E85D04;color:#fff}.gt-btn.next:hover{background:#c24b00}
+.gt-btn.prev{background:rgba(255,255,255,.08);color:#e2e8f0}.gt-btn.prev:hover{background:rgba(255,255,255,.14)}
+.gt-btn.skip{background:transparent;color:#64748b;margin-right:auto}.gt-btn.skip:hover{color:#94a3b8}
+.gt-dots{display:flex;gap:5px;align-items:center;margin-right:auto}
+.gt-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .2s}
+.gt-dot.active{background:#E85D04;width:18px;border-radius:3px}
+/* Animation intro */
+@keyframes gw-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.gw-card{animation:gw-in .25s ease}
 </style>
 </head>
 <body>
@@ -213,6 +247,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
     <span id="session-badge" title="Cliquer pour gérer votre projet" style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#fbbf24;font-family:monospace;cursor:pointer;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:2px 7px;white-space:nowrap" onclick="showSaveModal()">🔑 ID de session : <span id="sid-short">—</span></span>
     <button class="t" onclick="showSessionRestore()" title="Charger une session existante" style="font-size:10px;color:#fbbf24;border-color:rgba(251,191,36,.3)">↩ Charger session</button>
     <button class="hb g" onclick="showRM()">+ Pièce</button>
+    <button class="hb" onclick="guideReopen()" title="Guide d'utilisation" style="font-size:13px;padding:3px 7px">?</button>
     <button class="hb d" onclick="clearAll()">↺ Reset</button>
     <button class="hb p" onclick="doPrint()">📄 Devis PDF</button>
   </div>
@@ -465,7 +500,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 </div>
 
 <!-- WIZARD -->
-<div id="wiz" class="modal-bg show">
+<div id="wiz" class="modal-bg">
   <div class="modal-box" style="width:590px">
     <div class="mh"><h2>Configurer l'espace</h2><p>Choisissez le type · terrain + pièces pré-générés</p></div>
     <div class="mb">
@@ -1204,6 +1239,35 @@ ${c.notes?`<div style="margin-top:10px;font-size:11px;background:#f9fafb;padding
   <span>Généré le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</span>
 </div>
 <script>setTimeout(()=>window.print(),600)<\/script>
+<!-- GUIDE D'UTILISATION -->
+<div id="guide-welcome" style="display:none">
+  <div class="gw-card">
+    <div class="gw-logo">🎯</div>
+    <div class="gw-title">Bienvenue sur CamProtect Planner</div>
+    <div class="gw-sub">L'outil de planification pour vos installations de sécurité Ajax.<br>Est-ce votre première utilisation&nbsp;?</div>
+    <div class="gw-btns">
+      <button class="gw-btn primary" onclick="guideStart()">🚀 Première utilisation — me guider</button>
+      <button class="gw-btn secondary" onclick="guideClose()">Je connais l'outil</button>
+    </div>
+    <label class="gw-skip">
+      <input type="checkbox" id="guide-no-show"> Ne plus afficher ce message
+    </label>
+  </div>
+</div>
+<!-- SPOTLIGHT + TOOLTIP -->
+<div id="guide-spotlight" style="display:none"></div>
+<div id="guide-tip" style="display:none">
+  <div class="gt-step" id="gt-step"></div>
+  <div class="gt-title" id="gt-title"></div>
+  <div class="gt-body" id="gt-body"></div>
+  <div class="gt-btns">
+    <div class="gt-dots" id="gt-dots"></div>
+    <button class="gt-btn skip" onclick="guideSkip()">Passer le guide</button>
+    <button class="gt-btn prev" id="gt-prev" onclick="guideNav(-1)">← Précédent</button>
+    <button class="gt-btn next" id="gt-next" onclick="guideNav(1)">Suivant →</button>
+  </div>
+</div>
+
 </body></html>`);
 }
 
@@ -3132,5 +3196,129 @@ document.addEventListener('click',e=>{
 // Init drag & drop from sidebar
 initSidebarDrag();
 </script>
+
+<script>
+// ── GUIDE D'UTILISATION ────────────────────────────────────────────────────
+const GUIDE_STEPS=[
+  {title:"Commençons par créer votre plan",body:"Cliquez sur <strong>+ Pièce</strong> dans la barre du haut pour ouvrir l'assistant de démarrage.",target:'button.hb.g',pos:'bottom'},
+  {title:"Choisissez un type de bâtiment",body:"Sélectionnez le gabarit : <strong>Appartement, Maison, Commerce, Bureau ou Entrepôt</strong>. Validez avec <strong>Créer le plan →</strong>.",target:'#wiz',pos:'center'},
+  {title:"Votre plan est créé !",body:"Les pièces s'affichent sur le canvas. Déplacez-les par glisser-déposer. Redimensionnez avec les <strong>8 poignées</strong> aux coins et milieux.",target:'#cv',pos:'center'},
+  {title:"Placez la centrale Hub",body:"Dans la sidebar à gauche, section <strong>⬡ Centrale</strong>, glissez un <strong>Hub 2</strong> sur le plan. C'est le cerveau du système Ajax.",target:null,pos:'center'},
+  {title:"Ajoutez un détecteur PIR",body:"Section <strong>◈ PIR — Mouvement</strong> : glissez un <strong>MotionProtect</strong> dans une pièce. Le <strong>widget de rotation</strong> (cercle jaune) oriente le faisceau.",target:null,pos:'center'},
+  {title:"Activez la couverture",body:"Cliquez sur <strong>◎ Couv. ▾</strong> pour afficher les faisceaux. Le menu filtre par catégorie : caméras, détecteurs, sirènes, incendie.",target:'#tb-c',pos:'bottom'},
+  {title:"Posez une sirène extérieure",body:"Section <strong>◬ Sirènes</strong> : ajoutez une <strong>StreetSiren</strong> sur une façade. Les 3 anneaux concentriques représentent la portée sonore.",target:null,pos:'center'},
+  {title:"Placez une caméra",body:"Section <strong>📷 Caméras</strong> : posez une <strong>BulletCam</strong>. Clic droit → <strong>🔳 Face extérieure</strong> pour orienter le faisceau vers le terrain.",target:null,pos:'center'},
+  {title:"Renommez vos pièces",body:"Dans <strong>Couches</strong> à droite, <strong>double-cliquez</strong> sur le nom d'une pièce ou cliquez sur ✏️ pour la renommer.",target:'#lpb',pos:'left'},
+  {title:"Verrouillez les éléments",body:"Cliquez sur 🔓 dans Couches pour <strong>verrouiller</strong> un élément. Cliquez sur 🔒 pour déverrouiller.",target:'#lpb',pos:'left'},
+  {title:"Générez votre devis",body:"Cliquez sur <strong>📄 Devis PDF</strong> pour générer un devis complet : plan, équipements, prix HT/TTC, durée de pose estimée.",target:'#hr',pos:'bottom'},
+  {title:"🎉 Vous êtes prêt !",body:"Vous maîtrisez les bases du Planificateur CamProtect. Explorez : zones Ajax, câblage, mesures, symboles, fond de plan et bien plus encore !",target:null,pos:'center'}
+];
+
+let _gStep=0;
+
+function guideInit(){
+  const el=document.getElementById('guide-welcome');
+  if(el)el.style.display='flex';
+}
+
+function guideClose(){
+  const el=document.getElementById('guide-welcome');
+  if(el)el.style.display='none';
+  showModal('wiz');
+}
+
+function guideStart(){
+  const el=document.getElementById('guide-welcome');
+  if(el)el.style.display='none';
+  showModal('wiz');
+  _gStep=0;
+  setTimeout(guideShow,200);
+}
+
+function guideSkip(){
+  const sl=document.getElementById('guide-spotlight');
+  const tip=document.getElementById('guide-tip');
+  if(sl)sl.style.display='none';
+  if(tip)tip.style.display='none';
+}
+
+function guideNav(dir){
+  _gStep=Math.max(0,Math.min(GUIDE_STEPS.length-1,_gStep+dir));
+  guideShow();
+}
+
+function guideReopen(){
+  _gStep=0;
+  guideShow();
+}
+
+function guideShow(){
+  const step=GUIDE_STEPS[_gStep];
+  if(!step){guideSkip();return;}
+  const sl=document.getElementById('guide-spotlight');
+  const tip=document.getElementById('guide-tip');
+  if(!sl||!tip)return;
+  const stepEl=document.getElementById('gt-step');
+  const titleEl=document.getElementById('gt-title');
+  const bodyEl=document.getElementById('gt-body');
+  const dotsEl=document.getElementById('gt-dots');
+  const prevBtn=document.getElementById('gt-prev');
+  const nextBtn=document.getElementById('gt-next');
+  if(!stepEl||!titleEl||!bodyEl||!dotsEl||!prevBtn||!nextBtn)return;
+  stepEl.textContent='Étape '+(_gStep+1)+' / '+GUIDE_STEPS.length;
+  titleEl.textContent=step.title;
+  bodyEl.innerHTML=step.body;
+  prevBtn.style.display=_gStep===0?'none':'';
+  dotsEl.innerHTML=GUIDE_STEPS.map(function(_,i){return'<div class="gt-dot'+( i===_gStep?' active':'')+'" ></div>';}).join('');
+  if(_gStep===GUIDE_STEPS.length-1){
+    nextBtn.textContent='Terminer ✓';
+    nextBtn.onclick=guideSkip;
+  } else {
+    nextBtn.textContent='Suivant →';
+    nextBtn.onclick=function(){guideNav(1);};
+  }
+  tip.style.display='block';
+  let targetEl=null;
+  if(step.target) targetEl=document.querySelector(step.target);
+  if(!targetEl||step.pos==='center'){
+    sl.style.display='none';
+    tip.style.position='fixed';tip.style.top='50%';tip.style.left='50%';
+    tip.style.transform='translate(-50%,-50%)';tip.style.maxWidth='340px';
+    const s=document.getElementById('guide-arrow-style')||document.createElement('style');
+    s.id='guide-arrow-style';s.textContent='#guide-tip::before{display:none}';
+    document.head.appendChild(s);
+    return;
+  }
+  const rect=targetEl.getBoundingClientRect();
+  const pad=8;
+  sl.style.display='block';sl.style.position='fixed';
+  sl.style.top=(rect.top-pad)+'px';sl.style.left=(rect.left-pad)+'px';
+  sl.style.width=(rect.width+pad*2)+'px';sl.style.height=(rect.height+pad*2)+'px';
+  const tipW=290,vw=window.innerWidth,vh=window.innerHeight;
+  let tx,ty;
+  if(step.pos==='bottom'){tx=Math.max(8,Math.min(vw-tipW-8,rect.left+rect.width/2-tipW/2));ty=rect.bottom+pad+14;}
+  else if(step.pos==='top'){tx=Math.max(8,Math.min(vw-tipW-8,rect.left+rect.width/2-tipW/2));ty=rect.top-220-pad-14;}
+  else if(step.pos==='right'){tx=rect.right+pad+14;ty=Math.max(8,rect.top+rect.height/2-90);}
+  else{tx=rect.left-tipW-pad-14;ty=Math.max(8,rect.top+rect.height/2-90);}
+  if(tx+tipW>vw-8)tx=vw-tipW-8;if(tx<8)tx=8;
+  if(ty+220>vh-8)ty=vh-228;if(ty<8)ty=8;
+  tip.style.transform='none';tip.style.position='fixed';
+  tip.style.top=ty+'px';tip.style.left=tx+'px';tip.style.maxWidth=tipW+'px';
+  const arrowStyle=document.getElementById('guide-arrow-style')||document.createElement('style');
+  arrowStyle.id='guide-arrow-style';
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const arrows={
+    bottom:'#guide-tip::before{top:-6px;left:'+Math.max(12,Math.min(tipW-22,cx-tx))+'px;border-bottom:none;border-right:none}',
+    top:'#guide-tip::before{bottom:-6px;left:'+Math.max(12,Math.min(tipW-22,cx-tx))+'px;border-top:none;border-left:none}',
+    right:'#guide-tip::before{left:-6px;top:'+Math.max(12,cy-ty)+'px;border-top:none;border-right:none}',
+    left:'#guide-tip::before{right:-6px;top:'+Math.max(12,cy-ty)+'px;border-bottom:none;border-left:none}'
+  };
+  arrowStyle.textContent=arrows[step.pos]||'#guide-tip::before{display:none}';
+  document.head.appendChild(arrowStyle);
+}
+
+setTimeout(guideInit,800);
+</script>
+
 </body>
 </html>
