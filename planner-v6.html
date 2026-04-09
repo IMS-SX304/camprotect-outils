@@ -26,7 +26,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 /* LEFT */
 #sbl{width:182px;flex-shrink:0;background:var(--d2);overflow-y:auto;border-right:1px solid rgba(255,255,255,.05)}
 #sbl::-webkit-scrollbar{width:2px}#sbl::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15)}
-.cat{padding:7px 9px 2px;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:var(--br)}
+.cat{padding:7px 9px 2px;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:var(--br);cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}.cat:hover{opacity:.8}.cat-arrow{font-size:8px;opacity:.4;transition:transform .15s}.cat.collapsed .cat-arrow{transform:rotate(-90deg)}
 .cov-opt{display:flex;align-items:center;gap:8px;padding:5px 14px;font-size:11.5px;cursor:pointer;color:var(--rt,#e2e8f0);user-select:none;white-space:nowrap}
 .cov-opt:hover{background:rgba(255,255,255,.07)}
 .cov-opt input[type=checkbox]{pointer-events:none;accent-color:#E85D04;width:13px;height:13px}
@@ -34,7 +34,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 .pi:hover{background:rgba(255,255,255,.05)}.pi.on{border-left-color:var(--br);background:rgba(232,93,4,.1)}
 .ic{width:17px;height:17px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;font-weight:700;color:#fff}
 .pla{flex:1;min-width:0}.pn{font-size:10.5px;font-weight:500;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ps{font-size:8.5px;color:rgba(255,255,255,.6);font-family:'DM Mono',monospace}.pp{font-size:9.5px;font-weight:700;color:#fff;font-family:'DM Mono',monospace}
+.ps{font-size:8.5px;color:rgba(255,255,255,.6);font-family:'DM Mono',monospace}.pp{font-size:9.5px;font-weight:700;color:#fff;font-family:'DM Mono',monospace}.pp::after{content:' HT';font-size:7.5px;opacity:.5;font-weight:400}
 .sp{height:1px;background:rgba(255,255,255,.06);margin:3px 0}
 /* FLOOR TABS */
 #fbar{background:#1a2332;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 8px;height:32px;gap:2px;overflow-x:auto;flex-shrink:0}
@@ -104,7 +104,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 .rph span{font-size:10px;font-weight:700;color:var(--rt)}.rph em{font-size:10px;color:var(--rm);font-style:normal}
 .rpb{overflow-y:auto;max-height:150px}
 .rpb::-webkit-scrollbar{width:2px}.rpb::-webkit-scrollbar-thumb{background:var(--bo)}
-.lcat{padding:3px 9px 1px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af}
+.lcat{padding:3px 9px 1px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
+.lcat-lock{font-size:9px;cursor:pointer;opacity:.7;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.06)}.lcat-lock:hover{opacity:1;background:rgba(255,255,255,.12)}
 .li{display:flex;align-items:center;gap:4px;padding:3px 9px;cursor:pointer;font-size:10px;border-left:2px solid transparent;transition:all .1s}
 .li:hover{background:var(--lt)}.li.on{background:#fff5f0;border-left-color:var(--br)}
 .lic{width:13px;height:13px;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff}
@@ -234,6 +235,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 .gt-dot.active{background:#E85D04;width:18px;border-radius:3px}
 /* Animation intro */
 @keyframes gw-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes fadeInUp{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
 .gw-card{animation:gw-in .25s ease}
 
 /* ── MODALE D'AIDE ──────────────────────────────────────────────────────── */
@@ -621,12 +623,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
       </div>
 
       <!-- Historique snapshots -->
-      <div class="wl">Historique des versions (3 max)</div>
-      <div style="margin-bottom:8px">
-        <input type="text" id="vh-name" placeholder="Nom du snapshot (ex: Plan final client X)" style="width:100%;padding:5px 7px;border:1px solid var(--bo);border-radius:5px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--sbg);color:var(--rt);margin-bottom:6px">
-        <button class="wb2 s" style="width:100%" onclick="saveVersion()">📸 Créer un snapshot de secours</button>
+      <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px 14px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#10b981;margin-bottom:10px">📸 Snapshots de secours <span style="font-weight:400;opacity:.6">(5 max · sauvegarde locale)</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <input type="text" id="vh-name" placeholder="Nom du snapshot (ex: Plan final V2)" style="flex:1;padding:6px 9px;border:1px solid var(--bo);border-radius:5px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--sbg);color:var(--rt)">
+          <button class="wb2 p" style="flex-shrink:0;padding:6px 12px;font-size:11px" onclick="saveVersion()">📸 Créer</button>
+        </div>
+        <div id="vh-list"><div style="font-size:11px;color:#64748b;text-align:center;padding:8px">Aucun snapshot — créez-en un ci-dessus</div></div>
       </div>
-      <div id="vh-list"><div class="lpmt">Aucun snapshot</div></div>
     </div>
     <div class="mf"><button class="wb2 s" onclick="closeModal('save-modal')">Fermer</button></div>
   </div>
@@ -919,50 +923,27 @@ function saveProjectFile(){
 }
 
 function _showSaveModal(json,filename,alreadyDownloaded){
-  const prev=document.getElementById('cp6-save-overlay');if(prev)prev.remove();
-  const overlay=document.createElement('div');
-  overlay.id='cp6-save-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
-  overlay.innerHTML=`<div style="background:#1f2937;border-radius:14px;padding:24px;width:min(500px,100%);font-family:DM Sans,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.4)">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <span style="font-size:24px">${alreadyDownloaded?'✅':'💾'}</span>
-      <div>
-        <div style="font-size:14px;font-weight:700;color:#fff">${alreadyDownloaded?'Plan enregistré !':'Enregistrer le plan'}</div>
-        <div style="font-size:11px;color:#9ca3af;font-family:monospace">${filename}</div>
-      </div>
+  // Toast discret : plan enregistré
+  const prev=document.getElementById('cp6-save-toast');if(prev)prev.remove();
+  const toast=document.createElement('div');
+  toast.id='cp6-save-toast';
+  toast.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(16,185,129,.4);border-radius:10px;padding:12px 22px;display:flex;align-items:center;gap:10px;font-family:DM Sans,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:99999;animation:fadeInUp .25s ease';
+  toast.innerHTML=`
+    <span style="font-size:20px">${alreadyDownloaded?'✅':'📋'}</span>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#f1f5f9">Plan enregistré !</div>
+      <div style="font-size:10.5px;color:#64748b;font-family:monospace">${filename}</div>
     </div>
-    ${alreadyDownloaded?
-      `<div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:12px 14px;font-size:12px;color:#10b981;margin-bottom:16px">
-        ✓ Fichier <strong>${filename}</strong> téléchargé dans vos téléchargements.
-      </div>`:
-      `<div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:8px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,.75);margin-bottom:14px;line-height:1.7">
-        <strong style="color:#fbbf24">⚠ Téléchargement bloqué par le navigateur</strong> (outil dans un iframe).<br><br>
-        <strong>2 solutions :</strong><br>
-        <strong>① Copier</strong> le contenu ci-dessous → ouvrir le <strong>Bloc-notes</strong> → coller → enregistrer sous <strong style="color:#fbbf24">${filename}</strong><br>
-        <strong>② Ouvrir l'outil dans un onglet complet</strong> et réessayer (le téléchargement fonctionne directement).
-      </div>`
-    }
-    <textarea id="cp6-export-ta" readonly style="width:100%;height:110px;background:#111827;color:#10b981;border:1px solid #374151;border-radius:8px;padding:10px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;margin-bottom:12px"></textarea>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-      <button id="cp6-copy-btn" onclick="(async function(){
-        const ta=document.getElementById('cp6-export-ta');
-        ta.select();ta.setSelectionRange(0,99999);
-        try{await navigator.clipboard.writeText(ta.value);}catch(e){document.execCommand('copy');}
-        const btn=document.getElementById('cp6-copy-btn');
-        btn.textContent='✓ Copié !';btn.style.background='#10b981';
-        setTimeout(()=>{btn.textContent='📋 Copier';btn.style.background='#E85D04';},2500);
-      })()" style="padding:10px;background:#E85D04;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px">📋 Copier</button>
-      <a href="https://ims-sx304.github.io/camprotect-outils/planner-v6.html" target="_blank" style="padding:10px;background:#374151;color:#fff;border-radius:8px;font-weight:700;font-family:DM Sans,sans-serif;font-size:12px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px">🔗 Onglet complet</a>
-    </div>
-    <div style="font-size:10px;color:#6b7280;text-align:center;margin-bottom:14px;line-height:1.5">
-      En ouvrant l'outil dans un onglet complet, votre plan se charge automatiquement<br>et le fichier .cp6 se télécharge sans restriction.
-    </div>
-    <button onclick="document.getElementById('cp6-save-overlay').remove()" style="width:100%;padding:9px;background:transparent;color:#6b7280;border:1px solid #374151;border-radius:8px;cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px">Fermer</button>
-  </div>`;
-  document.body.appendChild(overlay);
-  // Set textarea value after DOM insertion
-  document.getElementById('cp6-export-ta').value=json;
-  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+    ${!alreadyDownloaded?`<button onclick="(async function(){try{await navigator.clipboard.writeText(document.getElementById('cp6-hidden-json').value);}catch(e){}const b=this;b.textContent='✓ Copié';b.style.color='#10b981';setTimeout(()=>b.textContent='📋 Copier JSON',2000);})()" style="margin-left:8px;background:rgba(232,93,4,.15);color:#E85D04;border:1px solid rgba(232,93,4,.3);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">📋 Copier JSON</button>`:''}
+    <button onclick="document.getElementById('cp6-save-toast').remove()" style="background:rgba(255,255,255,.06);border:none;color:#64748b;width:22px;height:22px;border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+  `;
+  // Champ caché pour le JSON (si besoin de copier)
+  const hidden=document.createElement('textarea');
+  hidden.id='cp6-hidden-json';hidden.style.cssText='position:absolute;left:-9999px';hidden.value=json;
+  toast.appendChild(hidden);
+  document.body.appendChild(toast);
+  // Auto-fermeture 5s si téléchargé
+  if(alreadyDownloaded)setTimeout(()=>{const t=document.getElementById('cp6-save-toast');if(t)t.remove();},5000);
 }
 
 
@@ -1011,14 +992,14 @@ function showSaveModal(){
   const nameEl=document.getElementById('proj-name');
   if(nameEl&&!nameEl.value)nameEl.placeholder=ST.client.chantier||ST.client.name||'Nom du projet...';
   updProjDisplay();
-  updVH();
+  updVersionList();
   showModal('save-modal');
 }
 function saveVersion(){
   const name=document.getElementById('vh-name').value||'Snapshot '+(new Date().toLocaleTimeString('fr'));
   const versions=JSON.parse(localStorage.getItem(_K('cp6_vh'))||'[]');
   versions.unshift({name,date:new Date().toISOString(),data:{floors:ST.floors,tels:ST.tels,walls:ST.walls,symbols:ST.symbols,cables:ST.cables,locked:[...ST.locked]}});
-  if(versions.length>3)versions.pop();
+  if(versions.length>5)versions.pop();
   localStorage.setItem(_K('cp6_vh'),JSON.stringify(versions));
   document.getElementById('vh-name').value='';
   updVersionList();
@@ -1038,16 +1019,25 @@ function restoreVersion(i){
   closeModal('save-modal');
 }
 
+function deleteVersion(i){
+  const versions=JSON.parse(localStorage.getItem(_K('cp6_vh'))||'[]');
+  versions.splice(i,1);
+  localStorage.setItem(_K('cp6_vh'),JSON.stringify(versions));
+  updVersionList();
+}
 function updVersionList(){
   const versions=JSON.parse(localStorage.getItem(_K('cp6_vh'))||'[]');
   const el=document.getElementById('vh-list');
-  if(!versions.length){el.innerHTML='<div class="lpmt">Aucun snapshot</div>';return;}
-  el.innerHTML='<div id="vh-list">'+versions.map((v,i)=>`
-    <div class="vh-item">
-      <div class="vh-name">${v.name}</div>
-      <div class="vh-date">${new Date(v.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
-      <button class="vh-restore" onclick="restoreVersion(${i})">Restaurer</button>
-    </div>`).join('')+'</div>';
+  if(!versions.length){el.innerHTML='<div class="lpmt" style="font-size:11px;color:#64748b;text-align:center;padding:8px">Aucun snapshot — créez-en un ci-dessus</div>';return;}
+  el.innerHTML=versions.map((v,i)=>`
+    <div class="vh-item" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="flex:1;min-width:0">
+        <div class="vh-name" style="font-size:11.5px;font-weight:600;color:var(--rt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.name}</div>
+        <div class="vh-date" style="font-size:9.5px;color:#64748b">${new Date(v.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <button class="wb2 p" style="font-size:10px;padding:4px 10px;flex-shrink:0" onclick="restoreVersion(${i})">↩ Restaurer</button>
+      <button style="background:rgba(220,38,38,.15);color:#f87171;border:none;border-radius:4px;padding:4px 7px;font-size:11px;cursor:pointer" onclick="deleteVersion(${i})" title="Supprimer ce snapshot">×</button>
+    </div>`).join('');
 }
 
 // CATALOG CONNECTION
@@ -1282,6 +1272,7 @@ function saveClient(){
   ST.client.addr=document.getElementById('cl-addr').value;
   ST.client.chantier=document.getElementById('cl-chantier').value;
   ST.client.chantierAddr=document.getElementById('cl-chantierAddr').value;
+  const billingEl=document.getElementById('cl-billing');if(billingEl)ST.client.billing=billingEl.value;
   ST.client.ref=document.getElementById('cl-ref').value;
   ST.client.date=document.getElementById('cl-date').value;
   ST.client.notes=document.getElementById('cl-notes').value;
@@ -1296,6 +1287,7 @@ function loadClientForm(){
   document.getElementById('cl-addr').value=ST.client.addr||'';
   document.getElementById('cl-chantier').value=ST.client.chantier||'';
   document.getElementById('cl-chantierAddr').value=ST.client.chantierAddr||'';
+  const billingFld=document.getElementById('cl-billing');if(billingFld)billingFld.value=ST.client.billing||'';
   document.getElementById('cl-ref').value=ST.client.ref||'';
   document.getElementById('cl-date').value=ST.client.date||new Date().toISOString().slice(0,10);
   document.getElementById('cl-notes').value=ST.client.notes||'';
@@ -1727,7 +1719,7 @@ function render(){
   if(ST.mode==='m'&&ST.mS&&ST._mousePos){const p1=toC(ST.mS.x,ST.mS.y),p2=ST._mousePos;ctx.save();ctx.strokeStyle='#3b82f6';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();}
   if(ST.snapGuides&&ST.snapGuides.length){ctx.save();ctx.strokeStyle='rgba(232,93,4,.7)';ctx.lineWidth=.7;ctx.setLineDash([4,3]);ST.snapGuides.forEach(g=>{ctx.beginPath();if(g.type==='v'){const x=ST.ox+g.x*ST.scale;ctx.moveTo(x,0);ctx.lineTo(x,H);}else{const y=ST.oy+g.y*ST.scale;ctx.moveTo(0,y);ctx.lineTo(W,y);}ctx.stroke();});ctx.setLineDash([]);ctx.restore();}
   if(ST.mode==='pickRoom'){ctx.save();ctx.strokeStyle='#f59e0b';ctx.lineWidth=3;ctx.setLineDash([6,3]);CF().rooms.forEach(r=>{const p=toC(r.x,r.y);ctx.strokeRect(p.x,p.y,r.w*ST.scale,r.h*ST.scale);});ctx.setLineDash([]);ctx.restore();}
-  drawMinimap();updScale();
+  drawMinimap();updScale();updCovIndicator();
 }
 function drawGrid(W,H){
   const step=ST.scale;const sx=((ST.ox%step)+step)%step,sy=((ST.oy%step)+step)%step;
@@ -1739,7 +1731,11 @@ function drawGrid(W,H){
 }
 function drawRoom(r){
   const p=toC(r.x,r.y);const w=r.w*ST.scale,h=r.h*ST.scale;const fill=RB[r.t]||'#d1d5db';
-  ctx.save();ctx.fillStyle=fill;ctx.globalAlpha=.18;ctx.fillRect(p.x,p.y,w,h);ctx.globalAlpha=1;
+  ctx.save();ctx.fillStyle=fill;ctx.globalAlpha=.18;ctx.fillRect(p.x,p.y,w,h);
+  // Overlay zone Ajax si des équipements de cette pièce ont une zone
+  const _zItem=CF().items.find(it=>it.zoneId&&it.roomId===r.id);
+  if(_zItem&&ZONE_COLORS[_zItem.zoneId]){ctx.fillStyle=ZONE_COLORS[_zItem.zoneId];ctx.globalAlpha=.10;ctx.fillRect(p.x,p.y,w,h);}
+  ctx.globalAlpha=1;
   const isSel=r.id===ST.selId;ctx.strokeStyle=isSel?'#fbbf24':ST.dark?'rgba(255,255,255,.3)':'rgba(255,255,255,.5)';ctx.lineWidth=isSel?2.5:1;ctx.strokeRect(p.x,p.y,w,h);
   if(w>30&&h>20){const fs=Math.max(8,Math.min(14,w/Math.max(4,r.n.length)*.7));ctx.font=`600 ${fs}px 'DM Sans'`;ctx.fillStyle='rgba(0,0,0,.75)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(r.n,p.x+w/2,p.y+h/2-(h>50?8:0));if(h>50&&w>40){ctx.font=`500 ${Math.max(7,fs*.85)}px 'DM Mono'`;ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(`${(r.w*r.h).toFixed(0)} m²`,p.x+w/2,p.y+h/2+10);}}
   ctx.restore();
@@ -2065,7 +2061,14 @@ cv.addEventListener('mousedown',e=>{
     if(cfg.lay==='t'){ST.tels.push({id:ST.nid++,key:ST.selKey,x:sn(m.x-5),y:sn(m.y-4),w:8,h:6,rot:0});render();updLP();updStat();return;}
     if(cfg.lay==='o'){const wp=snapToWall(m.x,m.y);CF().opens.push({id:ST.nid++,key:ST.selKey,ow:cfg.ow,x:wp?wp.x:sn(m.x),y:wp?wp.y:sn(m.y),rot:wp?wp.rot:0});ST.snapPt=null;render();updLP();updStat();return;}
     if(cfg.lay==='sym'){ST.symbols.push({id:ST.nid++,type:cfg.symType,x:sn(m.x),y:sn(m.y),rot:0,w:cfg.w||2,h:cfg.h||3,text:cfg.text||'Texte'});render();updLP();return;}
-    const ni={id:ST.nid++,key:ST.selKey,x:sn(m.x),y:sn(m.y),rot:0,zoneId:'',note:''};
+    // Snap DoorProtect / GlassProtect sur ouverture la plus proche
+    let snapX=sn(m.x),snapY=sn(m.y),snapRot=0;
+    if(['dp','dp_p','gp'].includes(ST.selKey)&&CF().opens.length){
+      let bestO=null,bestD=Infinity;
+      CF().opens.forEach(o=>{const d=Math.sqrt((o.x-m.x)**2+(o.y-m.y)**2);if(d<bestD){bestD=d;bestO=o;}});
+      if(bestO&&bestD<1.5){snapX=bestO.x;snapY=bestO.y;snapRot=bestO.rot||0;}
+    }
+    const ni={id:ST.nid++,key:ST.selKey,x:snapX,y:snapY,rot:snapRot,zoneId:'',note:''};
     CF().items.push(ni);doSel(ni.id,'item');
     // Single placement: after pose → auto-deselect product, switch to select mode
     ST.selKey=null;document.querySelectorAll('.pi').forEach(el=>el.classList.remove('on'));
@@ -2413,6 +2416,26 @@ function ctxDetails(){
 // ── DRAG & DROP depuis sidebar ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{});// placeholder
 
+function initSidebarCollapse(){
+  document.querySelectorAll('#sbl .cat').forEach(cat=>{
+    // Ajouter flèche si pas déjà là
+    if(!cat.querySelector('.cat-arrow')){
+      const arr=document.createElement('span');
+      arr.className='cat-arrow';arr.textContent='▼';
+      cat.appendChild(arr);
+    }
+    cat.addEventListener('click',()=>{
+      cat.classList.toggle('collapsed');
+      const arr=cat.querySelector('.cat-arrow');
+      // Toggle tous les .pi qui suivent jusqu'au prochain .cat
+      let sib=cat.nextElementSibling;
+      while(sib&&!sib.classList.contains('cat')){
+        sib.style.display=cat.classList.contains('collapsed')?'none':'flex';
+        sib=sib.nextElementSibling;
+      }
+    });
+  });
+}
 function initSidebarDrag(){
   // Produits, terrains, ouvertures (.pi avec data-k)
   document.querySelectorAll('.pi[data-k]').forEach(el=>{
@@ -2626,6 +2649,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'&&ST.selId)nudge(-15);
   if(e.key==='ArrowRight'&&ST.selId)nudge(15);
   if(e.ctrlKey&&e.key==='z'){e.preventDefault();undo();}
+  if(e.ctrlKey&&e.key==='d'){e.preventDefault();dupSelected();}
   if(e.ctrlKey&&e.key==='a'){e.preventDefault();selectAll();}
   if(e.key==='l'&&ST.selId)toggleLock(ST.selId);
 });
@@ -2749,6 +2773,25 @@ function saveNote(){
 }
 
 // LOCK
+function exportPNG(){
+  render();
+  const link=document.createElement('a');
+  link.download=`camprotect-plan-${(ST.client.chantier||'plan').replace(/[^a-z0-9]/gi,'-')}-${Date.now()}.png`;
+  link.href=cv.toDataURL('image/png');
+  link.click();
+}
+function lockAllRooms(){
+  svH();
+  const allLocked=CF().rooms.every(r=>ST.locked.has(r.id));
+  CF().rooms.forEach(r=>{allLocked?ST.locked.delete(r.id):ST.locked.add(r.id);});
+  updLP();render();
+}
+function lockAllTels(){
+  svH();
+  const allLocked=ST.tels.every(t=>ST.locked.has(t.id));
+  ST.tels.forEach(t=>{allLocked?ST.locked.delete(t.id):ST.locked.add(t.id);});
+  updLP();render();
+}
 function toggleLock(id){ST.locked.has(id)?ST.locked.delete(id):ST.locked.add(id);render();updLP();}
 
 // ══════════════════════════════════════════════════════
@@ -2882,14 +2925,40 @@ function commitRename(inp, id, type){
 function updLP(){
   const el=document.getElementById('lpb');let html='';
   const lkBtn=(id)=>`<span class="llk${ST.locked.has(id)?' locked':''}" onclick="event.stopPropagation();toggleLock(${id})">${ST.locked.has(id)?'🔒':'🔓'}</span>`;
-  if(ST.tels.length){html+=`<div class="lcat">🌿 Terrain</div>`;ST.tels.forEach(t=>{const cfg=TC[t.key]||{};const telLbl=t.label||cfg.n;html+=`<div class="li${ST.selId===t.id?' on':''}" data-rid="${t.id}-tel" onclick="doSel(${t.id},'tel')"><div class="lic" style="background:${cfg.brd||'#4caf50'}">T</div><div class="lin" ondblclick="event.stopPropagation();startRename(${t.id},'tel')">${telLbl} · ${(t.w*t.h).toFixed(0)} m²</div><span class="lren" onclick="event.stopPropagation();startRename(${t.id},'tel')" title="Renommer">✏️</span>${lkBtn(t.id)}<span class="lx" onclick="event.stopPropagation();delById(${t.id},'tel')">×</span></div>`;});}
-  if(CF().rooms.length){html+=`<div class="lcat">🏠 Pièces — ${CF().name}</div>`;CF().rooms.forEach(r=>{html+=`<div class="li${ST.selId===r.id?' on':''}" data-rid="${r.id}-room" onclick="doSel(${r.id},'room')"><div class="lic" style="background:${RB[r.t]||'#d1d5db'}"></div><div class="lin" ondblclick="event.stopPropagation();startRename(${r.id},'room')">${r.n} · ${(r.w*r.h).toFixed(0)} m²</div><span class="lren" onclick="event.stopPropagation();startRename(${r.id},'room')" title="Renommer">✏️</span>${lkBtn(r.id)}<span class="lx" onclick="event.stopPropagation();delById(${r.id},'room')">×</span></div>`;});}
+  if(ST.tels.length){
+    const allTelLocked=ST.tels.length>0&&ST.tels.every(t=>ST.locked.has(t.id));
+    html+=`<div class="lcat">🌿 Terrain <span class="lcat-lock" onclick="event.stopPropagation();lockAllTels()" title="${allTelLocked?'Déverrouiller tout':'Verrouiller tout le terrain'}">${allTelLocked?'🔒 Tout':'🔓 Tout'}</span></div>`;
+    ST.tels.forEach(t=>{const cfg=TC[t.key]||{};const telLbl=t.label||cfg.n;html+=`<div class="li${ST.selId===t.id?' on':''}" data-rid="${t.id}-tel" onclick="doSel(${t.id},'tel')"><div class="lic" style="background:${cfg.brd||'#4caf50'}">T</div><div class="lin" ondblclick="event.stopPropagation();startRename(${t.id},'tel')">${telLbl} · ${(t.w*t.h).toFixed(0)} m²</div><span class="lren" onclick="event.stopPropagation();startRename(${t.id},'tel')" title="Renommer">✏️</span>${lkBtn(t.id)}<span class="lx" onclick="event.stopPropagation();delById(${t.id},'tel')">×</span></div>`;});
+  }
+  if(CF().rooms.length){
+    const allRoomLocked=CF().rooms.every(r=>ST.locked.has(r.id));
+    html+=`<div class="lcat">🏠 Pièces — ${CF().name} <span class="lcat-lock" onclick="event.stopPropagation();lockAllRooms()" title="${allRoomLocked?'Déverrouiller toutes les pièces':'Verrouiller toutes les pièces'}">${allRoomLocked?'🔒 Tout':'🔓 Tout'}</span></div>`;CF().rooms.forEach(r=>{html+=`<div class="li${ST.selId===r.id?' on':''}" data-rid="${r.id}-room" onclick="doSel(${r.id},'room')"><div class="lic" style="background:${RB[r.t]||'#d1d5db'}"></div><div class="lin" ondblclick="event.stopPropagation();startRename(${r.id},'room')">${r.n} · ${(r.w*r.h).toFixed(0)} m²</div><span class="lren" onclick="event.stopPropagation();startRename(${r.id},'room')" title="Renommer">✏️</span>${lkBtn(r.id)}<span class="lx" onclick="event.stopPropagation();delById(${r.id},'room')">×</span></div>`;});}
   if(ST.walls.length){html+=`<div class="lcat">🧱 Cloisons (${ST.walls.length})</div>`;ST.walls.forEach(w=>{const lbl={interior:'Cloison',exterior:'Mur ext.',fence:'Grillage'}[w.style]||'Cloison';const dx=w.x2-w.x1,dy=w.y2-w.y1;const d=Math.sqrt(dx*dx+dy*dy).toFixed(1);html+=`<div class="li${ST.selId===w.id?' on':''}" onclick="doSel(${w.id},'wall')"><div class="lic" style="background:#374151">🧱</div><div class="lin">${lbl} ${d}m</div><span class="lx" onclick="event.stopPropagation();delById(${w.id},'wall')">×</span></div>`;});}
   if(CF().opens.length){html+=`<div class="lcat">🚪 Ouvertures</div>`;CF().opens.forEach(o=>{const cfg=OC[o.key]||{};html+=`<div class="li${ST.selId===o.id?' on':''}" onclick="doSel(${o.id},'open')"><div class="lic" style="background:${cfg.col||'#78716c'}">O</div><div class="lin">${cfg.n||'?'}</div>${lkBtn(o.id)}<span class="lx" onclick="event.stopPropagation();delById(${o.id},'open')">×</span></div>`;});}
   if(ST.cables.length){html+=`<div class="lcat">🔌 Câblage (${ST.cables.length})</div>`;ST.cables.forEach(c=>{let tot=0;(c.pts||[]).forEach((p,i)=>{if(i>0){const dx=p.x-c.pts[i-1].x,dy=p.y-c.pts[i-1].y;tot+=Math.sqrt(dx*dx+dy*dy);}});const lbl={rj45:'RJ45',coax:'Coax',alim:'Alim'}[c.style]||'Câble';html+=`<div class="li${ST.selId===c.id?' on':''}" onclick="doSel(${c.id},'cable')"><div class="lic" style="background:#2563eb">🔌</div><div class="lin">${lbl} ${tot.toFixed(1)}m</div><span class="lx" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();delById(${c.id},'cable')">×</span></div>`;});}
   if(ST.symbols.length){html+=`<div class="lcat">📐 Symboles</div>`;ST.symbols.forEach(s=>{const lbl={stairs:'Escalier',column:'Colonne',north:'Nord ↑',label:'Label'}[s.type]||s.type;html+=`<div class="li${ST.selId===s.id?' on':''}" data-rid="${s.id}-symbol" onclick="doSel(${s.id},'symbol')"><div class="lic" style="background:#6b7280">◆</div><div class="lin" ondblclick="event.stopPropagation();startRename(${s.id},'symbol')">${lbl}${s.text?' : '+s.text:''}</div><span class="lren" onclick="event.stopPropagation();startRename(${s.id},'symbol')" title="Renommer">✏️</span><span class="lx" onclick="event.stopPropagation();delById(${s.id},'symbol')">×</span></div>`;});}
   if(ST.measures.length){html+=`<div class="lcat">📏 Mesures (${ST.measures.length})</div>`;ST.measures.forEach(ms=>{const dx=ms.x2-ms.x1,dy=ms.y2-ms.y1;const d=Math.sqrt(dx*dx+dy*dy);html+=`<div class="li${ST.selId===ms.id?' on':''}" onclick="doSel(${ms.id},'measure')"><div class="lic" style="background:#3b82f6">📏</div><div class="lin">${d.toFixed(2)} m</div><span class="lx" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();delById(${ms.id},'measure')">×</span></div>`;});}
-  if(CF().items.length){const nums=getItemNums();html+=`<div class="lcat">🔒 Équipements (${CF().items.length})</div>`;CF().items.forEach(it=>{const pr=P[it.key]||{};const num=nums[it.id]||'';const zc=ZONE_COLORS[it.zoneId||0];html+=`<div class="li${ST.selId===it.id?' on':''}" onclick="doSel(${it.id},'item')"><div class="lic" style="background:${pr.col||'#6b7280'}">${CI[pr.cat]||'?'}</div><div class="lin">${pr.n||it.key}${num?' <em style="color:var(--br);font-style:normal;font-family:monospace">'+num+'</em>':''}</div>${zc?`<span style="width:7px;height:7px;border-radius:50%;background:${zc};flex-shrink:0;display:inline-block"></span>`:''}<span class="llk${ST.locked.has(it.id)?' locked':''}" onclick="event.stopPropagation();toggleLock(${it.id})">${ST.locked.has(it.id)?'🔒':'🔓'}</span><span class="lx" onclick="event.stopPropagation();delById(${it.id},'item')">×</span></div>`;});}
+  // Équipements : tous les étages, groupés
+  const allFloorItems=ST.floors.flatMap((f,fi)=>f.items.map(it=>({...it,_fi:fi,_fn:f.name})));
+  if(allFloorItems.length){
+    const nums=getItemNums();
+    // Trier par catégorie
+    const catOrd=['c','p','d','g','s','fire','k','cam','nvr','a'];
+    const sorted=[...allFloorItems].sort((a,b)=>catOrd.indexOf(P[a.key]?.cat)-catOrd.indexOf(P[b.key]?.cat));
+    const curFloorIdx=ST.floors.indexOf(CF());
+    html+=`<div class="lcat">🔒 Équipements (${allFloorItems.length} · ${ST.floors.length} ét.)</div>`;
+    sorted.forEach(it=>{
+      const pr=P[it.key]||{};const num=nums[it.id]||'';const zc=ZONE_COLORS[it.zoneId||0];
+      const otherFloor=it._fi!==curFloorIdx;
+      html+=`<div class="li${ST.selId===it.id?' on':''}${otherFloor?' li-other':''}" onclick="doSel(${it.id},'item')" title="${otherFloor?'Étage : '+it._fn:''}">
+        <div class="lic" style="background:${pr.col||'#6b7280'}">${CI[pr.cat]||'?'}</div>
+        <div class="lin">${pr.n||it.key}${num?' <em style="color:var(--br);font-style:normal;font-family:monospace">'+num+'</em>':''}${otherFloor?` <span style="font-size:8px;color:#6b7280;font-style:italic">${it._fn}</span>`:''}</div>
+        ${zc?`<span style="width:7px;height:7px;border-radius:50%;background:${zc};flex-shrink:0;display:inline-block"></span>`:''}
+        <span class="llk${ST.locked.has(it.id)?' locked':''}" onclick="event.stopPropagation();toggleLock(${it.id})">${ST.locked.has(it.id)?'🔒':'🔓'}</span>
+        <span class="lx" onclick="event.stopPropagation();delById(${it.id},'item')">×</span>
+      </div>`;
+    });
+  }
   if(!html)html='<div class="lpmt">Aucun élément</div>';
   el.innerHTML=html;
 }
@@ -3025,6 +3094,16 @@ function updQ(){
     const s=calcSurface();
     sEl.textContent=`📐 Couverture : ${s.covered}/${s.total} m² (${s.pct}%)`;
   } else if(sEl){sEl.textContent='';}
+}
+function updCovIndicator(){
+  if(!ST.cov)return;
+  const s=calcSurface();
+  const bar=document.getElementById('cov-indicator');
+  if(!bar)return;
+  const pct=s.pct;
+  bar.textContent=`◎ ${pct}% couvert`;
+  bar.style.color=pct>=80?'#10b981':pct>=50?'#f59e0b':'#ef4444';
+  bar.style.display='inline';
 }
 function updStat(){
   const totalI=ST.floors.reduce((s,f)=>s+f.items.length,0);
@@ -3197,6 +3276,7 @@ document.addEventListener('click',e=>{
 });
 // Init drag & drop from sidebar
 initSidebarDrag();
+initSidebarCollapse();
 </script>
 
 
@@ -3235,6 +3315,7 @@ initSidebarDrag();
       <div class="hm-sec-title">📦 Équipements Ajax</div>
       <div class="hm-item"><div class="hm-icon">⬡</div><div class="hm-item-txt"><strong>Centrales Hub</strong><span>Hub 2 (4G), Hub 2 Plus, Hub 2 (2G). Glisser sur le plan. Gère jusqu'à 100 périphériques.</span></div></div>
       <div class="hm-item"><div class="hm-icon">◈</div><div class="hm-item-txt"><strong>Détecteurs PIR</strong><span>MotionProtect, MotionProtect+, MotionCam, Curtain Outdoor, DualCurtain… Placer dans les pièces ou sur les murs.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🚪</div><div class="hm-item-txt"><strong>DoorProtect — snap automatique</strong><span>En plaçant un DoorProtect près d'une porte ou fenêtre (< 1.5m), il se snappe automatiquement sur l'ouverture.</span></div></div>
       <div class="hm-item"><div class="hm-icon">🔊</div><div class="hm-item-txt"><strong>Sirènes</strong><span>HomeSiren (intérieur), StreetSiren (extérieur). Les anneaux concentriques = portée sonore.</span></div></div>
       <div class="hm-item"><div class="hm-icon">📷</div><div class="hm-item-txt"><strong>Caméras</strong><span>BulletCam, DomeCam, TurretCam. <b>⚠️ Requiert NVR Ajax + Switch PoE + câble RJ45.</b></span></div></div>
       <div class="hm-item"><div class="hm-icon">🔥</div><div class="hm-item-txt"><strong>Détecteurs incendie</strong><span>FireProtect, FireProtect Plus, FireProtect 2 RB. Placer au plafond ou en hauteur.</span></div></div>
@@ -3259,10 +3340,13 @@ initSidebarDrag();
       <div class="hm-sec-title">📐 Outils avancés</div>
       <div class="hm-item"><div class="hm-icon">📏</div><div class="hm-item-txt"><strong>Mesure</strong><span>Bouton <b>Mesure</b> → clic point départ, clic point arrivée. Distance affichée en mètres sur le plan.</span></div></div>
       <div class="hm-item"><div class="hm-icon">📐</div><div class="hm-item-txt"><strong>Symboles</strong><span>Escalier, colonne, flèche Nord, label texte. Drag & drop depuis la sidebar. Double-clic pour éditer.</span></div></div>
-      <div class="hm-item"><div class="hm-icon">🔒</div><div class="hm-item-txt"><strong>Verrouillage</strong><span>🔓 dans Couches pour verrouiller un élément. Empêche tout déplacement accidentel.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔒</div><div class="hm-item-txt"><strong>Verrouillage individuel</strong><span>🔓 dans Couches pour verrouiller un élément. Empêche tout déplacement accidentel.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🌿</div><div class="hm-item-txt"><strong>Verrouillage global</strong><span>Bouton <b>🔓 Tout</b> dans les sections <b>🌿 Terrain</b> et <b>🏠 Pièces</b> → verrouille ou déverrouille tous les éléments de la section en un clic.</span></div></div>
       <div class="hm-item"><div class="hm-icon">☐</div><div class="hm-item-txt"><strong>Multi-sélection</strong><span>Shift + clic ou Shift + glisser (rubber band) pour sélectionner plusieurs éléments simultanément.</span></div></div>
       <div class="hm-item"><div class="hm-icon">🌗</div><div class="hm-item-txt"><strong>Mode Nuit</strong><span>Bouton <b>Nuit</b> pour basculer thème clair/sombre. Préférence sauvegardée automatiquement.</span></div></div>
-      <div class="hm-item"><div class="hm-icon">🖼</div><div class="hm-item-txt"><strong>Fond de plan</strong><span>Bouton <b>Fond</b> pour importer une image de référence. Opacité réglable.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🖼</div><div class="hm-item-txt"><strong>Export PNG</strong><span>Bouton <b>🖼 PNG</b> dans la barre du haut pour exporter le plan en image PNG téléchargeable.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">⧉</div><div class="hm-item-txt"><strong>Dupliquer</strong><span><b>Ctrl+D</b> pour dupliquer l'équipement sélectionné avec un décalage de 50cm.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">🔲</div><div class="hm-item-txt"><strong>Fond de plan</strong><span>Bouton <b>Fond</b> pour importer une image de référence. Opacité réglable.</span></div></div>
       <div class="hm-item"><div class="hm-icon">🏷</div><div class="hm-item-txt"><strong>Logo installateur</strong><span>Bouton <b>Logo</b> pour charger votre logo. Apparaît dans le devis PDF généré.</span></div></div>
     </div>
 
@@ -3369,7 +3453,7 @@ const GUIDE_STEPS=[
   },
   {// 10
     title:"Verrouillez les éléments",
-    body:"<span style='color:#E85D04'>🔓</span> dans Couches = <span style='color:#E85D04'>verrouiller</span> (empêche les déplacements). <span style='color:#E85D04'>🔒</span> = déverrouiller.",
+    body:"<span style='color:#E85D04'>🔓</span> dans Couches = verrouiller un élément (empêche les déplacements).<br><br>Les boutons <span style='color:#E85D04'>🔓 Tout</span> en face de <span style='color:#E85D04'>🌿 Terrain</span> et <span style='color:#E85D04'>🏠 Pièces</span> verrouillent toute la section d'un clic.",
     target:'#lpb',pos:'left',onEnter:null,onLeave:null
   },
   {// 11
@@ -3406,11 +3490,14 @@ function helpClose(){const m=document.getElementById('help-modal');if(m)m.classL
 // Fermer sur clic backdrop
 document.addEventListener('click',function(e){const m=document.getElementById('help-modal');if(m&&m.classList.contains('open')&&e.target===m)helpClose();});
 function guideInit(){
+  if(localStorage.getItem('cp6_guide_skip')==='1')return;
   const el=document.getElementById('guide-welcome');
   if(el)el.style.display='flex';
 }
 
 function guideClose(){
+  if(document.getElementById('guide-no-show')?.checked)
+    localStorage.setItem('cp6_guide_skip','1');
   const el=document.getElementById('guide-welcome');
   if(el)el.style.display='none';
   showModal('wiz');
