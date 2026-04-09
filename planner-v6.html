@@ -2449,7 +2449,10 @@ function _renderProductDetail(pr){
 
   // Buttons with correct slug for color
   const btns=[];
-  if(curSlug)btns.push(`<a href="https://camprotect.fr/product/${curSlug}" target="_blank" class="pd-btn primary">🛒 Voir sur CamProtect</a>`);
+  if(curSlug){
+    const prodUrl=pr.url||`https://www.camprotect.fr/product/${curSlug}`;
+    btns.push(`<a href="${prodUrl}" target="_blank" class="pd-btn primary">🛒 Voir sur CamProtect</a>`);
+  }
   if(pr.fiche)btns.push(`<a href="${pr.fiche}" target="_blank" class="pd-btn pdf">📖 Documentation officielle Ajax</a>`);
   document.getElementById('pd-btns').innerHTML=btns.join('');
 }
