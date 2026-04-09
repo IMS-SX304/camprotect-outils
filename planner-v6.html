@@ -3211,45 +3211,28 @@ function clearAll(){
 // WEBFLOW CMS — PRIX EN TEMPS RÉEL
 // ══════════════════════════════════════════════════════
 async function fetchCatalog(){
-  // Mapping nom produit CMS → clé produit dans P
-  const nameMap={
-    'ajax bulletcam 5mp 2.8mm':['bc28'],'ajax bulletcam 5mp 4mm':['bc4'],
-    'ajax bulletcam 8mp 2.8mm':['bc28'],'ajax bulletcam 8mp 4mm':['bc4'],
-    'ajax domecam mini 5mp 2.8mm':['dc28'],'ajax domecam mini 5mp 4mm':['dc4'],
-    'ajax turretcam 5mp 2.8mm':['tc28'],'ajax turretcam 5mp 4mm':['tc4'],
-    'ajax hub 2':['hub'],'ajax hub 2 plus':['hub_p'],'ajax hub 2g':['hub_2g'],
-    'ajax motionprotect':['mp'],'ajax motionprotect plus':['mp_p'],
-    'ajax motionprotect outdoor':['mp_o'],'ajax motioncam outdoor':['mc_o'],
-    'ajax doorprotect':['dp'],'ajax doorprotect plus':['dp_p'],
-    'ajax glassprotect':['gp'],'ajax combiprotect':['cb'],
-    'ajax fireprotect':['fp'],'ajax fireprotect plus':['fp_p'],
-    'ajax homesiren':['hs'],'ajax streetsiren':['ss'],
-    'ajax keypad':['kp'],'ajax keypad plus':['kp_p'],
-    'ajax rex 2':['rex'],'ajax multitransmitter':['mt'],
-  };
+  const DATA_URL='https://raw.githubusercontent.com/IMS-SX304/camprotect-json/refs/heads/main/data.json';
+  const el=document.getElementById('catalog-status');
   try{
-    // Fetch products from Webflow CMS via public CDN (no API key needed for published items)
-    const url='https://ims-sx304.github.io/camprotect-outils/products-specs.json';
-    const r=await fetch(url,{cache:'default'});
+    const r=await fetch(DATA_URL,{cache:'default'});
     if(!r.ok)throw new Error('offline');
     const data=await r.json();
-    // Update prices from specs file if price field available
+    const map=data.planner_map||{};
     let updated=0;
-    if(Array.isArray(data)){
-      data.forEach(item=>{
-        const name=(item.name||'').toLowerCase();
-        for(const[k,keys]of Object.entries(nameMap)){
-          if(name.includes(k.split(' ').slice(-2).join(' '))||name===k){
-            keys.forEach(key=>{if(P[key]&&item.price){P[key].price=+item.price;updated++;}});
-          }
-        }
-      });
+    for(const[key,info]of Object.entries(map)){
+      if(P[key]&&info.prix_ht){
+        P[key].price=info.prix_ht;
+        // Mettre à jour l'image si disponible
+        if(info.image)P[key].img=info.image;
+        // Mettre à jour l'URL fiche produit si disponible
+        if(info.url)P[key].url=info.url;
+        updated++;
+      }
     }
-    const el=document.getElementById('catalog-status');
-    el.textContent=updated>0?`✓ ${updated} prix mis à jour`:'✓ Catalogue en ligne';
+    el.textContent=`✓ ${updated} prix à jour`;
     el.style.color='rgba(16,185,129,.8)';
+    updQ(); // Recalculer les totaux avec les nouveaux prix
   }catch(e){
-    const el=document.getElementById('catalog-status');
     el.textContent='● Prix locaux';
     el.style.color='rgba(255,255,255,.25)';
   }
