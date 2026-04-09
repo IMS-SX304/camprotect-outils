@@ -270,7 +270,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
   <div id="logo"><div class="dot"></div>CamProtect<span class="badge">v6</span></div>
   <div id="hm">
     <button class="hb g" onclick="undo()" title="Ctrl+Z">↩</button>
-    <button class="hb g" onclick="showSaveModal()">💾 Sauvegarder</button>
+    <button class="hb g" onclick="showSaveModal()">💾 Sauvegarder / Importer</button>
     <button class="hb g" onclick="autoPlace()">🧩 Auto-placer</button>
     <button class="hb g" onclick="showModal('client-modal')">👤 Client</button>
   </div>
@@ -553,6 +553,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
       <button class="addb" onclick="addWR()">+ Pièce à cet étage</button>
     </div>
     <div class="mf">
+      <button class="wb2 s" onclick="closeModal('wiz')">✕ Fermer</button>
+      <button class="wb2 s" onclick="startBlank()">✦ Feuille blanche</button>
       <button class="wb2 s" onclick="loadDef()">Modèle type</button>
       <button class="wb2 p" onclick="startPlan()">Créer le plan →</button>
     </div>
@@ -605,21 +607,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
         <button class="wb2 p" style="padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;height:auto" onclick="saveProjectFile()">
           <span style="font-size:22px">💾</span>
           <span style="font-weight:700">Enregistrer le plan</span>
-          <span style="font-size:9px;color:rgba(255,255,255,.6)">Télécharge un fichier .cp6</span>
+          <span style="font-size:9px;color:rgba(255,255,255,.6)">Télécharge un fichier .html autonome</span>
         </button>
         <label style="cursor:pointer">
           <div class="wb2 s" style="padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;height:auto;width:100%">
             <span style="font-size:22px">📂</span>
             <span style="font-weight:700">Ouvrir un plan</span>
-            <span style="font-size:9px;color:var(--rm)">Charger un fichier .cp6</span>
+            <span style="font-size:9px;color:var(--rm)">Charger un fichier .html ou .cp6</span>
           </div>
-          <input type="file" accept=".cp6,.json" onchange="openProjectFile(this)" style="display:none">
+          <input type="file" accept=".cp6,.json,.html" onchange="openProjectFile(this)" style="display:none">
         </label>
       </div>
 
       <div style="font-size:10px;color:rgba(255,255,255,.35);text-align:center;margin-bottom:12px;line-height:1.5">
-        Le fichier <strong style="color:rgba(255,255,255,.5)">.cp6</strong> contient votre plan complet.<br>
-        Ouvrez-le sur n'importe quel ordinateur pour retrouver votre travail.
+        Le fichier <strong style="color:rgba(255,255,255,.5)">.html</strong> est autonome — double-clic pour ouvrir directement le plan dans le navigateur.
       </div>
 
       <!-- Historique snapshots -->
@@ -897,29 +898,67 @@ function updProjDisplay(){
 }
 
 function saveProjectFile(){
+  document.querySelectorAll('.modal-bg').forEach(m=>m.classList.remove('show'));
   const payload=_getProjectPayload();
   const name=ST.client.chantier||ST.client.name||'plan-securite';
   const slug=_projectSlug(name);
   const date=new Date().toISOString().slice(0,10);
-  const filename=slug+'-'+date+'.cp6';
-  const json=JSON.stringify(payload,null,2);
+  const filename=slug+'-'+date+'.html';
+  const planJSON=JSON.stringify(payload);
+
+  // Construire le script de préchargement (sans template literal ni ${})
+  const preloadCode='(function(){'
+    +'try{'
+    +'var d='+planJSON+';'
+    +'var uid=d.projectId||("cp6u-"+Math.random().toString(36).substr(2,12));'
+    +'localStorage.setItem("cp6_uid",uid);'
+    +'localStorage.setItem("cp6_preloaded_"+uid,"1");'
+    +'localStorage.setItem("cp6_plan_"+uid,JSON.stringify({'
+    +'floors:d.floors,tels:d.tels,walls:d.walls,symbols:d.symbols,'
+    +'cables:d.cables,measures:d.measures||[],locked:d.locked||[],'
+    +'client:d.client||{},remise:d.remise||0,moHours:d.moHours||0,'
+    +'moRate:d.moRate||45,scale:d.scale||60,ox:d.ox||50,oy:d.oy||50'
+    +'}));'
+    +'document.title="CamProtect \u2014 "+(d.client&&d.client.chantier?d.client.chantier:"Plan");'
+    +'}catch(e){console.error("Preload:",e);}'
+    +'})();';
+
+  // Nettoyer et préparer le HTML source
+  const buildExport=(src)=>{
+    let h=src;
+    // Supprimer tout preload existant
+    h=h.replace(/<script[^>]+id="cp6-preload"[^>]*>[\s\S]*?<\/script>/gi,'');
+    // Supprimer la classe show de toutes les modales (état DOM live)
+    h=h.replace(/class="modal-bg show"/g,'class="modal-bg"');
+    h=h.replace(/class="modal-bg show /g,'class="modal-bg ');
+    // Injecter le preload en tête du <head>
+    const tag='<sc'+'ript id="cp6-preload">'+preloadCode+'<\/sc'+'ript>';
+    h=h.replace('<head>','<head>'+tag);
+    return'<!DOCTYPE html>\n'+h;
+  };
+
+  const download=(html)=>{
+    try{
+      const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download=filename;a.style.display='none';
+      document.body.appendChild(a);a.click();
+      document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url),3000);
+      _showSaveModal(null,filename,true);
+    }catch(e){
+      const a=document.createElement('a');
+      a.href='data:application/octet-stream;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));
+      a.download=slug+'-'+date+'.cp6';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      _showSaveModal(null,slug+'-'+date+'.cp6',true);
+    }
+  };
+
+  // Utiliser outerHTML nettoyé (fonctionne toujours, même en file://)
+  download(buildExport(document.documentElement.outerHTML));
   autoSave();
-
-  // Tenter download direct
-  let downloaded=false;
-  try{
-    const a=document.createElement('a');
-    a.href='data:application/octet-stream;charset=utf-8,'+encodeURIComponent(json);
-    a.download=filename;
-    a.style.display='none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    downloaded=true;
-  }catch(e){}
-
-  // Afficher modale avec statut + alternatives fiables
-  _showSaveModal(json,filename,downloaded);
 }
 
 function _showSaveModal(json,filename,alreadyDownloaded){
@@ -956,6 +995,14 @@ function openProjectFile(input){
   const r=new FileReader();
   r.onload=e=>{
     try{
+      let raw=e.target.result;
+      // Si c'est un fichier HTML exporté, extraire le JSON du script cp6-preload
+      if(f.name.endsWith('.html')){
+        const m=raw.match(/var d=(\{[\s\S]*?\});\s*var uid=/);
+        if(m)raw=m[1];
+        else throw new Error('Plan non trouvé dans le fichier HTML');
+      }
+      
       const d=JSON.parse(e.target.result);
       if(!d.floors)throw new Error('Format invalide');
       svH();
@@ -1378,6 +1425,13 @@ function renderWR(){
     </div>`).join('');
 }
 function addWR(){wizFloors[wizCF].rooms.push({n:'Pièce '+(wizFloors[wizCF].rooms.length+1),w:3,h:3,t:'other'});renderWR();}
+function startBlank(){
+  svH();
+  ST.floors=[{name:'RDC',rooms:[],items:[],opens:[]}];
+  ST.cur=0;ST.tels=[];ST.walls=[];ST.symbols=[];ST.cables=[];ST.measures=[];
+  ST.locked=new Set();ST.selId=null;
+  closeModal('wiz');fitAll();render();updFloorBar();updLP();updZones();updStat();updQ();autoSave();checkAlerts();
+}
 function loadDef(){wizT='house';wizFloors=TPLS.house.floors.map(f=>({name:f.name,rooms:f.rooms.map(r=>({...r}))}));wizCF=0;document.querySelectorAll('.st').forEach(x=>x.classList.remove('s'));document.querySelector('[data-t="house"]').classList.add('s');wizUpdFloors();renderWR();}
 document.getElementById('sg').addEventListener('click',e=>{const el=e.target.closest('[data-t]');if(!el)return;document.querySelectorAll('.st').forEach(x=>x.classList.remove('s'));el.classList.add('s');wizT=el.dataset.t;const tpl=TPLS[wizT]||TPLS.apt;wizFloors=tpl.floors.map(f=>({name:f.name,rooms:f.rooms.map(r=>({...r}))}));wizCF=0;wizUpdFloors();renderWR();});
 
@@ -3352,7 +3406,9 @@ initSidebarCollapse();
 
     <div class="hm-sec">
       <div class="hm-sec-title">💾 Sauvegarde & Projets</div>
-      <div class="hm-item"><div class="hm-icon">💾</div><div class="hm-item-txt"><strong>Sauvegarder</strong><span>Exporte un fichier <b>.cp6</b> rechargeable. Autosave local automatique toutes les 800ms.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">💾</div><div class="hm-item-txt"><strong>Sauvegarder / Importer</strong><span>Bouton <b>💾 Sauvegarder / Importer</b> → exporte un fichier <b>.html autonome</b>. Double-clic sur ce fichier = ouvre directement le plan dans le navigateur, sans manipulation.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">📂</div><div class="hm-item-txt"><strong>Importer un plan</strong><span>Même bouton → <b>📂 Ouvrir un plan</b> pour charger un fichier <b>.html</b> ou <b>.cp6</b> existant.</span></div></div>
+      <div class="hm-item"><div class="hm-icon">✦</div><div class="hm-item-txt"><strong>Feuille blanche</strong><span>Dans l'assistant de démarrage → bouton <b>✦ Feuille blanche</b> pour créer un plan vide. Bouton <b>✕ Fermer</b> pour revenir au plan en cours sans le modifier.</span></div></div>
       <div class="hm-item"><div class="hm-icon">🔑</div><div class="hm-item-txt"><strong>Session</strong><span>ID unique par navigateur (badge jaune). Partageable entre postes via <b>Charger session</b>.</span></div></div>
       <div class="hm-item"><div class="hm-icon">🔄</div><div class="hm-item-txt"><strong>Reset</strong><span>Bouton <b>Reset</b> pour réinitialiser complètement le plan. Action irréversible.</span></div></div>
     </div>
@@ -3408,7 +3464,7 @@ initSidebarCollapse();
 const GUIDE_STEPS=[
   {// 1
     title:"Configurez votre espace",
-    body:"Choisissez un <span style='color:#E85D04'>type de bâtiment</span> : Appartement, Maison, Commerce, Bureau ou Entrepôt. Modifiez les dimensions, puis cliquez sur <span style='color:#E85D04'>Créer le plan →</span>.",
+    body:"Choisissez un <span style='color:#E85D04'>type de bâtiment</span>, modifiez les dimensions et cliquez sur <span style='color:#E85D04'>Créer le plan →</span>. Ou utilisez <span style='color:#E85D04'>✦ Feuille blanche</span> pour commencer sans pièces. Bouton <span style='color:#E85D04'>✕ Fermer</span> pour revenir au plan existant.",
     target:'#wiz',pos:'right',onEnter:null,onLeave:null
   },
   {// 2
@@ -3491,6 +3547,10 @@ function helpClose(){const m=document.getElementById('help-modal');if(m)m.classL
 document.addEventListener('click',function(e){const m=document.getElementById('help-modal');if(m&&m.classList.contains('open')&&e.target===m)helpClose();});
 function guideInit(){
   if(localStorage.getItem('cp6_guide_skip')==='1')return;
+  if(localStorage.getItem('cp6_preloaded_'+_UID)==='1'){
+    localStorage.removeItem('cp6_preloaded_'+_UID);
+    return;// Plan préchargé depuis fichier → pas de guide ni de wizard
+  }
   const el=document.getElementById('guide-welcome');
   if(el)el.style.display='flex';
 }
