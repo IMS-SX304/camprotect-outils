@@ -3190,7 +3190,7 @@ function resetItems(){
 }
 
 function clearAll(){
-  if(!confirm('Réinitialiser tout le plan ? Le nom du projet et les informations client seront effacés.'))return;
+  if(!confirm('Réinitialiser tout le plan ?'))return;
   HIST.length=0;ST.floors=[{id:ST.nid++,name:'RDC',rooms:[],items:[],opens:[]}];ST.cur=0;
   ST.tels=[];ST.walls=[];ST.symbols=[];ST.cables=[];ST.measures=[];
   ST.locked=new Set();ST.multiSel.clear();ST.selId=null;ST.selKey=null;
