@@ -1003,7 +1003,7 @@ function openProjectFile(input){
         else throw new Error('Plan non trouvé dans le fichier HTML');
       }
       
-      const d=JSON.parse(e.target.result);
+      const d=JSON.parse(raw);
       if(!d.floors)throw new Error('Format invalide');
       svH();
       ST.floors=d.floors;
