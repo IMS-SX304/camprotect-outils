@@ -1064,15 +1064,16 @@ function saveVersion(){
 function restoreVersion(i){
   const versions=JSON.parse(localStorage.getItem(_K('cp6_vh'))||'[]');
   if(!versions[i])return;
-  if(!confirm('Restaurer ce snapshot ? Le plan actuel sera remplacé.'))return;
-  svH();
-  const d=versions[i].data;
-  ST.floors=d.floors;ST.tels=d.tels||[];
-  ST.walls=d.walls||[];ST.symbols=d.symbols||[];ST.cables=d.cables||[];ST.measures=d.measures||[];
-  ST.locked=new Set(d.locked||[]);
-  ST.cur=0;ST.selId=null;
-  updFloorBar();render();updQ();updLP();updZones();updStat();checkAlerts();
-  closeModal('save-modal');
+  _confirm('Restaurer ce snapshot ? Le plan actuel sera remplacé.', ()=>{
+    svH();
+    const d=versions[i].data;
+    ST.floors=d.floors;ST.tels=d.tels||[];
+    ST.walls=d.walls||[];ST.symbols=d.symbols||[];ST.cables=d.cables||[];ST.measures=d.measures||[];
+    ST.locked=new Set(d.locked||[]);
+    ST.cur=0;ST.selId=null;
+    updFloorBar();render();updQ();updLP();updZones();updStat();checkAlerts();
+    closeModal('save-modal');
+  });
 }
 
 function deleteVersion(i){
@@ -1421,7 +1422,7 @@ function updFloorBar(){
 }
 function switchFloor(i){ST.cur=i;ST.selId=null;updFloorBar();render();updLP();updStat();}
 function addFloor(){svH();const n=ST.floors.length===1?'Étage 1':`Étage ${ST.floors.length}`;ST.floors.push({id:ST.nid++,name:n,rooms:[],items:[],opens:[]});switchFloor(ST.floors.length-1);}
-function delFloor(){if(ST.floors.length<=1){alert('Au moins 1 étage requis.');return;}if(!confirm(`Supprimer "${CF().name}" ?`))return;svH();ST.floors.splice(ST.cur,1);if(ST.cur>=ST.floors.length)ST.cur=ST.floors.length-1;updFloorBar();render();updQ();updLP();updStat();}
+function delFloor(){if(ST.floors.length<=1){alert('Au moins 1 étage requis.');return;}const name=CF().name;_confirm(`Supprimer "${name}" ?`,()=>{svH();ST.floors.splice(ST.cur,1);if(ST.cur>=ST.floors.length)ST.cur=ST.floors.length-1;updFloorBar();render();updQ();updLP();updStat();});}
 
 // ══════════════════════════════════════════════════════
 // WIZARD
@@ -2881,7 +2882,7 @@ function toggleLock(id){ST.locked.has(id)?ST.locked.delete(id):ST.locked.add(id)
 // ══════════════════════════════════════════════════════
 function autoPlace(){
   if(!CF().rooms.length){alert('Créez d\'abord des pièces dans le plan.');return;}
-  if(!confirm('Placer automatiquement les équipements recommandés sur cet étage ?\nLes équipements existants seront conservés.'))return;
+  _confirm('Placer automatiquement les équipements recommandés sur cet étage ?\nLes équipements existants seront conservés.', ()=>{
   svH();
   const f=CF();
   // Hub — in hallway or first room center
@@ -2918,10 +2919,8 @@ function autoPlace(){
     if(garage)f.items.push({id:ST.nid++,key:'ss',x:garage.x+garage.w/2,y:garage.y,rot:180,zoneId:'2',note:'Sirène extérieure'});
   }
   render();updQ();updLP();updZones();updStat();checkAlerts();
+  }); // fin _confirm autoPlace
 }
-
-
-
 // ══════════════════════════════════════════════════════
 // ZONES
 // ══════════════════════════════════════════════════════
@@ -3210,8 +3209,10 @@ function addRmModal(){
 // ══════════════════════════════════════════════════════
 function resetItems(){
   const hasIt=ST.floors.some(f=>f.items.length||f.opens.length);
-  if(!hasIt)return;if(!confirm('Effacer tous les équipements et ouvertures ?'))return;
-  svH();ST.floors.forEach(f=>{f.items=[];f.opens=[];});ST.selId=null;render();updQ();updLP();updZones();updStat();checkAlerts();
+  if(!hasIt)return;
+  _confirm('Effacer tous les équipements et ouvertures ?',()=>{
+    svH();ST.floors.forEach(f=>{f.items=[];f.opens=[];});ST.selId=null;render();updQ();updLP();updZones();updStat();checkAlerts();
+  });
 }
 
 function clearAll(){
