@@ -533,6 +533,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--dk);height:100vh;overflow
 </div>
 
 <!-- WIZARD -->
+<div id="confirm-modal" class="modal-bg">
+  <div class="modal" style="max-width:380px;text-align:center;padding:32px 28px">
+    <p id="confirm-msg" style="font-size:15px;font-weight:600;color:#f1f5f9;margin:0 0 24px"></p>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button onclick="_confirmOk()" style="background:#E85D04;color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Confirmer</button>
+      <button onclick="_confirmCancel()" style="background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Annuler</button>
+    </div>
+  </div>
+</div>
 <div id="wiz" class="modal-bg">
   <div class="modal-box" style="width:590px">
     <div class="mh"><h2>Configurer l'espace</h2><p>Choisissez le type · terrain + pièces pré-générés</p></div>
@@ -1372,6 +1381,22 @@ function copyEmail(){navigator.clipboard.writeText(buildEmailBody()).then(()=>al
 function openEmail(){const b=encodeURIComponent(buildEmailBody());const s=encodeURIComponent('Devis sécurité Ajax'+(ST.client.name?' — '+ST.client.name:''));window.open(`mailto:?subject=${s}&body=${b}`);}
 
 // MODAL UTILITIES
+function _toast(msg,color='#10b981'){
+  const prev=document.getElementById('cp6-toast');if(prev)prev.remove();
+  const t=document.createElement('div');t.id='cp6-toast';
+  t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:10px 20px;font-family:DM Sans,sans-serif;font-size:13px;z-index:99999;pointer-events:none;opacity:1;transition:opacity .3s';
+  t.style.borderColor=color+'66';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);
+}
+let _confirmCb=null;
+function _confirm(msg,cb){
+  _confirmCb=cb;
+  document.getElementById('confirm-msg').textContent=msg;
+  showModal('confirm-modal');
+}
+function _confirmOk(){closeModal('confirm-modal');if(_confirmCb){_confirmCb();_confirmCb=null;}}
+function _confirmCancel(){closeModal('confirm-modal');_confirmCb=null;}
 function showModal(id){
   document.getElementById(id).classList.add('show');
   if(id==='save-modal')updVersionList();
@@ -3190,7 +3215,9 @@ function resetItems(){
 }
 
 function clearAll(){
-  if(!confirm('Réinitialiser tout le plan ?'))return;
+  _confirm('Réinitialiser tout le plan ?', ()=>{_doClearAll();});
+}
+function _doClearAll(){
   HIST.length=0;ST.floors=[{id:ST.nid++,name:'RDC',rooms:[],items:[],opens:[]}];ST.cur=0;
   ST.tels=[];ST.walls=[];ST.symbols=[];ST.cables=[];ST.measures=[];
   ST.locked=new Set();ST.multiSel.clear();ST.selId=null;ST.selKey=null;
