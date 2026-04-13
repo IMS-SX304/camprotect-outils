@@ -21,16 +21,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .header-sub{font-size:12px;color:rgba(255,255,255,.5);margin-left:auto;}
 
 /* ── PROGRESS ── */
-.progress{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;}
-.progress-inner{max-width:720px;margin:0 auto;display:flex;align-items:flex-start;padding:16px 0;gap:0;}
-.step-dot{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;position:relative;}
+.progress{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;}
+.progress-inner{max-width:720px;margin:0 auto;display:flex;align-items:flex-start;padding:14px 0;gap:0;}
+.step-dot{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;position:relative;}
 .step-dot:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 18px);right:calc(-50% + 18px);top:15px;height:2px;background:var(--border);z-index:0;}
 .step-dot.done::after{background:var(--orange);}
 .step-num{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--sub);background:var(--white);z-index:1;flex-shrink:0;transition:all .2s;}
 .step-dot.active .step-num{border-color:var(--orange);color:var(--orange);background:var(--orange-light);}
 .step-dot.done .step-num{border-color:var(--orange);background:var(--orange);color:#fff;}
-.step-label{font-size:10px;font-weight:600;color:var(--sub);text-align:center;line-height:1.2;max-width:64px;word-break:break-word;}
-@media(max-width:600px){.step-label{display:none;}}
+.step-label{font-size:10px;font-weight:600;color:var(--sub);text-align:center;line-height:1.2;white-space:nowrap;}
+@media(max-width:500px){.step-label{display:none;}}
 .step-dot.active .step-label{color:var(--orange);}
 .step-dot.done .step-label{color:var(--dark);}
 
@@ -124,20 +124,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* ── PRINT ── */
 @media print{
   .header,.progress,.nav,.result-footer,.prod-qty,.prod-del,.prod-link,.sticky-total,
-  button[onclick*="toggleColor"]{display:none!important;}
+  button[onclick*="toggleColor"],.print-instruction{display:none!important;}
   body{background:#fff;}
-  .main{padding:0;}
+  .main{padding:0 16px;}
   .product-card{break-inside:avoid;}
   .result-header{display:none!important;}
   .print-header{display:flex!important;}
   .print-totals{display:block!important;}
 }
+@page{
+  margin:1.2cm;
+  /* Les navigateurs modernes respectent cette directive — supprime URL/date navigateur */
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
 
 /* ── PRINT HEADER & TOTALS ── */
 .print-header{display:none;justify-content:space-between;align-items:center;padding:16px 0 20px;border-bottom:2px solid #E85D04;margin-bottom:24px;}
-.print-logo{font-size:22px;font-weight:800;color:#111;letter-spacing:-0.5px;}
-.print-logo span{color:#E85D04;}
-.print-date{font-size:12px;color:#6b7280;text-align:right;}
+.print-logo img{max-height:36px;width:auto;}
+.print-date{font-size:12px;color:#6b7280;text-align:right;line-height:1.6;}
 .print-totals{display:none;margin-top:28px;border-top:2px solid #111;padding-top:20px;}
 .print-total-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:14px;}
 .print-total-row.main{font-size:17px;font-weight:800;border-bottom:none;padding-top:12px;}
@@ -169,11 +174,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="progress-inner">
     <div class="step-dot active" id="sdot-1">
       <div class="step-num">1</div>
-      <div class="step-label">Établissement</div>
+      <div class="step-label">Lieu</div>
     </div>
     <div class="step-dot" id="sdot-2">
       <div class="step-num">2</div>
-      <div class="step-label">Fonctionnalités</div>
+      <div class="step-label">Fonctions</div>
     </div>
     <div class="step-dot" id="sdot-3">
       <div class="step-num">3</div>
@@ -181,7 +186,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <div class="step-dot" id="sdot-4">
       <div class="step-num">4</div>
-      <div class="step-label">Options sup.</div>
+      <div class="step-label">Options</div>
     </div>
     <div class="step-dot" id="sdot-5">
       <div class="step-num">✓</div>
@@ -667,7 +672,7 @@ function renderResult() {
     let html = `<div class="step-page">
       <!-- Header visible uniquement à l'impression -->
       <div class="print-header">
-        <div class="print-logo">Cam<span>Protect</span></div>
+        <div class="print-logo"><img src="https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg" alt="CamProtect"></div>
         <div class="print-date">Généré le ${dateStr} à ${timeStr}<br>Configuration système Ajax</div>
       </div>
       <!-- Header visible à l'écran -->
@@ -737,8 +742,16 @@ function renderResult() {
         </div>
       </div>
       <div class="result-footer">
-        <button class="btn-print" onclick="window.print()">🖨 Imprimer / PDF</button>
+        <button class="btn-print" onclick="showPrintTip()">🖨 Imprimer / PDF</button>
         <button class="btn-restart" onclick="restart()">↩ Recommencer</button>
+      </div>
+      <div class="print-instruction" id="print-tip" style="display:none;background:#fff3ec;border:1px solid #ffd4b8;border-radius:10px;padding:14px 18px;margin-top:12px;font-size:13px;color:#7c3800;line-height:1.6;">
+        <strong>💡 Pour un PDF sans URL en pied de page :</strong><br>
+        Dans la boîte d'impression → décochez <strong>"En-têtes et pieds de page"</strong> (Chrome) ou <strong>"Headers and Footers"</strong> (Firefox/Edge), puis imprimez.
+        <div style="margin-top:10px;">
+          <button onclick="window.print()" style="background:#E85D04;color:#fff;border:none;border-radius:7px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">Lancer l'impression →</button>
+          <button onclick="document.getElementById('print-tip').style.display='none'" style="background:none;border:none;color:#7c3800;font-size:13px;cursor:pointer;margin-left:10px;text-decoration:underline;">Fermer</button>
+        </div>
       </div>
     </div>`;
 
@@ -827,6 +840,11 @@ function removeProduct(key) {
   const el = document.getElementById('pc-' + key);
   if (el) el.remove();
   updateStickyTotal();
+}
+
+function showPrintTip() {
+  const tip = document.getElementById('print-tip');
+  if (tip) { tip.style.display = 'block'; tip.scrollIntoView({behavior:'smooth', block:'nearest'}); }
 }
 
 function updateStickyTotal() {
