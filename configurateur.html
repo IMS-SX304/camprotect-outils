@@ -214,6 +214,17 @@ const CATALOG = {
   dc28:   { name:'DomeCam Mini 5MP 2.8mm Blanche', desc:'Caméra dôme IP PoE intérieur discret', cat:'Vidéosurveillance', icon:'📹', price:75.67, url:'https://www.camprotect.fr/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', plannerKey:'dc28' },
   fp:     { name:'FireProtect Blanc', desc:'Détecteur fumée et chaleur sans fil', cat:'Sécurité incendie', icon:'🔥', price:79.00, url:'https://www.camprotect.fr/product/ajax-fireprotect-blanc', plannerKey:'fp' },
   fp_p:   { name:'FireProtect Plus Blanc', desc:'Détecteur fumée, chaleur et CO', cat:'Sécurité incendie', icon:'🔥', price:110.00, url:'https://www.camprotect.fr/product/fireprotect-plus-blanc', plannerKey:'fp_p' },
+  // NVR — HAC = Sans HDMI, DC = Avec HDMI
+  nvr8:   { name:'NVR Ajax HAC 8 canaux Blanc', desc:'Enregistreur vidéo réseau 8 canaux sans HDMI, accès à distance via app Ajax', cat:'Enregistreurs vidéo', icon:'💾', price:150.99, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccf30e369ca382c7be9ff4_246.png', imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccf30e369ca382c7be9ff4_246.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-hac-ajax-8-canaux-blanc' },
+  nvr16:  { name:'NVR Ajax HAC 16 canaux Blanc', desc:'Enregistreur vidéo réseau 16 canaux sans HDMI, accès à distance via app Ajax', cat:'Enregistreurs vidéo', icon:'💾', price:232.99, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccf30e369ca382c7be9ff4_246.png', imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccf30e369ca382c7be9ff4_246.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-hac-ajax-16-canaux-blanc' },
+  nvr8h:  { name:'NVR Ajax DC 8 canaux Blanc', desc:'Enregistreur vidéo réseau 8 canaux avec sortie HDMI, affichage sur écran externe', cat:'Enregistreurs vidéo', icon:'💾', price:124.99, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-dc-ajax-8-canaux-blanc' },
+  nvr16h: { name:'NVR Ajax DC 16 canaux Blanc', desc:'Enregistreur vidéo réseau 16 canaux avec sortie HDMI, affichage sur écran externe', cat:'Enregistreurs vidéo', icon:'💾', price:202.01, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-dc-ajax-16-canaux-blanc' },
+  // Switch PoE — sélectionné selon le nombre de caméras
+  sw4:    { name:'Switch PoE Gigabit 4 ports', desc:'Switch PoE pour 4 caméras IP, alimentation et données en un seul câble', cat:'Réseau', icon:'🔌', price:50.24, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67aefd9329932c64adc6', url:'https://www.camprotect.fr/product/switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e' },
+  sw8:    { name:'Switch PoE 8 ports', desc:'Switch PoE 8 ports pour caméras IP, 96W budget PoE total', cat:'Réseau', icon:'🔌', price:73.44, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/68c14fdc7961ddd80ddc', url:'https://www.camprotect.fr/product/switch-poe-8-ports-pfs3110-8et-96' },
+  sw16:   { name:'Switch PoE Gigabit 16 ports', desc:'Switch PoE 16 ports haute densité pour grandes installations', cat:'Réseau', icon:'🔌', price:234.87, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67af07673fbdeb8edbb6', url:'https://www.camprotect.fr/product/switch-poe-gigabit-16-ports-ds-3e0520hp-e' },
+  // Disque dur
+  hdd:    { name:'Disque dur Seagate SkyHawk', desc:'Disque dur surveillance 24h/24 optimisé pour enregistreurs vidéo, disponible de 1 à 10 To', cat:'Stockage', icon:'🖥', price:75.00, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/68de79358a2e78c9b377', url:'https://www.camprotect.fr/product/disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx' },
 };
 
 // ── MOTEUR DE RECOMMANDATION ──────────────────────────
@@ -269,13 +280,42 @@ function buildRecommendation() {
 
   // CAMÉRAS IR (filaires infrarouge)
   if (features.has('cam_ir')) {
-    if (type === 'apt' || type === 'maison') add('tc28', Math.max(1, Math.ceil(rooms / 3)));
-    else add('bc28', Math.max(1, Math.ceil(area / 80)));
+    const camQty = type === 'apt' || type === 'maison'
+      ? Math.max(1, Math.ceil(rooms / 3))
+      : Math.max(1, Math.ceil(area / 80));
+    add('tc28', camQty);
+    // Switch PoE adapté
+    if (camQty <= 4) add('sw4', 1);
+    else if (camQty <= 8) add('sw8', 1);
+    else add('sw16', 1);
   }
 
-  // CAMÉRAS HYBRIDE/DÔME (éclairage hybride)
+  // CAMÉRAS HYBRIDE/DÔME
   if (features.has('cam_hybrid')) {
-    add('dc28', Math.max(1, Math.ceil(rooms / 4)));
+    const camQty = Math.max(1, Math.ceil(rooms / 4));
+    add('dc28', camQty);
+    // Switch PoE si pas déjà ajouté par cam_ir
+    if (!features.has('cam_ir')) {
+      if (camQty <= 4) add('sw4', 1);
+      else if (camQty <= 8) add('sw8', 1);
+      else add('sw16', 1);
+    }
+  }
+
+  // NVR — déclenché par la sélection dans fonctionnalités
+  const hasCam = features.has('cam_ir') || features.has('cam_hybrid');
+  if (hasCam) {
+    const totalCams = (res.tc28 || 0) + (res.bc28 || 0) + (res.dc28 || 0);
+    const useHdmi = features.has('nvr_hdmi');
+    if (features.has('nvr') || features.has('nvr_hdmi')) {
+      if (useHdmi) {
+        add(totalCams > 8 ? 'nvr16h' : 'nvr8h', 1);
+      } else {
+        add(totalCams > 8 ? 'nvr16' : 'nvr8', 1);
+      }
+      // Disque dur
+      add('hdd', 1);
+    }
   }
 
   // SÉCURITÉ INCENDIE
@@ -617,10 +657,13 @@ function renderResult() {
       if (!items) return;
       html += `<div class="result-category">${cat}</div>`;
       items.forEach(p => {
-        const imgHtml = p.img
-          ? `<img class="prod-img" src="${p.img}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        // Image : priorité data.json via fetchPrices, puis catalog statique
+        const catalogImg = CATALOG[p.key]?.img || '';
+        const imgSrc = p.img || catalogImg;
+        const imgHtml = imgSrc
+          ? `<img class="prod-img" src="${imgSrc}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
           : '';
-        const placeholderStyle = p.img ? 'display:none' : '';
+        const placeholderStyle = imgSrc ? 'display:none' : '';
         html += `
         <div class="product-card" id="pc-${p.key}">
           ${imgHtml}
@@ -686,19 +729,43 @@ function toggleColor(key, color) {
   const p = S.products.find(x => x.key === key);
   if (!p) return;
   p.color = color;
+
   // Update color button borders
   const bBlanc = document.getElementById('cblanc-' + key);
   const bNoir = document.getElementById('cnoir-' + key);
   if (bBlanc) bBlanc.style.borderColor = color === 'blanc' ? 'var(--orange)' : '#ccc';
   if (bNoir) bNoir.style.borderColor = color === 'noir' ? 'var(--orange)' : '#ccc';
+
   // Update product name
   const nameEl = document.getElementById('pname-' + key);
   if (nameEl) {
     const baseName = p.name.replace(/ Blanc$| Blanche$| Noir$| Noire$/, '');
     nameEl.textContent = baseName + (color === 'noir' ? ' Noir' : ' Blanc');
   }
-  // Try to update image from planner_map if noir slug available
-  // (images noir not in planner_map currently, so we just update name)
+
+  // Update image — utilise imgNoir depuis catalog si disponible
+  const catalogEntry = CATALOG[key];
+  const imgEl = document.querySelector(`#pc-${key} .prod-img`);
+  const placeholderEl = document.querySelector(`#pc-${key} .prod-img-placeholder`);
+  if (imgEl && catalogEntry) {
+    const newSrc = color === 'noir'
+      ? (catalogEntry.imgNoir || catalogEntry.img || p.img)
+      : (catalogEntry.img || p.img);
+    if (newSrc) {
+      imgEl.src = newSrc;
+      imgEl.style.display = '';
+      if (placeholderEl) placeholderEl.style.display = 'none';
+    }
+  }
+
+  // Update URL vers la version couleur correcte
+  const linkEl = document.querySelector(`#pc-${key} .prod-link`);
+  if (linkEl && catalogEntry) {
+    const baseUrl = color === 'noir'
+      ? catalogEntry.url.replace('-blanc', '-noir').replace('-blanche', '-noire')
+      : catalogEntry.url;
+    linkEl.href = baseUrl;
+  }
 }
 
 function changeQty(key, delta) {
