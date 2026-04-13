@@ -131,14 +131,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .result-header{display:none!important;}
   .print-header{display:flex!important;}
   .print-totals{display:block!important;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
-@page{
-  margin:1.2cm;
-}
-*{
-  -webkit-print-color-adjust:exact;
-  print-color-adjust:exact;
-}
+@page{margin:1.2cm;}
 
 /* ── PRINT HEADER & TOTALS ── */
 .print-header{display:none;justify-content:space-between;align-items:center;padding:16px 0 20px;border-bottom:2px solid #E85D04;margin-bottom:24px;}
