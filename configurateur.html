@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurateur de système Ajax — CamProtect</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f5f5f5;--white:#fff;--dark:#111;--orange:#E85D04;--orange-light:#fff3ec;
+  --orange-border:#ffd4b8;--border:#e5e7eb;--text:#1a1a1a;--sub:#6b7280;
+  --radius:12px;--shadow:0 2px 12px rgba(0,0,0,.08);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── HEADER ── */
+.header{background:var(--dark);padding:16px 24px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--orange);}
+.header-logo{font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;}
+.header-logo span{color:var(--orange);}
+.header-sub{font-size:12px;color:rgba(255,255,255,.5);margin-left:auto;}
+
+/* ── PROGRESS ── */
+.progress{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;}
+.progress-inner{max-width:720px;margin:0 auto;display:flex;align-items:center;padding:16px 0;gap:0;}
+.step-dot{display:flex;align-items:center;gap:8px;flex:1;position:relative;}
+.step-dot:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 20px);right:calc(-50% + 20px);top:50%;height:2px;background:var(--border);z-index:0;}
+.step-dot.done::after{background:var(--orange);}
+.step-num{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--sub);background:var(--white);z-index:1;flex-shrink:0;transition:all .2s;}
+.step-dot.active .step-num{border-color:var(--orange);color:var(--orange);background:var(--orange-light);}
+.step-dot.done .step-num{border-color:var(--orange);background:var(--orange);color:#fff;}
+.step-label{font-size:11px;font-weight:600;color:var(--sub);display:none;}
+@media(min-width:600px){.step-label{display:block;}}
+.step-dot.active .step-label{color:var(--orange);}
+.step-dot.done .step-label{color:var(--dark);}
+
+/* ── MAIN ── */
+.main{max-width:720px;margin:0 auto;padding:32px 16px 64px;}
+
+/* ── STEP TITLE ── */
+.step-title{font-size:26px;font-weight:800;text-align:center;margin-bottom:32px;color:var(--dark);}
+
+/* ── RADIO OPTIONS ── */
+.options{display:flex;flex-direction:column;gap:10px;}
+.opt{background:var(--white);border:2px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;}
+.opt:hover{border-color:var(--orange-border);background:var(--orange-light);}
+.opt.selected{border-color:var(--orange);background:var(--orange-light);}
+.opt-radio{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.opt.selected .opt-radio{border-color:var(--orange);background:var(--orange);}
+.opt.selected .opt-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;}
+.opt-icon{font-size:22px;flex-shrink:0;}
+.opt-text{font-size:15px;font-weight:600;}
+
+/* ── CHECKBOXES ── */
+.group-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
+.group-header{padding:14px 20px;font-size:14px;font-weight:700;color:var(--dark);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.group-header .chevron{transition:transform .2s;color:var(--sub);}
+.group-header.open .chevron{transform:rotate(180deg);}
+.group-body{display:none;}
+.group-body.open{display:block;}
+.group-sub{padding:8px 20px 4px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);}
+.chk-item{padding:14px 20px;display:flex;align-items:flex-start;gap:12px;border-top:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.chk-item:first-of-type{border-top:none;}
+.chk-item:hover{background:var(--orange-light);}
+.chk-item.checked{background:var(--orange-light);}
+.chk-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.chk-item.checked .chk-box{border-color:var(--orange);background:var(--orange);}
+.chk-item.checked .chk-box::after{content:'✓';color:#fff;font-size:11px;font-weight:700;}
+.chk-name{font-size:14px;font-weight:600;color:var(--dark);}
+.chk-desc{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.5;}
+
+/* ── SPINNERS ── */
+.params{display:flex;flex-direction:column;gap:10px;}
+.param-row{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:14px;}
+.param-icon{font-size:22px;flex-shrink:0;}
+.param-info{flex:1;}
+.param-name{font-size:14px;font-weight:700;}
+.param-desc{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
+.spinner{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.spin-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--dark);transition:all .15s;font-weight:700;}
+.spin-btn:hover{border-color:var(--orange);color:var(--orange);}
+.spin-val{width:52px;text-align:center;font-size:16px;font-weight:700;border:1.5px solid var(--border);border-radius:8px;padding:6px;background:var(--white);}
+
+/* ── NAVIGATION ── */
+.nav{display:flex;gap:12px;justify-content:space-between;margin-top:32px;}
+.btn{padding:13px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-back{background:var(--white);color:var(--dark);border:1.5px solid var(--border);}
+.btn-back:hover{border-color:var(--orange);color:var(--orange);}
+.btn-next{background:var(--orange);color:#fff;flex:1;font-size:15px;}
+.btn-next:hover{background:#d14e00;}
+.btn-next:disabled{background:#e5e7eb;color:var(--sub);cursor:not-allowed;}
+
+/* ── RESULT ── */
+.result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.result-title{font-size:22px;font-weight:800;}
+.result-total-box{background:var(--dark);color:#fff;border-radius:10px;padding:10px 20px;text-align:right;}
+.result-total-label{font-size:11px;color:rgba(255,255,255,.5);}
+.result-total-val{font-size:22px;font-weight:800;color:var(--orange);}
+.result-note{background:var(--orange-light);border:1px solid var(--orange-border);border-radius:10px;padding:12px 16px;font-size:13px;color:#7c3800;margin-bottom:20px;display:flex;gap:8px;}
+.result-category{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin:20px 0 10px;}
+.product-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:8px;display:flex;align-items:center;gap:14px;}
+.prod-img{width:52px;height:52px;object-fit:contain;flex-shrink:0;background:#f9f9f9;border-radius:8px;border:1px solid var(--border);}
+.prod-img-placeholder{width:52px;height:52px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.prod-info{flex:1;min-width:0;}
+.prod-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prod-desc{font-size:12px;color:var(--sub);margin-top:2px;}
+.prod-right{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.prod-qty{display:flex;align-items:center;gap:6px;}
+.qty-btn{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-weight:700;}
+.qty-btn:hover{border-color:var(--orange);color:var(--orange);}
+.qty-val{width:36px;text-align:center;font-size:14px;font-weight:700;}
+.prod-price{text-align:right;min-width:70px;}
+.prod-price-val{font-size:16px;font-weight:800;color:var(--dark);}
+.prod-price-unit{font-size:11px;color:var(--sub);}
+.prod-del{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:14px;transition:all .15s;}
+.prod-del:hover{border-color:#ef4444;color:#ef4444;}
+.prod-link{font-size:11px;color:var(--orange);text-decoration:none;font-weight:600;margin-top:3px;display:block;}
+.result-footer{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;}
+.btn-print{background:var(--dark);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px;}
+.btn-print:hover{background:#333;}
+.btn-restart{background:var(--white);color:var(--dark);border:1.5px solid var(--border);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-restart:hover{border-color:var(--orange);color:var(--orange);}
+
+/* ── PRINT ── */
+@media print{
+  .header,.progress,.nav,.result-footer,.prod-qty,.prod-del{display:none!important;}
+  body{background:#fff;}
+  .main{padding:0;}
+  .product-card{break-inside:avoid;}
+}
+
+/* ── ANIM ── */
+.step-page{animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* ── TOTAL STICKY ── */
+.sticky-total{position:fixed;bottom:0;left:0;right:0;background:var(--dark);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;z-index:100;transform:translateY(100%);transition:transform .25s;}
+.sticky-total.show{transform:none;}
+.st-label{font-size:13px;color:rgba(255,255,255,.6);}
+.st-val{font-size:18px;font-weight:800;color:var(--orange);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">Cam<span>Protect</span></div>
+  <div style="font-size:13px;color:rgba(255,255,255,.7);font-weight:600;">Configurateur de système Ajax</div>
+  <div class="header-sub">Configurez votre système en quelques clics</div>
+</div>
+
+<div class="progress">
+  <div class="progress-inner">
+    <div class="step-dot active" id="sdot-1">
+      <div class="step-num">1</div>
+      <div class="step-label">Établissement</div>
+    </div>
+    <div class="step-dot" id="sdot-2">
+      <div class="step-num">2</div>
+      <div class="step-label">Fonctionnalités</div>
+    </div>
+    <div class="step-dot" id="sdot-3">
+      <div class="step-num">3</div>
+      <div class="step-label">Paramètres</div>
+    </div>
+    <div class="step-dot" id="sdot-4">
+      <div class="step-num">4</div>
+      <div class="step-label">Options sup.</div>
+    </div>
+    <div class="step-dot" id="sdot-5">
+      <div class="step-num">✓</div>
+      <div class="step-label">Résultat</div>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="app"></div>
+
+<div class="sticky-total" id="sticky-total">
+  <div class="st-label">Total estimatif HT</div>
+  <div class="st-val" id="st-val">0 €</div>
+</div>
+
+<script>
+// ── ÉTAT ──────────────────────────────────────────────
+const S = {
+  step: 1,
+  type: null,          // apt | maison | bureau | entreprise
+  features: new Set(), // indoor | outdoor | panic | cam_ir | cam_hybrid | cam_wifi | nvr | nvr_hdmi | doorbell
+  params: { floors:1, rooms:5, entries:1, windows:4, area:80 },
+  extras: new Set(),   // photo_verif | perimeter | garage | safe | autonomous | backup_power | keypad | remote
+  products: []         // [{key,name,qty,unitPrice,img,url,desc,category}]
+};
+
+// ── CATALOGUE PRODUITS ────────────────────────────────
+const CATALOG = {
+  hub:    { name:'Hub 2 (4G) Blanc', desc:'Centrale d\'alarme Ajax sans fil 4G/Ethernet', cat:'Centrales', icon:'🏠', price:257.22, url:'https://www.camprotect.fr/product/ajax-hub-2-4g-blanc', plannerKey:'hub' },
+  hub_p:  { name:'Hub 2 Plus Blanc', desc:'Centrale Ajax 4G/Ethernet/Wi-Fi, 150 appareils', cat:'Centrales', icon:'🏠', price:293.76, url:'https://www.camprotect.fr/product/ajax-hub-2-plus-blanc', plannerKey:'hub_p' },
+  mp:     { name:'MotionProtect Blanc', desc:'Détecteur de mouvement IR sans fil intérieur', cat:'Protection contre les intrusions', icon:'👁', price:45.92, url:'https://www.camprotect.fr/product/motionprotect-blanc', plannerKey:'mp' },
+  mp_p:   { name:'MotionProtect+ Blanc', desc:'Détecteur dual tech PIR + micro-ondes', cat:'Protection contre les intrusions', icon:'👁', price:63.02, url:'https://www.camprotect.fr/product/ajax-motionprotect-plus-blanc', plannerKey:'mp_p' },
+  mp_o:   { name:'MotionProtect Outdoor Blanc', desc:'Détecteur de mouvement extérieur IP55', cat:'Protection contre les intrusions', icon:'👁', price:158.89, url:'https://www.camprotect.fr/product/ajax-motionprotect-outdoor-blanc', plannerKey:'mp_o' },
+  mc:     { name:'MotionCam Blanc', desc:'Détecteur mouvement avec vérification photo', cat:'Protection contre les intrusions', icon:'📷', price:104.77, url:'https://www.camprotect.fr/product/ajax-motioncam-blanc', plannerKey:'mc' },
+  mc_o:   { name:'MotionCam Outdoor Blanc', desc:'Détecteur photo extérieur IP55', cat:'Protection contre les intrusions', icon:'📷', price:195.44, url:'https://www.camprotect.fr/product/ajax-motioncam-outdoor-blanc', plannerKey:'mc_o' },
+  mc_c:   { name:'MotionProtect Curtain Blanc', desc:'Détecteur rideau pour couloirs et accès', cat:'Protection contre les intrusions', icon:'👁', price:53.52, url:'https://www.camprotect.fr/product/ajax-motionprotect-curtain-blanc', plannerKey:'mp_c' },
+  cb:     { name:'CombiProtect Blanc', desc:'Détecteur mouvement + bris de glace combiné', cat:'Protection contre les intrusions', icon:'🔐', price:63.99, url:'https://www.camprotect.fr/product/ajax-combiprotect-blanc', plannerKey:'cb' },
+  dp:     { name:'DoorProtect Blanc', desc:'Contact d\'ouverture porte/fenêtre sans fil', cat:'Protection contre les intrusions', icon:'🚪', price:27.07, url:'https://www.camprotect.fr/product/doorprotect-blanc', plannerKey:'dp' },
+  gp:     { name:'GlassProtect Blanc', desc:'Détecteur bris de vitre sans fil', cat:'Protection contre les intrusions', icon:'🔍', price:46.00, url:'https://www.camprotect.fr/product/ajax-glassprotect-blanc', plannerKey:'gp' },
+  hs:     { name:'HomeSiren Blanc', desc:'Sirène intérieure sans fil 105 dB', cat:'Sirènes', icon:'🔔', price:93.00, url:'https://www.camprotect.fr/product/ajax-homesiren-blanc', plannerKey:'hs' },
+  ss:     { name:'StreetSiren Blanc', desc:'Sirène extérieure sans fil IP55', cat:'Sirènes', icon:'🔔', price:182.00, url:'https://www.camprotect.fr/product/ajax-streetsiren-blanc', plannerKey:'ss' },
+  kp:     { name:'KeyPad Blanc', desc:'Clavier de code sans fil', cat:'Accès', icon:'⌨️', price:76.00, url:'https://www.camprotect.fr/product/ajax-keypad-blanc', plannerKey:'kp' },
+  kp_p:   { name:'KeyPad Plus Blanc', desc:'Clavier tactile Pass/Tag/code', cat:'Accès', icon:'⌨️', price:120.00, url:'https://www.camprotect.fr/product/ajax-keypad-plus-blanc', plannerKey:'kp_p' },
+  rex:    { name:'ReX 2 Blanc', desc:'Amplificateur de portée radio', cat:'Infrastructure', icon:'📡', price:130.65, url:'https://www.camprotect.fr/product/ajax-rex-2-blanc', plannerKey:'rex' },
+  bc28:   { name:'BulletCam 5MP 2.8mm Blanche', desc:'Caméra bullet IP PoE IA intérieur/extérieur', cat:'Vidéosurveillance', icon:'📹', price:129.00, url:'https://www.camprotect.fr/product/ajax-bulletcam-blanche-5mp-2-8mm', plannerKey:'bc28' },
+  tc28:   { name:'TurretCam 5MP 2.8mm Blanche', desc:'Caméra tourelle IP PoE IA 110° vision nocturne', cat:'Vidéosurveillance', icon:'📹', price:129.00, url:'https://www.camprotect.fr/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche', plannerKey:'tc28' },
+  dc28:   { name:'DomeCam Mini 5MP 2.8mm Blanche', desc:'Caméra dôme IP PoE intérieur discret', cat:'Vidéosurveillance', icon:'📹', price:75.67, url:'https://www.camprotect.fr/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', plannerKey:'dc28' },
+  fp:     { name:'FireProtect Blanc', desc:'Détecteur fumée et chaleur sans fil', cat:'Sécurité incendie', icon:'🔥', price:79.00, url:'https://www.camprotect.fr/product/ajax-fireprotect-blanc', plannerKey:'fp' },
+  fp_p:   { name:'FireProtect Plus Blanc', desc:'Détecteur fumée, chaleur et CO', cat:'Sécurité incendie', icon:'🔥', price:110.00, url:'https://www.camprotect.fr/product/fireprotect-plus-blanc', plannerKey:'fp_p' },
+};
+
+// ── MOTEUR DE RECOMMANDATION ──────────────────────────
+function buildRecommendation() {
+  const { type, features, params, extras } = S;
+  const { floors, rooms, entries, windows, area } = params;
+  const res = {};
+
+  function add(key, qty) {
+    if (!CATALOG[key]) return;
+    res[key] = (res[key] || 0) + qty;
+  }
+
+  // CENTRALE — toujours Hub 4G sauf Hub Plus si grand système
+  const totalDevicesEst = rooms * 2 + entries + windows + (features.has('outdoor') ? 3 : 0);
+  if (totalDevicesEst > 80 || type === 'entreprise') add('hub_p', 1);
+  else add('hub', 1); // Hub 2 4G par défaut
+
+  // RÉPÉTEUR si plusieurs étages ou grande surface
+  if (floors > 1 || area > 150) add('rex', Math.min(floors - 1 + (area > 200 ? 1 : 0), 3));
+
+  // SÉCURITÉ INTÉRIEURE
+  if (features.has('indoor')) {
+    const pirKey = extras.has('photo_verif') ? 'mc' : 'mp';
+    add(pirKey, Math.max(1, rooms));
+    add('dp', entries);
+    if (windows > 0) add('gp', Math.min(windows, Math.ceil(windows / 2)));
+    add('hs', 1);
+  }
+
+  // SÉCURITÉ EXTÉRIEURE
+  if (features.has('outdoor')) {
+    const pirOutKey = extras.has('photo_verif') ? 'mc_o' : 'mp_o';
+    add(pirOutKey, Math.max(1, Math.ceil(area / 100)));
+    add('ss', 1);
+    if (extras.has('perimeter')) add('mc_c', Math.max(1, entries));
+  }
+
+  // GARAGE
+  if (extras.has('garage')) add('mc_c', 1);
+
+  // COFFRE-FORT
+  if (extras.has('safe')) add('mp_p', 1);
+
+  // CLAVIER
+  if (extras.has('keypad') || features.has('indoor')) {
+    const kpKey = (type === 'entreprise' || type === 'bureau') ? 'kp_p' : 'kp';
+    add(kpKey, entries);
+  }
+
+  // PÉRIMÈTRE
+  if (extras.has('perimeter') && !features.has('outdoor')) add('mc_c', entries);
+
+  // CAMÉRAS IR (filaires infrarouge)
+  if (features.has('cam_ir')) {
+    if (type === 'apt' || type === 'maison') add('tc28', Math.max(1, Math.ceil(rooms / 3)));
+    else add('bc28', Math.max(1, Math.ceil(area / 80)));
+  }
+
+  // CAMÉRAS HYBRIDE/DÔME (éclairage hybride)
+  if (features.has('cam_hybrid')) {
+    add('dc28', Math.max(1, Math.ceil(rooms / 4)));
+  }
+
+  // SÉCURITÉ INCENDIE
+  if (type === 'entreprise' || extras.has('fire')) {
+    add('fp', Math.max(1, Math.ceil(rooms / 3)));
+  }
+
+  // Convertir en tableau avec support couleur
+  return Object.entries(res)
+    .filter(([,qty]) => qty > 0)
+    .map(([key, qty]) => ({
+      key, qty,
+      name: CATALOG[key].name,
+      desc: CATALOG[key].desc,
+      cat: CATALOG[key].cat,
+      icon: CATALOG[key].icon,
+      unitPrice: CATALOG[key].price,
+      url: CATALOG[key].url,
+      plannerKey: CATALOG[key].plannerKey,
+      img: '',
+      color: 'blanc', // blanc | noir
+    }));
+}
+
+// ── CALCUL TOTAL ──────────────────────────────────────
+function calcTotal(products) {
+  return products.reduce((t, p) => t + p.unitPrice * p.qty, 0);
+}
+
+function fmtPrice(val) {
+  return val.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+// ── RENDU PAR ÉTAPE ───────────────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  const dots = [1,2,3,4,5];
+  dots.forEach(i => {
+    const d = document.getElementById('sdot-' + i);
+    d.className = 'step-dot' + (i === S.step ? ' active' : i < S.step ? ' done' : '');
+  });
+
+  switch(S.step) {
+    case 1: app.innerHTML = renderStep1(); break;
+    case 2: app.innerHTML = renderStep2(); break;
+    case 3: app.innerHTML = renderStep3(); break;
+    case 4: app.innerHTML = renderStep4(); break;
+    case 5: renderResult(); return;
+  }
+  document.getElementById('sticky-total').classList.remove('show');
+}
+
+// ── ÉTAPE 1 ───────────────────────────────────────────
+function renderStep1() {
+  const types = [
+    { key:'apt', icon:'🏢', label:'Appartement' },
+    { key:'maison', icon:'🏠', label:'Maison' },
+    { key:'bureau', icon:'🏗', label:'Bureau' },
+    { key:'entreprise', icon:'🏪', label:'Entreprise (commerce, entrepôt, café, etc.)' },
+  ];
+  return `
+    <div class="step-page">
+      <h2 class="step-title">Sélectionnez le type d'établissement</h2>
+      <div class="options">
+        ${types.map(t => `
+          <div class="opt${S.type===t.key?' selected':''}" onclick="selectType('${t.key}')">
+            <div class="opt-radio"></div>
+            <div class="opt-icon">${t.icon}</div>
+            <div class="opt-text">${t.label}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="nav">
+        <div></div>
+        <button class="btn btn-next" onclick="nextStep()" ${!S.type?'disabled':''}>Suivant →</button>
+      </div>
+    </div>`;
+}
+
+function selectType(key) {
+  S.type = key;
+  // Defaults par type
+  if (key === 'apt') { S.params = { floors:1, rooms:4, entries:1, windows:3, area:60 }; }
+  else if (key === 'maison') { S.params = { floors:2, rooms:8, entries:2, windows:8, area:120 }; }
+  else if (key === 'bureau') { S.params = { floors:1, rooms:5, entries:2, windows:6, area:100 }; }
+  else { S.params = { floors:1, rooms:4, entries:2, windows:4, area:150 }; }
+  render();
+}
+
+// ── ÉTAPE 2 ───────────────────────────────────────────
+function renderStep2() {
+  const groups = [
+    {
+      key: 'intrusion',
+      label: 'Protection contre les intrusions',
+      openKey: 'grp_intrusion',
+      items: [
+        { key:'indoor', name:'Sécurité intérieure', desc:'Protégez votre établissement grâce à la détection instantanée des intrusions' },
+        { key:'outdoor', name:'Sécurité extérieure', desc:'Étendez la portée du système de sécurité aux territoires adjacents' },
+        { key:'panic', name:'Bouton de panique', desc:'Notifie instantanément l\'alarme et appelle au secours' },
+      ],
+      subgroups: null
+    },
+    {
+      key: 'video',
+      label: 'Vidéosurveillance',
+      openKey: 'grp_video',
+      items: null,
+      subgroups: [
+        {
+          label: 'Caméras filaires',
+          items: [
+            { key:'cam_ir', name:'Avec éclairage infrarouge', desc:'Voyez clairement même dans l\'obscurité grâce à une vision nocturne nette en noir et blanc' },
+            { key:'cam_hybrid', name:'Avec éclairage hybride (couleur)', desc:'Obtenez des détails en couleurs vives même dans des conditions de faible luminosité' },
+          ]
+        },
+        {
+          label: 'Enregistreurs vidéo réseau',
+          items: [
+            { key:'nvr', name:'Sans HDMI', desc:'Accédez aux flux en direct et aux vidéos enregistrées à distance via les applications Ajax' },
+            { key:'nvr_hdmi', name:'Avec prise en charge HDMI', desc:'Affichez la vidéo directement sur un écran externe ou à distance via les applications Ajax' },
+          ]
+        }
+      ]
+    }
+  ];
+
+  // Track open state per group
+  if (!S.grpOpen) S.grpOpen = { grp_intrusion: true, grp_video: false };
+
+  const hasSelection = S.features.size > 0;
+
+  return `
+    <div class="step-page">
+      <h2 class="step-title">Sélectionnez les fonctionnalités du système</h2>
+      ${groups.map(g => {
+        const isOpen = S.grpOpen[g.openKey];
+        return `
+        <div class="group-card">
+          <div class="group-header ${isOpen?'open':''}" onclick="toggleGrp('${g.openKey}')">
+            ${g.label}
+            <span class="chevron">▲</span>
+          </div>
+          <div class="group-body ${isOpen?'open':''}">
+            ${g.items ? g.items.map(item => `
+              <div class="chk-item${S.features.has(item.key)?' checked':''}" onclick="toggleFeatureOnly('${item.key}')">
+                <div class="chk-box"></div>
+                <div>
+                  <div class="chk-name">${item.name}</div>
+                  <div class="chk-desc">${item.desc}</div>
+                </div>
+              </div>
+            `).join('') : ''}
+            ${g.subgroups ? g.subgroups.map(sg => `
+              <div class="group-sub">${sg.label}</div>
+              ${sg.items.map(item => `
+                <div class="chk-item${S.features.has(item.key)?' checked':''}" onclick="toggleFeatureOnly('${item.key}')">
+                  <div class="chk-box"></div>
+                  <div>
+                    <div class="chk-name">${item.name}</div>
+                    <div class="chk-desc">${item.desc}</div>
+                  </div>
+                </div>
+              `).join('')}
+            `).join('') : ''}
+          </div>
+        </div>`;
+      }).join('')}
+      ${!hasSelection ? `<div style="text-align:center;font-size:13px;color:#e85d04;margin-top:8px;">Veuillez sélectionner au moins une fonctionnalité pour continuer.</div>` : ''}
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Retour</button>
+        <button class="btn btn-next" onclick="nextStep2()" ${!hasSelection?'disabled':''}>Suivant →</button>
+      </div>
+    </div>`;
+}
+
+function toggleGrp(key) {
+  if (!S.grpOpen) S.grpOpen = { grp_intrusion: true, grp_video: false };
+  S.grpOpen[key] = !S.grpOpen[key];
+  // Toggle DOM directly without full re-render
+  const cards = document.querySelectorAll('.group-card');
+  cards.forEach(card => {
+    const header = card.querySelector('.group-header');
+    const body = card.querySelector('.group-body');
+    const onclick = header.getAttribute('onclick');
+    if (onclick && onclick.includes(key)) {
+      header.classList.toggle('open', S.grpOpen[key]);
+      body.classList.toggle('open', S.grpOpen[key]);
+    }
+  });
+}
+
+function toggleFeatureOnly(key) {
+  S.features.has(key) ? S.features.delete(key) : S.features.add(key);
+  // Update DOM directly without re-render (avoids accordion closing)
+  document.querySelectorAll('.chk-item').forEach(el => {
+    const onclick = el.getAttribute('onclick');
+    if (onclick && onclick.includes(`'${key}'`)) {
+      el.classList.toggle('checked', S.features.has(key));
+    }
+  });
+  // Update next button state
+  const btn = document.querySelector('.btn-next');
+  if (btn) btn.disabled = S.features.size === 0;
+  // Update/remove validation message
+  const existing = document.querySelector('.step2-warning');
+  if (existing) existing.style.display = S.features.size > 0 ? 'none' : 'block';
+}
+
+function nextStep2() {
+  if (S.features.size === 0) return;
+  nextStep();
+}
+
+function toggleGroup(el) {
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+
+function toggleFeature(key) {
+  S.features.has(key) ? S.features.delete(key) : S.features.add(key);
+  render();
+}
+
+// ── ÉTAPE 3 ───────────────────────────────────────────
+function renderStep3() {
+  const rows = [
+    { key:'floors', icon:'🏗', name:'Étages', desc:'Dans le cas d\'installations à plusieurs étages, des amplificateurs peuvent être nécessaires', min:1, max:20 },
+    { key:'rooms', icon:'🛋', name:'Pièces, y compris la cuisine', desc:'Différents dispositifs assurent la sécurité dans chaque pièce', min:1, max:50 },
+    { key:'entries', icon:'🚪', name:'Entrées', desc:'Chaque entrée de l\'établissement doit être protégée', min:0, max:20 },
+    { key:'windows', icon:'🔲', name:'Fenêtres', desc:'Toutes les fenêtres accessibles de l\'extérieur doivent être protégées', min:0, max:50 },
+    { key:'area', icon:'📐', name:'Superficie (m²)', desc:'Pour protéger de vastes territoires, des amplificateurs peuvent être nécessaires', min:10, max:5000, step:10 },
+  ];
+
+  return `
+    <div class="step-page">
+      <h2 class="step-title">Spécifiez les paramètres de l'établissement</h2>
+      <div class="params">
+        ${rows.map(r => `
+          <div class="param-row">
+            <div class="param-icon">${r.icon}</div>
+            <div class="param-info">
+              <div class="param-name">${r.name}</div>
+              <div class="param-desc">${r.desc}</div>
+            </div>
+            <div class="spinner">
+              <button class="spin-btn" onclick="adjustParam('${r.key}',-${r.step||1},${r.min})">−</button>
+              <input class="spin-val" type="number" id="p-${r.key}" value="${S.params[r.key]}" min="${r.min}" max="${r.max}" onchange="setParam('${r.key}',this.value,${r.min},${r.max})">
+              <button class="spin-btn" onclick="adjustParam('${r.key}',${r.step||1},${r.min},${r.max})">+</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Retour</button>
+        <button class="btn btn-next" onclick="nextStep()">Suivant →</button>
+      </div>
+    </div>`;
+}
+
+function adjustParam(key, delta, min, max) {
+  const cur = S.params[key];
+  S.params[key] = Math.max(min, Math.min(max || 9999, cur + delta));
+  const el = document.getElementById('p-' + key);
+  if (el) el.value = S.params[key];
+}
+
+function setParam(key, val, min, max) {
+  S.params[key] = Math.max(min, Math.min(max || 9999, parseInt(val) || min));
+}
+
+// ── ÉTAPE 4 ───────────────────────────────────────────
+function renderStep4() {
+  const extras = [
+    { key:'photo_verif', name:'Vérification photo des alarmes', desc:'Distinguez les menaces réelles grâce à la vérification photo (MotionCam)' },
+    { key:'perimeter', name:'Protection du périmètre', desc:'Protégez les entrées et les zones de passage en utilisant des détecteurs rideau' },
+    { key:'garage', name:'Protection du garage', desc:'Sécurisez les grandes portes avec un détecteur de mouvement rideau' },
+    { key:'safe', name:'Protection des coffres-forts et espaces sécurisés', desc:'Recevez une notification instantanée si quelqu\'un tente de forcer votre coffre-fort' },
+    { key:'keypad', name:'Clavier de contrôle', desc:'Permettez au personnel d\'accéder facilement à l\'installation' },
+  ];
+
+  return `
+    <div class="step-page">
+      <h2 class="step-title">Sélectionnez des fonctionnalités supplémentaires</h2>
+      <div class="group-card">
+        ${extras.map(item => `
+          <div class="chk-item${S.extras.has(item.key)?' checked':''}" onclick="toggleExtra('${item.key}')">
+            <div class="chk-box"></div>
+            <div>
+              <div class="chk-name">${item.name}</div>
+              <div class="chk-desc">${item.desc}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="prevStep()">← Retour</button>
+        <button class="btn btn-next" onclick="goResult()">Voir ma configuration →</button>
+      </div>
+    </div>`;
+}
+
+function toggleExtra(key) {
+  S.extras.has(key) ? S.extras.delete(key) : S.extras.add(key);
+  render();
+}
+
+// ── RÉSULTAT ──────────────────────────────────────────
+function goResult() {
+  S.products = buildRecommendation();
+  S.step = 5;
+  render();
+}
+
+function renderResult() {
+  const app = document.getElementById('app');
+  // Fetch prices from data.json if available
+  fetchPrices().then(() => {
+    const total = calcTotal(S.products);
+    const byCategory = {};
+    S.products.forEach(p => {
+      if (!byCategory[p.cat]) byCategory[p.cat] = [];
+      byCategory[p.cat].push(p);
+    });
+
+    const catOrder = ['Centrales','Infrastructure','Protection contre les intrusions','Sirènes','Accès','Vidéosurveillance','Sécurité incendie'];
+
+    let html = `<div class="step-page">
+      <div class="result-header">
+        <div class="result-title">Votre système Ajax<br><small style="font-size:14px;color:var(--sub);font-weight:500;">${S.products.reduce((t,p)=>t+p.qty,0)} dispositifs</small></div>
+        <div class="result-total-box">
+          <div class="result-total-label">Total estimatif HT</div>
+          <div class="result-total-val">${fmtPrice(total)}</div>
+        </div>
+      </div>`;
+
+    catOrder.forEach(cat => {
+      const items = byCategory[cat];
+      if (!items) return;
+      html += `<div class="result-category">${cat}</div>`;
+      items.forEach(p => {
+        const imgHtml = p.img
+          ? `<img class="prod-img" src="${p.img}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          : '';
+        const placeholderStyle = p.img ? 'display:none' : '';
+        html += `
+        <div class="product-card" id="pc-${p.key}">
+          ${imgHtml}
+          <div class="prod-img-placeholder" style="${placeholderStyle}">${p.icon}</div>
+          <div class="prod-info">
+            <div class="prod-name" id="pname-${p.key}">${p.name}</div>
+            <div class="prod-desc">${p.desc}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+              <button onclick="toggleColor('${p.key}','blanc')" id="cblanc-${p.key}" style="width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid ${p.color==='blanc'?'var(--orange)':'#ccc'};cursor:pointer;" title="Blanc"></button>
+              <button onclick="toggleColor('${p.key}','noir')" id="cnoir-${p.key}" style="width:18px;height:18px;border-radius:50%;background:#222;border:2px solid ${p.color==='noir'?'var(--orange)':'#ccc'};cursor:pointer;" title="Noir"></button>
+              <a class="prod-link" href="${p.url}" target="_blank">Voir sur CamProtect →</a>
+            </div>
+          </div>
+          <div class="prod-right">
+            <div class="prod-qty">
+              <button class="qty-btn" onclick="changeQty('${p.key}',-1)">−</button>
+              <div class="qty-val" id="qty-${p.key}">${p.qty}</div>
+              <button class="qty-btn" onclick="changeQty('${p.key}',1)">+</button>
+            </div>
+            <div class="prod-price">
+              <div class="prod-price-val" id="price-${p.key}">${fmtPrice(p.unitPrice * p.qty)}</div>
+              <div class="prod-price-unit">${fmtPrice(p.unitPrice)} / unité HT</div>
+            </div>
+            <button class="prod-del" onclick="removeProduct('${p.key}')" title="Supprimer">✕</button>
+          </div>
+        </div>`;
+      });
+    });
+
+    html += `
+      <div class="result-footer">
+        <button class="btn-print" onclick="window.print()">🖨 Imprimer / PDF</button>
+        <button class="btn-restart" onclick="restart()">↩ Recommencer</button>
+      </div>
+    </div>`;
+
+    app.innerHTML = html;
+    updateStickyTotal();
+    document.getElementById('sticky-total').classList.add('show');
+    document.getElementById('sdot-5').className = 'step-dot active';
+  });
+}
+
+async function fetchPrices() {
+  try {
+    const r = await fetch('https://raw.githubusercontent.com/IMS-SX304/camprotect-json/refs/heads/main/data.json', {cache:'default'});
+    if (!r.ok) return;
+    const d = await r.json();
+    const map = d.planner_map || {};
+    // Stocker les images noir/blanc pour chaque produit
+    S._plannerMap = map;
+    S.products.forEach(p => {
+      const pk = p.plannerKey || p.key;
+      if (map[pk]) {
+        if (map[pk].prix_ht) p.unitPrice = map[pk].prix_ht;
+        if (map[pk].image) p.img = map[pk].image; // image blanc par défaut
+      }
+    });
+  } catch(e) {}
+}
+
+function toggleColor(key, color) {
+  const p = S.products.find(x => x.key === key);
+  if (!p) return;
+  p.color = color;
+  // Update color button borders
+  const bBlanc = document.getElementById('cblanc-' + key);
+  const bNoir = document.getElementById('cnoir-' + key);
+  if (bBlanc) bBlanc.style.borderColor = color === 'blanc' ? 'var(--orange)' : '#ccc';
+  if (bNoir) bNoir.style.borderColor = color === 'noir' ? 'var(--orange)' : '#ccc';
+  // Update product name
+  const nameEl = document.getElementById('pname-' + key);
+  if (nameEl) {
+    const baseName = p.name.replace(/ Blanc$| Blanche$| Noir$| Noire$/, '');
+    nameEl.textContent = baseName + (color === 'noir' ? ' Noir' : ' Blanc');
+  }
+  // Try to update image from planner_map if noir slug available
+  // (images noir not in planner_map currently, so we just update name)
+}
+
+function changeQty(key, delta) {
+  const p = S.products.find(x => x.key === key);
+  if (!p) return;
+  p.qty = Math.max(0, p.qty + delta);
+  if (p.qty === 0) {
+    removeProduct(key); return;
+  }
+  document.getElementById('qty-' + key).textContent = p.qty;
+  document.getElementById('price-' + key).textContent = fmtPrice(p.unitPrice * p.qty);
+  updateStickyTotal();
+}
+
+function removeProduct(key) {
+  S.products = S.products.filter(p => p.key !== key);
+  const el = document.getElementById('pc-' + key);
+  if (el) el.remove();
+  updateStickyTotal();
+}
+
+function updateStickyTotal() {
+  const total = calcTotal(S.products);
+  document.getElementById('st-val').textContent = fmtPrice(total);
+  const rBox = document.querySelector('.result-total-val');
+  if (rBox) rBox.textContent = fmtPrice(total);
+}
+
+// ── NAVIGATION ────────────────────────────────────────
+function nextStep() { if (S.step < 4) { S.step++; render(); window.scrollTo(0,0); } }
+function prevStep() { if (S.step > 1) { S.step--; render(); window.scrollTo(0,0); } }
+function restart() {
+  S.step = 1; S.type = null;
+  S.features = new Set(); S.extras = new Set();
+  S.params = { floors:1, rooms:5, entries:1, windows:4, area:80 };
+  S.products = [];
+  render(); window.scrollTo(0,0);
+}
+
+// ── INIT ─────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
