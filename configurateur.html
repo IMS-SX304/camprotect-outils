@@ -668,7 +668,7 @@ function renderResult() {
     let html = `<div class="step-page">
       <!-- Header visible uniquement à l'impression -->
       <div class="print-header">
-        <div class="print-logo"><img src="https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg" alt="CamProtect"></div>
+        <div class="print-logo" style="background:#1a1a1a;border-radius:8px;padding:10px 16px;display:inline-flex;align-items:center;"><img src="https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg" alt="CamProtect" style="height:34px;width:auto;display:block;"></div>
         <div class="print-date">Généré le ${dateStr} à ${timeStr}<br>Configuration système Ajax</div>
       </div>
       <!-- Header visible à l'écran -->
@@ -871,8 +871,8 @@ function printDevis() {
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'DM Sans',sans-serif;color:#111;background:#fff;padding:32px;}
     .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:2px solid #E85D04;margin-bottom:28px;}
-    .logo-box{background:#1a1a1a;border-radius:8px;padding:8px 14px;display:inline-block;}
-    .logo-box img{height:32px;}
+    .logo-box{background:#1a1a1a;border-radius:8px;padding:10px 16px;display:inline-flex;align-items:center;justify-content:center;}
+    .logo-box img{height:34px;width:auto;display:block;}
     .date{font-size:12px;color:#6b7280;text-align:right;line-height:1.7;}
     table{width:100%;border-collapse:collapse;}
     .totals{margin-top:28px;border-top:2px solid #111;padding-top:16px;}
