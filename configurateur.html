@@ -22,15 +22,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── PROGRESS ── */
 .progress{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;}
-.progress-inner{max-width:720px;margin:0 auto;display:flex;align-items:center;padding:16px 0;gap:0;}
-.step-dot{display:flex;align-items:center;gap:8px;flex:1;position:relative;}
-.step-dot:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 20px);right:calc(-50% + 20px);top:50%;height:2px;background:var(--border);z-index:0;}
+.progress-inner{max-width:720px;margin:0 auto;display:flex;align-items:flex-start;padding:16px 0;gap:0;}
+.step-dot{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;position:relative;}
+.step-dot:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 18px);right:calc(-50% + 18px);top:15px;height:2px;background:var(--border);z-index:0;}
 .step-dot.done::after{background:var(--orange);}
 .step-num{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--sub);background:var(--white);z-index:1;flex-shrink:0;transition:all .2s;}
 .step-dot.active .step-num{border-color:var(--orange);color:var(--orange);background:var(--orange-light);}
 .step-dot.done .step-num{border-color:var(--orange);background:var(--orange);color:#fff;}
-.step-label{font-size:11px;font-weight:600;color:var(--sub);display:none;}
-@media(min-width:600px){.step-label{display:block;}}
+.step-label{font-size:10px;font-weight:600;color:var(--sub);text-align:center;line-height:1.2;max-width:64px;word-break:break-word;}
+@media(max-width:600px){.step-label{display:none;}}
 .step-dot.active .step-label{color:var(--orange);}
 .step-dot.done .step-label{color:var(--dark);}
 
@@ -123,11 +123,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── PRINT ── */
 @media print{
-  .header,.progress,.nav,.result-footer,.prod-qty,.prod-del{display:none!important;}
+  .header,.progress,.nav,.result-footer,.prod-qty,.prod-del,.prod-link,.sticky-total,
+  button[onclick*="toggleColor"]{display:none!important;}
   body{background:#fff;}
   .main{padding:0;}
   .product-card{break-inside:avoid;}
+  .result-header{display:none!important;}
+  .print-header{display:flex!important;}
+  .print-totals{display:block!important;}
 }
+
+/* ── PRINT HEADER & TOTALS ── */
+.print-header{display:none;justify-content:space-between;align-items:center;padding:16px 0 20px;border-bottom:2px solid #E85D04;margin-bottom:24px;}
+.print-logo{font-size:22px;font-weight:800;color:#111;letter-spacing:-0.5px;}
+.print-logo span{color:#E85D04;}
+.print-date{font-size:12px;color:#6b7280;text-align:right;}
+.print-totals{display:none;margin-top:28px;border-top:2px solid #111;padding-top:20px;}
+.print-total-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:14px;}
+.print-total-row.main{font-size:17px;font-weight:800;border-bottom:none;padding-top:12px;}
+.print-total-row .label{color:#6b7280;}
+.print-total-row.main .label{color:#111;}
+.print-total-row .val{font-weight:700;color:#111;}
+.print-total-row.main .val{color:#E85D04;font-size:20px;}
 
 /* ── ANIM ── */
 .step-page{animation:fadeIn .2s ease;}
@@ -641,12 +658,24 @@ function renderResult() {
 
     const catOrder = ['Centrales','Infrastructure','Protection contre les intrusions','Sirènes','Accès','Vidéosurveillance','Enregistreurs vidéo','Réseau','Stockage','Sécurité incendie'];
 
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
+    const timeStr = now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+    const tva = total * 0.2;
+    const ttc = total * 1.2;
+
     let html = `<div class="step-page">
+      <!-- Header visible uniquement à l'impression -->
+      <div class="print-header">
+        <div class="print-logo">Cam<span>Protect</span></div>
+        <div class="print-date">Généré le ${dateStr} à ${timeStr}<br>Configuration système Ajax</div>
+      </div>
+      <!-- Header visible à l'écran -->
       <div class="result-header">
         <div class="result-title">Votre système Ajax<br><small style="font-size:14px;color:var(--sub);font-weight:500;">${S.products.reduce((t,p)=>t+p.qty,0)} dispositifs</small></div>
         <div class="result-total-box">
           <div class="result-total-label">Total estimatif HT</div>
-          <div class="result-total-val">${fmtPrice(total)}</div>
+          <div class="result-total-val" id="result-total-val">${fmtPrice(total)}</div>
         </div>
       </div>`;
 
@@ -692,6 +721,21 @@ function renderResult() {
     });
 
     html += `
+      <!-- Totaux en bas — visibles uniquement à l'impression -->
+      <div class="print-totals" id="print-totals">
+        <div class="print-total-row">
+          <span class="label">Total HT</span>
+          <span class="val" id="print-ht">${fmtPrice(total)}</span>
+        </div>
+        <div class="print-total-row">
+          <span class="label">TVA (20%)</span>
+          <span class="val" id="print-tva">${fmtPrice(tva)}</span>
+        </div>
+        <div class="print-total-row main">
+          <span class="label">Total TTC</span>
+          <span class="val" id="print-ttc">${fmtPrice(ttc)}</span>
+        </div>
+      </div>
       <div class="result-footer">
         <button class="btn-print" onclick="window.print()">🖨 Imprimer / PDF</button>
         <button class="btn-restart" onclick="restart()">↩ Recommencer</button>
@@ -788,8 +832,17 @@ function removeProduct(key) {
 function updateStickyTotal() {
   const total = calcTotal(S.products);
   document.getElementById('st-val').textContent = fmtPrice(total);
-  const rBox = document.querySelector('.result-total-val');
+  const rBox = document.getElementById('result-total-val');
   if (rBox) rBox.textContent = fmtPrice(total);
+  // Mettre à jour les totaux print
+  const tva = total * 0.2;
+  const ttc = total * 1.2;
+  const elHT = document.getElementById('print-ht');
+  const elTVA = document.getElementById('print-tva');
+  const elTTC = document.getElementById('print-ttc');
+  if (elHT) elHT.textContent = fmtPrice(total);
+  if (elTVA) elTVA.textContent = fmtPrice(tva);
+  if (elTTC) elTTC.textContent = fmtPrice(ttc);
 }
 
 // ── NAVIGATION ────────────────────────────────────────
