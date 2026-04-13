@@ -192,39 +192,36 @@ const S = {
 };
 
 // ── CATALOGUE PRODUITS ────────────────────────────────
+const CDN = 'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/';
 const CATALOG = {
-  hub:    { name:'Hub 2 (4G) Blanc', desc:'Centrale d\'alarme Ajax sans fil 4G/Ethernet', cat:'Centrales', icon:'🏠', price:257.22, url:'https://www.camprotect.fr/product/ajax-hub-2-4g-blanc', plannerKey:'hub' },
-  hub_p:  { name:'Hub 2 Plus Blanc', desc:'Centrale Ajax 4G/Ethernet/Wi-Fi, 150 appareils', cat:'Centrales', icon:'🏠', price:293.76, url:'https://www.camprotect.fr/product/ajax-hub-2-plus-blanc', plannerKey:'hub_p' },
-  mp:     { name:'MotionProtect Blanc', desc:'Détecteur de mouvement IR sans fil intérieur', cat:'Protection contre les intrusions', icon:'👁', price:45.92, url:'https://www.camprotect.fr/product/motionprotect-blanc', plannerKey:'mp' },
-  mp_p:   { name:'MotionProtect+ Blanc', desc:'Détecteur dual tech PIR + micro-ondes', cat:'Protection contre les intrusions', icon:'👁', price:63.02, url:'https://www.camprotect.fr/product/ajax-motionprotect-plus-blanc', plannerKey:'mp_p' },
-  mp_o:   { name:'MotionProtect Outdoor Blanc', desc:'Détecteur de mouvement extérieur IP55', cat:'Protection contre les intrusions', icon:'👁', price:158.89, url:'https://www.camprotect.fr/product/ajax-motionprotect-outdoor-blanc', plannerKey:'mp_o' },
-  mc:     { name:'MotionCam Blanc', desc:'Détecteur mouvement avec vérification photo', cat:'Protection contre les intrusions', icon:'📷', price:104.77, url:'https://www.camprotect.fr/product/ajax-motioncam-blanc', plannerKey:'mc' },
-  mc_o:   { name:'MotionCam Outdoor Blanc', desc:'Détecteur photo extérieur IP55', cat:'Protection contre les intrusions', icon:'📷', price:195.44, url:'https://www.camprotect.fr/product/ajax-motioncam-outdoor-blanc', plannerKey:'mc_o' },
-  mc_c:   { name:'MotionProtect Curtain Blanc', desc:'Détecteur rideau pour couloirs et accès', cat:'Protection contre les intrusions', icon:'👁', price:53.52, url:'https://www.camprotect.fr/product/ajax-motionprotect-curtain-blanc', plannerKey:'mp_c' },
-  cb:     { name:'CombiProtect Blanc', desc:'Détecteur mouvement + bris de glace combiné', cat:'Protection contre les intrusions', icon:'🔐', price:63.99, url:'https://www.camprotect.fr/product/ajax-combiprotect-blanc', plannerKey:'cb' },
-  dp:     { name:'DoorProtect Blanc', desc:'Contact d\'ouverture porte/fenêtre sans fil', cat:'Protection contre les intrusions', icon:'🚪', price:27.07, url:'https://www.camprotect.fr/product/doorprotect-blanc', plannerKey:'dp' },
-  gp:     { name:'GlassProtect Blanc', desc:'Détecteur bris de vitre sans fil', cat:'Protection contre les intrusions', icon:'🔍', price:46.00, url:'https://www.camprotect.fr/product/ajax-glassprotect-blanc', plannerKey:'gp' },
-  hs:     { name:'HomeSiren Blanc', desc:'Sirène intérieure sans fil 105 dB', cat:'Sirènes', icon:'🔔', price:93.00, url:'https://www.camprotect.fr/product/ajax-homesiren-blanc', plannerKey:'hs' },
-  ss:     { name:'StreetSiren Blanc', desc:'Sirène extérieure sans fil IP55', cat:'Sirènes', icon:'🔔', price:182.00, url:'https://www.camprotect.fr/product/ajax-streetsiren-blanc', plannerKey:'ss' },
-  kp:     { name:'KeyPad Blanc', desc:'Clavier de code sans fil', cat:'Accès', icon:'⌨️', price:76.00, url:'https://www.camprotect.fr/product/ajax-keypad-blanc', plannerKey:'kp' },
-  kp_p:   { name:'KeyPad Plus Blanc', desc:'Clavier tactile Pass/Tag/code', cat:'Accès', icon:'⌨️', price:120.00, url:'https://www.camprotect.fr/product/ajax-keypad-plus-blanc', plannerKey:'kp_p' },
-  rex:    { name:'ReX 2 Blanc', desc:'Amplificateur de portée radio', cat:'Infrastructure', icon:'📡', price:130.65, url:'https://www.camprotect.fr/product/ajax-rex-2-blanc', plannerKey:'rex' },
-  bc28:   { name:'BulletCam 5MP 2.8mm Blanche', desc:'Caméra bullet IP PoE IA intérieur/extérieur', cat:'Vidéosurveillance', icon:'📹', price:129.00, url:'https://www.camprotect.fr/product/ajax-bulletcam-blanche-5mp-2-8mm', plannerKey:'bc28' },
-  tc28:   { name:'TurretCam 5MP 2.8mm Blanche', desc:'Caméra tourelle IP PoE IA 110° vision nocturne', cat:'Vidéosurveillance', icon:'📹', price:129.00, url:'https://www.camprotect.fr/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche', plannerKey:'tc28' },
-  dc28:   { name:'DomeCam Mini 5MP 2.8mm Blanche', desc:'Caméra dôme IP PoE intérieur discret', cat:'Vidéosurveillance', icon:'📹', price:75.67, url:'https://www.camprotect.fr/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', plannerKey:'dc28' },
-  fp:     { name:'FireProtect Blanc', desc:'Détecteur fumée et chaleur sans fil', cat:'Sécurité incendie', icon:'🔥', price:79.00, url:'https://www.camprotect.fr/product/ajax-fireprotect-blanc', plannerKey:'fp' },
-  fp_p:   { name:'FireProtect Plus Blanc', desc:'Détecteur fumée, chaleur et CO', cat:'Sécurité incendie', icon:'🔥', price:110.00, url:'https://www.camprotect.fr/product/fireprotect-plus-blanc', plannerKey:'fp_p' },
-  // NVR — HAC = Sans HDMI, DC = Avec HDMI
-  nvr8:   { name:'NVR Ajax HAC 8 canaux Blanc', desc:'Enregistreur vidéo réseau 8 canaux sans HDMI, accès à distance via app Ajax', cat:'Enregistreurs vidéo', icon:'💾', price:150.99, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccf30e369ca382c7be9ff4_246.png', imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccf30e369ca382c7be9ff4_246.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-hac-ajax-8-canaux-blanc' },
-  nvr16:  { name:'NVR Ajax HAC 16 canaux Blanc', desc:'Enregistreur vidéo réseau 16 canaux sans HDMI, accès à distance via app Ajax', cat:'Enregistreurs vidéo', icon:'💾', price:232.99, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccf30e369ca382c7be9ff4_246.png', imgNoir:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccf30e369ca382c7be9ff4_246.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-hac-ajax-16-canaux-blanc' },
-  nvr8h:  { name:'NVR Ajax DC 8 canaux Blanc', desc:'Enregistreur vidéo réseau 8 canaux avec sortie HDMI, affichage sur écran externe', cat:'Enregistreurs vidéo', icon:'💾', price:124.99, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-dc-ajax-8-canaux-blanc' },
-  nvr16h: { name:'NVR Ajax DC 16 canaux Blanc', desc:'Enregistreur vidéo réseau 16 canaux avec sortie HDMI, affichage sur écran externe', cat:'Enregistreurs vidéo', icon:'💾', price:202.01, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-dc-ajax-16-canaux-blanc' },
-  // Switch PoE — sélectionné selon le nombre de caméras
-  sw4:    { name:'Switch PoE Gigabit 4 ports', desc:'Switch PoE pour 4 caméras IP, alimentation et données en un seul câble', cat:'Réseau', icon:'🔌', price:50.24, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67aefd9329932c64adc6', url:'https://www.camprotect.fr/product/switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e' },
-  sw8:    { name:'Switch PoE 8 ports', desc:'Switch PoE 8 ports pour caméras IP, 96W budget PoE total', cat:'Réseau', icon:'🔌', price:73.44, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/68c14fdc7961ddd80ddc', url:'https://www.camprotect.fr/product/switch-poe-8-ports-pfs3110-8et-96' },
-  sw16:   { name:'Switch PoE Gigabit 16 ports', desc:'Switch PoE 16 ports haute densité pour grandes installations', cat:'Réseau', icon:'🔌', price:234.87, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/67af07673fbdeb8edbb6', url:'https://www.camprotect.fr/product/switch-poe-gigabit-16-ports-ds-3e0520hp-e' },
-  // Disque dur
-  hdd:    { name:'Disque dur Seagate SkyHawk', desc:'Disque dur surveillance 24h/24 optimisé pour enregistreurs vidéo, disponible de 1 à 10 To', cat:'Stockage', icon:'🖥', price:75.00, img:'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/68de79358a2e78c9b377', url:'https://www.camprotect.fr/product/disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx' },
+  hub:    { name:'Hub 2 (4G) Blanc', desc:'Centrale d\'alarme Ajax sans fil 4G/Ethernet', cat:'Centrales', icon:'🏠', price:257.22, url:'https://www.camprotect.fr/product/ajax-hub-2-4g-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgNoir:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png' },
+  hub_p:  { name:'Hub 2 Plus Blanc', desc:'Centrale Ajax 4G/Ethernet/Wi-Fi, 150 appareils', cat:'Centrales', icon:'🏠', price:293.76, url:'https://www.camprotect.fr/product/ajax-hub-2-plus-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgNoir:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png' },
+  mp:     { name:'MotionProtect Blanc', desc:'Détecteur de mouvement IR sans fil intérieur', cat:'Protection contre les intrusions', icon:'👁', price:45.92, url:'https://www.camprotect.fr/product/motionprotect-blanc', img:CDN+'6928313c359219e7effa6010_Design%20sans%20titre%20(26).png', imgNoir:CDN+'692831ea44e7f54603612448_Design%20sans%20titre%20(27).png' },
+  mp_p:   { name:'MotionProtect+ Blanc', desc:'Détecteur dual tech PIR + micro-ondes', cat:'Protection contre les intrusions', icon:'👁', price:63.02, url:'https://www.camprotect.fr/product/ajax-motionprotect-plus-blanc', img:CDN+'6928313c359219e7effa6010_Design%20sans%20titre%20(26).png', imgNoir:CDN+'692831ea44e7f54603612448_Design%20sans%20titre%20(27).png' },
+  mp_o:   { name:'MotionProtect Outdoor Blanc', desc:'Détecteur de mouvement extérieur IP55', cat:'Protection contre les intrusions', icon:'👁', price:158.89, url:'https://www.camprotect.fr/product/ajax-motionprotect-outdoor-blanc', img:CDN+'69247ddee63e9f3dada6ab2b_Design%20sans%20titre%20(5).png', imgNoir:'' },
+  mc:     { name:'MotionCam Blanc', desc:'Détecteur mouvement avec vérification photo', cat:'Protection contre les intrusions', icon:'📷', price:104.77, url:'https://www.camprotect.fr/product/ajax-motioncam-blanc', img:CDN+'69281547b092a2a58aefde5f_Design%20sans%20titre%20(24).png', imgNoir:CDN+'69281616b4a3d1136a1ea304_Design%20sans%20titre%20(25).png' },
+  mc_o:   { name:'MotionCam Outdoor Blanc', desc:'Détecteur photo extérieur IP55', cat:'Protection contre les intrusions', icon:'📷', price:195.44, url:'https://www.camprotect.fr/product/ajax-motioncam-outdoor-blanc', img:CDN+'6924635a1ed512b9de9f1907_Design%20sans%20titre%20(4).png', imgNoir:'' },
+  mc_c:   { name:'MotionProtect Curtain Blanc', desc:'Détecteur rideau pour couloirs et accès', cat:'Protection contre les intrusions', icon:'👁', price:53.52, url:'https://www.camprotect.fr/product/ajax-motionprotect-curtain-blanc', img:CDN+'69280ddc5df6bc2930c094f3_Design%20sans%20titre%20(21).png', imgNoir:CDN+'69280fcf98c98b15b48d8ec6_Design%20sans%20titre%20(22).png' },
+  dp:     { name:'DoorProtect Blanc', desc:'Contact d\'ouverture porte/fenêtre sans fil', cat:'Protection contre les intrusions', icon:'🚪', price:27.07, url:'https://www.camprotect.fr/product/doorprotect-blanc', img:CDN+'699836f2e4d3ecdb7e2e5b06_685a60a844c3c948997bed2f_78.png', imgNoir:CDN+'69283f2e18cb725912337541_Design%20sans%20titre%20(31).png' },
+  gp:     { name:'GlassProtect Blanc', desc:'Détecteur bris de vitre sans fil', cat:'Protection contre les intrusions', icon:'🔍', price:46.00, url:'https://www.camprotect.fr/product/ajax-glassprotect-blanc', img:CDN+'692839ce6c2347512c215a7b_Design%20sans%20titre%20(28).png', imgNoir:CDN+'69283a6dea39bc08decbe4e4_Design%20sans%20titre%20(29).png' },
+  hs:     { name:'HomeSiren Blanc', desc:'Sirène intérieure sans fil 105 dB', cat:'Sirènes', icon:'🔔', price:93.00, url:'https://www.camprotect.fr/product/ajax-homesiren-blanc', img:CDN+'692809052fc9f046bdc9a637_Design%20sans%20titre%20(19).png', imgNoir:CDN+'69280860bdc3ba581946db58_Design%20sans%20titre%20(18).png' },
+  ss:     { name:'StreetSiren Blanc', desc:'Sirène extérieure sans fil IP55', cat:'Sirènes', icon:'🔔', price:182.00, url:'https://www.camprotect.fr/product/ajax-streetsiren-blanc', img:CDN+'692727e1f07e723e9be9bd69_Design%20sans%20titre%20(13).png', imgNoir:CDN+'6927275c2eb724bf9b736cac_Design%20sans%20titre%20(12).png' },
+  kp:     { name:'KeyPad Blanc', desc:'Clavier de code sans fil', cat:'Accès', icon:'⌨️', price:76.00, url:'https://www.camprotect.fr/product/ajax-keypad-blanc', img:CDN+'6927264754c405f62aa32ef3_Design%20sans%20titre%20(11).png', imgNoir:CDN+'692725c045d74d5cedd27196_Design%20sans%20titre%20(10).png' },
+  kp_p:   { name:'KeyPad Plus Blanc', desc:'Clavier tactile Pass/Tag/code', cat:'Accès', icon:'⌨️', price:120.00, url:'https://www.camprotect.fr/product/ajax-keypad-plus-blanc', img:CDN+'6927264754c405f62aa32ef3_Design%20sans%20titre%20(11).png', imgNoir:CDN+'692725c045d74d5cedd27196_Design%20sans%20titre%20(10).png' },
+  rex:    { name:'ReX 2 Blanc', desc:'Amplificateur de portée radio', cat:'Infrastructure', icon:'📡', price:130.65, url:'https://www.camprotect.fr/product/ajax-rex-2-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgNoir:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png' },
+  bc28:   { name:'BulletCam 5MP 2.8mm Blanche', desc:'Caméra bullet IP PoE IA intérieur/extérieur', cat:'Vidéosurveillance', icon:'📹', price:129.00, url:'https://www.camprotect.fr/product/ajax-bulletcam-blanche-5mp-2-8mm', img:CDN+'69c54add9b42009c2fb9116b_Bulletcam%205MP-2.8%20Blanche.png', imgNoir:'' },
+  tc28:   { name:'TurretCam 5MP 2.8mm Blanche', desc:'Caméra tourelle IP PoE IA 110° vision nocturne', cat:'Vidéosurveillance', icon:'📹', price:129.00, url:'https://www.camprotect.fr/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche', img:CDN+'69cbca248634db3c54041e77_TurretCam%20blanche.png', imgNoir:CDN+'69cba6ddb7f897c56f45bb0f_TurretCam%20noire.png' },
+  dc28:   { name:'DomeCam Mini 5MP 2.8mm Blanche', desc:'Caméra dôme IP PoE intérieur discret', cat:'Vidéosurveillance', icon:'📹', price:75.67, url:'https://www.camprotect.fr/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', img:CDN+'69cb6f2d3696164fd91fff25_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20blanche.png', imgNoir:CDN+'69ca8d0b53b8f1f9d7f31357_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20noire.png' },
+  fp:     { name:'FireProtect Blanc', desc:'Détecteur fumée et chaleur sans fil', cat:'Sécurité incendie', icon:'🔥', price:79.00, url:'https://www.camprotect.fr/product/ajax-fireprotect-blanc', img:'', imgNoir:'' },
+  fp_p:   { name:'FireProtect Plus Blanc', desc:'Détecteur fumée, chaleur et CO', cat:'Sécurité incendie', icon:'🔥', price:110.00, url:'https://www.camprotect.fr/product/fireprotect-plus-blanc', img:'', imgNoir:'' },
+  nvr8:   { name:'NVR Ajax HAC 8 canaux Blanc', desc:'Enregistreur vidéo réseau 8 canaux sans HDMI', cat:'Enregistreurs vidéo', icon:'💾', price:150.99, img:CDN+'69ccf30e369ca382c7be9ff4_246.png', imgNoir:CDN+'69ccf30e369ca382c7be9ff4_246.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-hac-ajax-8-canaux-blanc' },
+  nvr16:  { name:'NVR Ajax HAC 16 canaux Blanc', desc:'Enregistreur vidéo réseau 16 canaux sans HDMI', cat:'Enregistreurs vidéo', icon:'💾', price:232.99, img:CDN+'69ccf30e369ca382c7be9ff4_246.png', imgNoir:CDN+'69ccf30e369ca382c7be9ff4_246.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-hac-ajax-16-canaux-blanc' },
+  nvr8h:  { name:'NVR Ajax DC 8 canaux Blanc', desc:'Enregistreur 8 canaux avec sortie HDMI', cat:'Enregistreurs vidéo', icon:'💾', price:124.99, img:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', imgNoir:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-dc-ajax-8-canaux-blanc' },
+  nvr16h: { name:'NVR Ajax DC 16 canaux Blanc', desc:'Enregistreur 16 canaux avec sortie HDMI', cat:'Enregistreurs vidéo', icon:'💾', price:202.01, img:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', imgNoir:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-dc-ajax-16-canaux-blanc' },
+  sw4:    { name:'Switch PoE Gigabit 4 ports', desc:'Switch PoE pour 4 caméras IP', cat:'Réseau', icon:'🔌', price:50.24, img:CDN+'67aefd9329932c64adc6', imgNoir:'', url:'https://www.camprotect.fr/product/switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e' },
+  sw8:    { name:'Switch PoE 8 ports', desc:'Switch PoE 8 ports, 96W budget PoE total', cat:'Réseau', icon:'🔌', price:73.44, img:CDN+'68c14fdc7961ddd80ddc', imgNoir:'', url:'https://www.camprotect.fr/product/switch-poe-8-ports-pfs3110-8et-96' },
+  sw16:   { name:'Switch PoE Gigabit 16 ports', desc:'Switch PoE 16 ports haute densité', cat:'Réseau', icon:'🔌', price:234.87, img:CDN+'67af07673fbdeb8edbb6', imgNoir:'', url:'https://www.camprotect.fr/product/switch-poe-gigabit-16-ports-ds-3e0520hp-e' },
+  hdd:    { name:'Disque dur Seagate SkyHawk', desc:'Disque dur surveillance 24h/24, de 1 à 10 To', cat:'Stockage', icon:'🖥', price:75.00, img:CDN+'68de79358a2e78c9b377', imgNoir:'', url:'https://www.camprotect.fr/product/disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx' },
 };
 
 // ── MOTEUR DE RECOMMANDATION ──────────────────────────
@@ -280,42 +277,43 @@ function buildRecommendation() {
 
   // CAMÉRAS IR (filaires infrarouge)
   if (features.has('cam_ir')) {
-    const camQty = type === 'apt' || type === 'maison'
+    const camQty = (type === 'apt' || type === 'maison')
       ? Math.max(1, Math.ceil(rooms / 3))
       : Math.max(1, Math.ceil(area / 80));
     add('tc28', camQty);
-    // Switch PoE adapté
-    if (camQty <= 4) add('sw4', 1);
-    else if (camQty <= 8) add('sw8', 1);
-    else add('sw16', 1);
   }
 
   // CAMÉRAS HYBRIDE/DÔME
   if (features.has('cam_hybrid')) {
-    const camQty = Math.max(1, Math.ceil(rooms / 4));
-    add('dc28', camQty);
-    // Switch PoE si pas déjà ajouté par cam_ir
-    if (!features.has('cam_ir')) {
-      if (camQty <= 4) add('sw4', 1);
-      else if (camQty <= 8) add('sw8', 1);
-      else add('sw16', 1);
-    }
+    add('dc28', Math.max(1, Math.ceil(rooms / 4)));
   }
 
-  // NVR — déclenché par la sélection dans fonctionnalités
-  const hasCam = features.has('cam_ir') || features.has('cam_hybrid');
-  if (hasCam) {
+  // NVR — ajouté dès que sélectionné, avec caméras si aucune autre sélectionnée
+  if (features.has('nvr') || features.has('nvr_hdmi')) {
     const totalCams = (res.tc28 || 0) + (res.bc28 || 0) + (res.dc28 || 0);
+    // Si pas de caméras sélectionnées, en ajouter automatiquement
+    const camCount = totalCams > 0 ? totalCams : Math.max(2, Math.ceil(rooms / 3));
+    if (totalCams === 0) add('tc28', camCount);
+    const finalCams = (res.tc28 || 0) + (res.bc28 || 0) + (res.dc28 || 0);
+    // NVR adapté
     const useHdmi = features.has('nvr_hdmi');
-    if (features.has('nvr') || features.has('nvr_hdmi')) {
-      if (useHdmi) {
-        add(totalCams > 8 ? 'nvr16h' : 'nvr8h', 1);
-      } else {
-        add(totalCams > 8 ? 'nvr16' : 'nvr8', 1);
-      }
-      // Disque dur
-      add('hdd', 1);
+    if (useHdmi) {
+      add(finalCams > 8 ? 'nvr16h' : 'nvr8h', 1);
+    } else {
+      add(finalCams > 8 ? 'nvr16' : 'nvr8', 1);
     }
+    // Switch PoE adapté au nombre de caméras
+    if (finalCams <= 4) add('sw4', 1);
+    else if (finalCams <= 8) add('sw8', 1);
+    else add('sw16', 1);
+    // Disque dur
+    add('hdd', 1);
+  } else if (features.has('cam_ir') || features.has('cam_hybrid')) {
+    // Caméras sans NVR : ajouter quand même un switch PoE
+    const totalCams = (res.tc28 || 0) + (res.bc28 || 0) + (res.dc28 || 0);
+    if (totalCams <= 4) add('sw4', 1);
+    else if (totalCams <= 8) add('sw8', 1);
+    else add('sw16', 1);
   }
 
   // SÉCURITÉ INCENDIE
