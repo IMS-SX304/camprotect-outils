@@ -869,10 +869,10 @@ function printDevis() {
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'DM Sans',sans-serif;color:#111;background:#fff;padding:32px;}
+    body{font-family:'DM Sans',sans-serif;color:#111;background:#fff;padding:32px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:2px solid #E85D04;margin-bottom:28px;}
-    .logo-box{background:#1a1a1a;border-radius:8px;padding:10px 16px;display:inline-flex;align-items:center;justify-content:center;}
-    .logo-box img{height:34px;width:auto;display:block;}
+    .logo-box{display:inline-block;border-radius:8px;overflow:hidden;line-height:0;}
+    .logo-box img{height:34px;width:auto;display:block;padding:8px 14px;background:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .date{font-size:12px;color:#6b7280;text-align:right;line-height:1.7;}
     table{width:100%;border-collapse:collapse;}
     .totals{margin-top:28px;border-top:2px solid #111;padding-top:16px;}
