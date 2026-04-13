@@ -639,7 +639,7 @@ function renderResult() {
       byCategory[p.cat].push(p);
     });
 
-    const catOrder = ['Centrales','Infrastructure','Protection contre les intrusions','Sirènes','Accès','Vidéosurveillance','Sécurité incendie'];
+    const catOrder = ['Centrales','Infrastructure','Protection contre les intrusions','Sirènes','Accès','Vidéosurveillance','Enregistreurs vidéo','Réseau','Stockage','Sécurité incendie'];
 
     let html = `<div class="step-page">
       <div class="result-header">
@@ -670,8 +670,8 @@ function renderResult() {
             <div class="prod-name" id="pname-${p.key}">${p.name}</div>
             <div class="prod-desc">${p.desc}</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
-              <button onclick="toggleColor('${p.key}','blanc')" id="cblanc-${p.key}" style="width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid ${p.color==='blanc'?'var(--orange)':'#ccc'};cursor:pointer;" title="Blanc"></button>
-              <button onclick="toggleColor('${p.key}','noir')" id="cnoir-${p.key}" style="width:18px;height:18px;border-radius:50%;background:#222;border:2px solid ${p.color==='noir'?'var(--orange)':'#ccc'};cursor:pointer;" title="Noir"></button>
+              <button onclick="toggleColor('${p.key}','blanc')" id="cblanc-${p.key}" style="width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid var(--orange);cursor:pointer;" title="Blanc"></button>
+              ${CATALOG[p.key]?.imgNoir ? `<button onclick="toggleColor('${p.key}','noir')" id="cnoir-${p.key}" style="width:18px;height:18px;border-radius:50%;background:#222;border:2px solid #ccc;cursor:pointer;" title="Noir"></button>` : ''}
               <a class="prod-link" href="${p.url}" target="_blank">Voir sur CamProtect →</a>
             </div>
           </div>
