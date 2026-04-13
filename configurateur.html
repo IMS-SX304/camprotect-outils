@@ -141,7 +141,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── PRINT HEADER & TOTALS ── */
 .print-header{display:none;justify-content:space-between;align-items:center;padding:16px 0 20px;border-bottom:2px solid #E85D04;margin-bottom:24px;}
-.print-logo img{max-height:36px;width:auto;}
+.print-logo{background:#1a1a1a;border-radius:8px;padding:8px 14px;display:inline-flex;align-items:center;}
+.print-logo img{max-height:32px;width:auto;}
 .print-date{font-size:12px;color:#6b7280;text-align:right;line-height:1.6;}
 .print-totals{display:none;margin-top:28px;border-top:2px solid #111;padding-top:20px;}
 .print-total-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:14px;}
@@ -742,16 +743,8 @@ function renderResult() {
         </div>
       </div>
       <div class="result-footer">
-        <button class="btn-print" onclick="showPrintTip()">🖨 Imprimer / PDF</button>
+        <button class="btn-print" onclick="printDevis()">🖨 Imprimer / PDF</button>
         <button class="btn-restart" onclick="restart()">↩ Recommencer</button>
-      </div>
-      <div class="print-instruction" id="print-tip" style="display:none;background:#fff3ec;border:1px solid #ffd4b8;border-radius:10px;padding:14px 18px;margin-top:12px;font-size:13px;color:#7c3800;line-height:1.6;">
-        <strong>💡 Pour un PDF sans URL en pied de page :</strong><br>
-        Dans la boîte d'impression → décochez <strong>"En-têtes et pieds de page"</strong> (Chrome) ou <strong>"Headers and Footers"</strong> (Firefox/Edge), puis imprimez.
-        <div style="margin-top:10px;">
-          <button onclick="window.print()" style="background:#E85D04;color:#fff;border:none;border-radius:7px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">Lancer l'impression →</button>
-          <button onclick="document.getElementById('print-tip').style.display='none'" style="background:none;border:none;color:#7c3800;font-size:13px;cursor:pointer;margin-left:10px;text-decoration:underline;">Fermer</button>
-        </div>
       </div>
     </div>`;
 
@@ -843,8 +836,81 @@ function removeProduct(key) {
 }
 
 function showPrintTip() {
-  const tip = document.getElementById('print-tip');
-  if (tip) { tip.style.display = 'block'; tip.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  printDevis();
+}
+
+function printDevis() {
+  const total = calcTotal(S.products);
+  const tva = total * 0.2;
+  const ttc = total * 1.2;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
+  const timeStr = now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const logoUrl = 'https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg';
+
+  // Construire les lignes produits
+  const catOrder = ['Centrales','Infrastructure','Protection contre les intrusions','Sirènes','Accès','Vidéosurveillance','Enregistreurs vidéo','Réseau','Stockage','Sécurité incendie'];
+  const byCategory = {};
+  S.products.forEach(p => { if (!byCategory[p.cat]) byCategory[p.cat]=[]; byCategory[p.cat].push(p); });
+
+  let prodRows = '';
+  catOrder.forEach(cat => {
+    const items = byCategory[cat];
+    if (!items) return;
+    prodRows += `<tr><td colspan="4" style="padding:10px 0 4px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6b7280;border-bottom:1px solid #e5e7eb;">${cat}</td></tr>`;
+    items.forEach(p => {
+      const imgSrc = p.img || CATALOG[p.key]?.img || '';
+      prodRows += `<tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:10px 8px;"><img src="${imgSrc}" style="width:40px;height:40px;object-fit:contain;" onerror="this.style.display='none'"></td>
+        <td style="padding:10px 8px;font-size:13px;"><strong>${p.name}</strong><br><span style="color:#6b7280;font-size:11px;">${p.desc}</span></td>
+        <td style="padding:10px 8px;text-align:center;font-size:13px;font-weight:600;">${p.qty}</td>
+        <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;">${fmtPrice(p.unitPrice * p.qty)}</td>
+      </tr>`;
+    });
+  });
+
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+  <title>Configuration Ajax — CamProtect</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;color:#111;background:#fff;padding:32px;}
+    .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:2px solid #E85D04;margin-bottom:28px;}
+    .logo-box{background:#1a1a1a;border-radius:8px;padding:8px 14px;}
+    .logo-box img{height:32px;}
+    .date{font-size:12px;color:#6b7280;text-align:right;line-height:1.7;}
+    table{width:100%;border-collapse:collapse;}
+    .totals{margin-top:28px;border-top:2px solid #111;padding-top:16px;}
+    .tot-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid #e5e7eb;}
+    .tot-row.ttc{font-size:18px;font-weight:800;border-bottom:none;padding-top:12px;}
+    .tot-row.ttc .v{color:#E85D04;}
+    .l{color:#6b7280;}.tot-row.ttc .l{color:#111;}
+    @media print{body{padding:0;}}
+  </style></head><body>
+  <div class="header">
+    <div class="logo-box"><img src="${logoUrl}" alt="CamProtect"></div>
+    <div class="date">Généré le ${dateStr} à ${timeStr}<br>Configuration système Ajax</div>
+  </div>
+  <table>
+    <thead><tr style="background:#f9f9f9;">
+      <th style="padding:8px;text-align:left;font-size:11px;color:#6b7280;width:52px;"></th>
+      <th style="padding:8px;text-align:left;font-size:11px;color:#6b7280;">Produit</th>
+      <th style="padding:8px;text-align:center;font-size:11px;color:#6b7280;width:60px;">Qté</th>
+      <th style="padding:8px;text-align:right;font-size:11px;color:#6b7280;width:100px;">Prix HT</th>
+    </tr></thead>
+    <tbody>${prodRows}</tbody>
+  </table>
+  <div class="totals">
+    <div class="tot-row"><span class="l">Total HT</span><span class="v">${fmtPrice(total)}</span></div>
+    <div class="tot-row"><span class="l">TVA (20%)</span><span class="v">${fmtPrice(tva)}</span></div>
+    <div class="tot-row ttc"><span class="l">Total TTC</span><span class="v">${fmtPrice(ttc)}</span></div>
+  </div>
+  <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};}<\/script>
+  </body></html>`;
+
+  const w = window.open('', '_blank', 'width=900,height=700');
+  if (w) { w.document.write(html); w.document.close(); }
+  else { window.print(); } // fallback si popup bloqué
 }
 
 function updateStickyTotal() {
