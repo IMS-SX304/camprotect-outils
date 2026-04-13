@@ -3,939 +3,692 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Configurateur de système Ajax — CamProtect</title>
+<title>Configurateur Ajax — CamProtect</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-html{background:#f5f5f5;}
-:root{
-  --bg:#f5f5f5;--white:#fff;--dark:#111;--orange:#E85D04;--orange-light:#fff3ec;
-  --orange-border:#ffd4b8;--border:#e5e7eb;--text:#1a1a1a;--sub:#6b7280;
-  --radius:12px;--shadow:0 2px 12px rgba(0,0,0,.08);
-}
-body{font-family:'DM Sans',sans-serif;background:#f5f5f5;color:#1a1a1a;min-height:100vh;}
-
-/* ── HEADER ── */
-.header{background:var(--dark);padding:16px 24px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--orange);}
-.header-logo{font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;}
-.header-logo span{color:var(--orange);}
-.header-sub{font-size:12px;color:rgba(255,255,255,.5);margin-left:auto;}
-
-/* ── PROGRESS ── */
-.progress{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;}
-.progress-inner{max-width:720px;margin:0 auto;display:flex;align-items:flex-start;padding:14px 0;gap:0;}
-.step-dot{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;position:relative;}
-.step-dot:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 18px);right:calc(-50% + 18px);top:15px;height:2px;background:var(--border);z-index:0;}
-.step-dot.done::after{background:var(--orange);}
-.step-num{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--sub);background:var(--white);z-index:1;flex-shrink:0;transition:all .2s;}
-.step-dot.active .step-num{border-color:var(--orange);color:var(--orange);background:var(--orange-light);}
-.step-dot.done .step-num{border-color:var(--orange);background:var(--orange);color:#fff;}
-.step-label{font-size:10px;font-weight:600;color:var(--sub);text-align:center;line-height:1.2;white-space:nowrap;}
-@media(max-width:500px){.step-label{display:none;}}
-.step-dot.active .step-label{color:var(--orange);}
-.step-dot.done .step-label{color:var(--dark);}
-
-/* ── MAIN ── */
-.main{max-width:720px;margin:0 auto;padding:32px 16px 64px;}
-
-/* ── STEP TITLE ── */
-.step-title{font-size:26px;font-weight:800;text-align:center;margin-bottom:32px;color:var(--dark);}
-
-/* ── RADIO OPTIONS ── */
-.options{display:flex;flex-direction:column;gap:10px;}
-.opt{background:var(--white);border:2px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;}
-.opt:hover{border-color:var(--orange-border);background:var(--orange-light);}
-.opt.selected{border-color:var(--orange);background:var(--orange-light);}
-.opt-radio{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-.opt.selected .opt-radio{border-color:var(--orange);background:var(--orange);}
-.opt.selected .opt-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;}
-.opt-icon{font-size:22px;flex-shrink:0;}
-.opt-text{font-size:15px;font-weight:600;}
-
-/* ── CHECKBOXES ── */
-.group-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
-.group-header{padding:14px 20px;font-size:14px;font-weight:700;color:var(--dark);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
-.group-header .chevron{transition:transform .2s;color:var(--sub);}
-.group-header.open .chevron{transform:rotate(180deg);}
-.group-body{display:none;}
-.group-body.open{display:block;}
-.group-sub{padding:8px 20px 4px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);}
-.chk-item{padding:14px 20px;display:flex;align-items:flex-start;gap:12px;border-top:1px solid var(--border);cursor:pointer;transition:background .1s;}
-.chk-item:first-of-type{border-top:none;}
-.chk-item:hover{background:var(--orange-light);}
-.chk-item.checked{background:var(--orange-light);}
-.chk-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-.chk-item.checked .chk-box{border-color:var(--orange);background:var(--orange);}
-.chk-item.checked .chk-box::after{content:'✓';color:#fff;font-size:11px;font-weight:700;}
-.chk-name{font-size:14px;font-weight:600;color:var(--dark);}
-.chk-desc{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.5;}
-
-/* ── SPINNERS ── */
+html,body{background:#f5f5f5;}
+:root{--bg:#f5f5f5;--white:#fff;--dark:#111;--orange:#E85D04;--ol:#fff3ec;--ob:#ffd4b8;--border:#e5e7eb;--text:#1a1a1a;--sub:#6b7280;--r:12px;}
+body{font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;}
+.hd{background:#111;padding:16px 24px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--orange);}
+.hl{font-size:18px;font-weight:800;color:#fff;}.hl span{color:var(--orange);}
+.hs{font-size:13px;color:rgba(255,255,255,.6);font-weight:600;margin-left:auto;}
+.pg{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;}
+.pgi{max-width:720px;margin:0 auto;display:flex;align-items:flex-start;padding:14px 0;}
+.sd{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;position:relative;}
+.sd:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 18px);right:calc(-50% + 18px);top:15px;height:2px;background:var(--border);z-index:0;}
+.sd.done::after{background:var(--orange);}
+.sn{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--sub);background:var(--white);z-index:1;flex-shrink:0;transition:all .2s;}
+.sd.active .sn{border-color:var(--orange);color:var(--orange);background:var(--ol);}
+.sd.done .sn{border-color:var(--orange);background:var(--orange);color:#fff;}
+.sl{font-size:10px;font-weight:600;color:var(--sub);text-align:center;white-space:nowrap;}
+.sd.active .sl{color:var(--orange);}
+.sd.done .sl{color:var(--dark);}
+@media(max-width:480px){.sl{display:none;}}
+.main{max-width:720px;margin:0 auto;padding:28px 16px 80px;}
+.spage{animation:fi .2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.stit{font-size:clamp(20px,4vw,26px);font-weight:800;text-align:center;margin-bottom:28px;}
+.opts{display:flex;flex-direction:column;gap:10px;}
+.opt{background:var(--white);border:2px solid var(--border);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;}
+.opt:hover{border-color:var(--ob);background:var(--ol);}
+.opt.sel{border-color:var(--orange);background:var(--ol);}
+.orad{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.opt.sel .orad{border-color:var(--orange);background:var(--orange);}
+.opt.sel .orad::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;}
+.oico{font-size:20px;flex-shrink:0;}
+.otxt{font-size:15px;font-weight:600;}
+.gc{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;}
+.gh{padding:14px 18px;font-size:14px;font-weight:700;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.gh .chv{transition:transform .2s;color:var(--sub);font-size:12px;}
+.gh.op .chv{transform:rotate(180deg);}
+.gb{display:none;}.gb.op{display:block;}
+.gsub{padding:8px 18px 4px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);background:#fafafa;}
+.ci{padding:13px 18px;display:flex;align-items:flex-start;gap:12px;border-top:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.ci:hover{background:var(--ol);}
+.ci.chk{background:var(--ol);}
+.cb{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.ci.chk .cb{border-color:var(--orange);background:var(--orange);}
+.ci.chk .cb::after{content:'checkmark';font-size:0;width:10px;height:7px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px;}
+.cn{font-size:14px;font-weight:600;}
+.cd{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.5;}
 .params{display:flex;flex-direction:column;gap:10px;}
-.param-row{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:14px;}
-.param-icon{font-size:22px;flex-shrink:0;}
-.param-info{flex:1;}
-.param-name{font-size:14px;font-weight:700;}
-.param-desc{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
-.spinner{display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.spin-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--dark);transition:all .15s;font-weight:700;}
-.spin-btn:hover{border-color:var(--orange);color:var(--orange);}
-.spin-val{width:52px;text-align:center;font-size:16px;font-weight:700;border:1.5px solid var(--border);border-radius:8px;padding:6px;background:var(--white);}
-
-/* ── NAVIGATION ── */
-.nav{display:flex;gap:12px;justify-content:space-between;margin-top:32px;}
-.btn{padding:13px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;}
-.btn-back{background:var(--white);color:var(--dark);border:1.5px solid var(--border);}
-.btn-back:hover{border-color:var(--orange);color:var(--orange);}
-.btn-next{background:var(--orange);color:#fff;flex:1;font-size:15px;}
-.btn-next:hover{background:#d14e00;}
-.btn-next:disabled{background:#e5e7eb;color:var(--sub);cursor:not-allowed;}
-
-/* ── RESULT ── */
-.result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
-.result-title{font-size:22px;font-weight:800;}
-.result-total-box{background:var(--dark);color:#fff;border-radius:10px;padding:10px 20px;text-align:right;}
-.result-total-label{font-size:11px;color:rgba(255,255,255,.5);}
-.result-total-val{font-size:22px;font-weight:800;color:var(--orange);}
-.result-note{background:var(--orange-light);border:1px solid var(--orange-border);border-radius:10px;padding:12px 16px;font-size:13px;color:#7c3800;margin-bottom:20px;display:flex;gap:8px;}
-.result-category{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin:20px 0 10px;}
-.product-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:8px;display:flex;align-items:center;gap:14px;}
-.prod-img{width:52px;height:52px;object-fit:contain;flex-shrink:0;background:#f9f9f9;border-radius:8px;border:1px solid var(--border);}
-.prod-img-placeholder{width:52px;height:52px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
-.prod-info{flex:1;min-width:0;}
-.prod-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.prod-desc{font-size:12px;color:var(--sub);margin-top:2px;}
-.prod-right{display:flex;align-items:center;gap:14px;flex-shrink:0;}
-.prod-qty{display:flex;align-items:center;gap:6px;}
-.qty-btn{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-weight:700;}
-.qty-btn:hover{border-color:var(--orange);color:var(--orange);}
-.qty-val{width:36px;text-align:center;font-size:14px;font-weight:700;}
-.prod-price{text-align:right;min-width:70px;}
-.prod-price-val{font-size:16px;font-weight:800;color:var(--dark);}
-.prod-price-unit{font-size:11px;color:var(--sub);}
-.prod-del{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:14px;transition:all .15s;}
-.prod-del:hover{border-color:#ef4444;color:#ef4444;}
-.prod-link{font-size:11px;color:var(--orange);text-decoration:none;font-weight:600;margin-top:3px;display:block;}
-.result-footer{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;}
-.btn-print{background:var(--dark);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px;}
-.btn-print:hover{background:#333;}
-.btn-restart{background:var(--white);color:var(--dark);border:1.5px solid var(--border);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.btn-restart:hover{border-color:var(--orange);color:var(--orange);}
-
-/* ── PRINT ── */
-@media print{
-  .header,.progress,.nav,.result-footer,.prod-qty,.prod-del,.prod-link,.sticky-total,
-  button[onclick*="toggleColor"],.print-instruction{display:none!important;}
-  body{background:#fff;}
-  .main{padding:0 16px;}
-  .product-card{break-inside:avoid;}
-  .result-header{display:none!important;}
-  .print-header{display:flex!important;}
-  .print-totals{display:block!important;}
-  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.pr{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:14px;}
+.pico{font-size:20px;flex-shrink:0;}
+.pi2{flex:1;min-width:0;}
+.pn{font-size:14px;font-weight:700;}
+.pd{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
+.sp{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.sb{width:32px;height:32px;border-radius:7px;border:1.5px solid var(--border);background:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--dark);font-weight:700;transition:all .15s;}
+.sb:hover{border-color:var(--orange);color:var(--orange);}
+.sv{width:52px;text-align:center;font-size:15px;font-weight:700;border:1.5px solid var(--border);border-radius:7px;padding:6px;background:var(--white);}
+.cf{display:flex;flex-direction:column;gap:14px;}
+.cfr{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cff{display:flex;flex-direction:column;gap:5px;}
+.cfl{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;}
+.cfi{background:var(--white);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .15s;width:100%;}
+.cfi:focus{border-color:var(--orange);}
+.nav{display:flex;gap:10px;margin-top:28px;}
+.btn{padding:12px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.bbk{background:var(--white);color:var(--dark);border:1.5px solid var(--border);}
+.bbk:hover{border-color:var(--orange);color:var(--orange);}
+.bnx{background:var(--orange);color:#fff;flex:1;font-size:15px;}
+.bnx:hover{background:#d14e00;}
+.bnx:disabled{background:var(--border);color:var(--sub);cursor:not-allowed;}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.rt{font-size:20px;font-weight:800;}
+.rtb{background:var(--dark);color:#fff;border-radius:10px;padding:10px 18px;text-align:right;}
+.rtbl{font-size:11px;color:rgba(255,255,255,.5);}
+.rtbv{font-size:20px;font-weight:800;color:var(--orange);}
+.rcat{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin:18px 0 8px;}
+.pc{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.pimg{width:48px;height:48px;object-fit:contain;flex-shrink:0;background:#f9f9f9;border-radius:8px;border:1px solid var(--border);}
+.pph{width:48px;height:48px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.pinf{flex:1;min-width:0;}
+.pnm{font-size:13px;font-weight:700;}
+.pds{font-size:12px;color:var(--sub);margin-top:2px;}
+.pco{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.pcb{width:16px;height:16px;border-radius:50%;cursor:pointer;border:2px solid #ccc;transition:border-color .15s;}
+.pl{font-size:11px;color:var(--orange);text-decoration:none;font-weight:600;}
+.pr2{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.pq{display:flex;align-items:center;gap:6px;}
+.qb{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:all .15s;}
+.qb:hover{border-color:var(--orange);color:var(--orange);}
+.qv{width:32px;text-align:center;font-size:13px;font-weight:700;}
+.ppr{text-align:right;min-width:70px;}
+.pprv{font-size:15px;font-weight:800;}
+.ppru{font-size:11px;color:var(--sub);}
+.pdl{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:13px;transition:all .15s;}
+.pdl:hover{border-color:#ef4444;color:#ef4444;}
+.rf{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;}
+.bpr{background:var(--dark);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;}
+.bpr:hover{background:#333;}
+.brs{background:var(--white);color:var(--dark);border:1.5px solid var(--border);padding:12px 22px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.brs:hover{border-color:var(--orange);color:var(--orange);}
+.ptot{display:none;margin-top:24px;border-top:2px solid var(--dark);padding-top:18px;}
+.totr{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid var(--border);}
+.totr.ttc{font-size:17px;font-weight:800;border-bottom:none;padding-top:12px;}
+.totr .tl{color:var(--sub);}
+.totr.ttc .tl{color:var(--dark);}
+.totr.ttc .tv{color:var(--orange);font-size:18px;}
+.stk{position:fixed;bottom:0;left:0;right:0;background:var(--dark);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;z-index:100;transform:translateY(100%);transition:transform .25s;}
+.stk.show{transform:none;}
+.stl{font-size:13px;color:rgba(255,255,255,.6);}
+.stv{font-size:18px;font-weight:800;color:var(--orange);}
+.warn{text-align:center;font-size:13px;color:var(--orange);margin-top:8px;}
+@media(max-width:600px){
+  .cfr{grid-template-columns:1fr;}
+  .rh{flex-direction:column;align-items:flex-start;}
+  .rtb{width:100%;}
+  .pc{flex-wrap:wrap;}
+  .pr2{width:100%;justify-content:flex-end;}
+  .hd{padding:12px 16px;}
+  .hs{display:none;}
 }
-
-/* ── PRINT HEADER & TOTALS ── */
-.print-header{display:none;justify-content:space-between;align-items:center;padding:16px 0 20px;border-bottom:2px solid #E85D04;margin-bottom:24px;}
-.print-logo img{max-height:36px;width:auto;}
-.print-date{font-size:12px;color:#6b7280;text-align:right;line-height:1.6;}
-.print-totals{display:none;margin-top:28px;border-top:2px solid #111;padding-top:20px;}
-.print-total-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:14px;}
-.print-total-row.main{font-size:17px;font-weight:800;border-bottom:none;padding-top:12px;}
-.print-total-row .label{color:#6b7280;}
-.print-total-row.main .label{color:#111;}
-.print-total-row .val{font-weight:700;color:#111;}
-.print-total-row.main .val{color:#E85D04;font-size:20px;}
-
-/* ── ANIM ── */
-.step-page{animation:fadeIn .2s ease;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-
-/* ── TOTAL STICKY ── */
-.sticky-total{position:fixed;bottom:0;left:0;right:0;background:var(--dark);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;z-index:100;transform:translateY(100%);transition:transform .25s;}
-.sticky-total.show{transform:none;}
-.st-label{font-size:13px;color:rgba(255,255,255,.6);}
-.st-val{font-size:18px;font-weight:800;color:var(--orange);}
+@media print{
+  .hd,.pg,.nav,.rf,.stk,button{display:none!important;}
+  body{background:#fff;}
+  .main{padding:0;}
+  .pc{break-inside:avoid;}
+  .rh{display:none!important;}
+  .ph{display:flex!important;}
+  .ptot{display:block!important;}
+}
+.ph{display:none;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:2px solid var(--orange);margin-bottom:20px;}
+.ph img{height:32px;display:block;padding:8px 14px;background:#1a1a1a;border-radius:8px;}
+.phd{font-size:12px;color:var(--sub);text-align:right;line-height:1.7;}
 </style>
 </head>
 <body>
-
-<div class="header">
-  <div class="header-logo">Cam<span>Protect</span></div>
-  <div style="font-size:13px;color:rgba(255,255,255,.7);font-weight:600;">Configurateur de système Ajax</div>
-  <div class="header-sub">Configurez votre système en quelques clics</div>
+<div class="hd">
+  <div class="hl">Cam<span>Protect</span></div>
+  <div style="font-size:13px;color:rgba(255,255,255,.7);font-weight:600;">Configurateur de systeme Ajax</div>
+  <div class="hs">Configurez votre systeme en quelques clics</div>
 </div>
-
-<div class="progress">
-  <div class="progress-inner">
-    <div class="step-dot active" id="sdot-1">
-      <div class="step-num">1</div>
-      <div class="step-label">Lieu</div>
-    </div>
-    <div class="step-dot" id="sdot-2">
-      <div class="step-num">2</div>
-      <div class="step-label">Fonctions</div>
-    </div>
-    <div class="step-dot" id="sdot-3">
-      <div class="step-num">3</div>
-      <div class="step-label">Paramètres</div>
-    </div>
-    <div class="step-dot" id="sdot-4">
-      <div class="step-num">4</div>
-      <div class="step-label">Options</div>
-    </div>
-    <div class="step-dot" id="sdot-5">
-      <div class="step-num">✓</div>
-      <div class="step-label">Résultat</div>
-    </div>
+<div class="pg">
+  <div class="pgi">
+    <div class="sd active" id="sd1"><div class="sn">1</div><div class="sl">Lieu</div></div>
+    <div class="sd" id="sd2"><div class="sn">2</div><div class="sl">Fonctions</div></div>
+    <div class="sd" id="sd3"><div class="sn">3</div><div class="sl">Parametres</div></div>
+    <div class="sd" id="sd4"><div class="sn">4</div><div class="sl">Options</div></div>
+    <div class="sd" id="sd5"><div class="sn">5</div><div class="sl">Client</div></div>
+    <div class="sd" id="sd6"><div class="sn">&#10003;</div><div class="sl">Resultat</div></div>
   </div>
 </div>
-
 <div class="main" id="app"></div>
-
-<div class="sticky-total" id="sticky-total">
-  <div class="st-label">Total estimatif HT</div>
-  <div class="st-val" id="st-val">0 €</div>
+<div class="stk" id="stk">
+  <div class="stl">Total estimatif HT</div>
+  <div class="stv" id="stv">0 &#8364;</div>
 </div>
-
 <script>
-// ── ÉTAT ──────────────────────────────────────────────
-const S = {
+var CDN = 'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/';
+var LOGO = 'https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg';
+
+var ST = {
   step: 1,
-  type: null,          // apt | maison | bureau | entreprise
-  features: new Set(), // indoor | outdoor | panic | cam_ir | cam_hybrid | cam_wifi | nvr | nvr_hdmi | doorbell
-  params: { floors:1, rooms:5, entries:1, windows:4, area:80 },
-  extras: new Set(),   // photo_verif | perimeter | garage | safe | autonomous | backup_power | keypad | remote
-  products: []         // [{key,name,qty,unitPrice,img,url,desc,category}]
+  type: null,
+  feat: {},
+  par: {floors:1, rooms:5, entries:1, windows:4, area:80},
+  ext: {},
+  cli: {nom:'', soc:'', tel:'', email:'', adr:'', chan:'', ref:''},
+  prods: [],
+  grp: {i:true, v:false, f:false}
 };
 
-// ── CATALOGUE PRODUITS ────────────────────────────────
-const CDN = 'https://cdn.prod.website-files.com/66e1f58c28ec496d75b4313b/';
-const CATALOG = {
-  hub:    { name:'Hub 2 (4G) Blanc', desc:'Centrale d\'alarme Ajax sans fil 4G/Ethernet', cat:'Centrales', icon:'🏠', price:257.22, url:'https://www.camprotect.fr/product/ajax-hub-2-4g-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgNoir:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png' },
-  hub_p:  { name:'Hub 2 Plus Blanc', desc:'Centrale Ajax 4G/Ethernet/Wi-Fi, 150 appareils', cat:'Centrales', icon:'🏠', price:293.76, url:'https://www.camprotect.fr/product/ajax-hub-2-plus-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgNoir:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png' },
-  mp:     { name:'MotionProtect Blanc', desc:'Détecteur de mouvement IR sans fil intérieur', cat:'Protection contre les intrusions', icon:'👁', price:45.92, url:'https://www.camprotect.fr/product/motionprotect-blanc', img:CDN+'6928313c359219e7effa6010_Design%20sans%20titre%20(26).png', imgNoir:CDN+'692831ea44e7f54603612448_Design%20sans%20titre%20(27).png' },
-  mp_p:   { name:'MotionProtect+ Blanc', desc:'Détecteur dual tech PIR + micro-ondes', cat:'Protection contre les intrusions', icon:'👁', price:63.02, url:'https://www.camprotect.fr/product/ajax-motionprotect-plus-blanc', img:CDN+'6928313c359219e7effa6010_Design%20sans%20titre%20(26).png', imgNoir:CDN+'692831ea44e7f54603612448_Design%20sans%20titre%20(27).png' },
-  mp_o:   { name:'MotionProtect Outdoor Blanc', desc:'Détecteur de mouvement extérieur IP55', cat:'Protection contre les intrusions', icon:'👁', price:158.89, url:'https://www.camprotect.fr/product/ajax-motionprotect-outdoor-blanc', img:CDN+'69247ddee63e9f3dada6ab2b_Design%20sans%20titre%20(5).png', imgNoir:'' },
-  mc:     { name:'MotionCam Blanc', desc:'Détecteur mouvement avec vérification photo', cat:'Protection contre les intrusions', icon:'📷', price:104.77, url:'https://www.camprotect.fr/product/ajax-motioncam-blanc', img:CDN+'69281547b092a2a58aefde5f_Design%20sans%20titre%20(24).png', imgNoir:CDN+'69281616b4a3d1136a1ea304_Design%20sans%20titre%20(25).png' },
-  mc_o:   { name:'MotionCam Outdoor Blanc', desc:'Détecteur photo extérieur IP55', cat:'Protection contre les intrusions', icon:'📷', price:195.44, url:'https://www.camprotect.fr/product/ajax-motioncam-outdoor-blanc', img:CDN+'6924635a1ed512b9de9f1907_Design%20sans%20titre%20(4).png', imgNoir:'' },
-  mc_c:   { name:'MotionProtect Curtain Blanc', desc:'Détecteur rideau pour couloirs et accès', cat:'Protection contre les intrusions', icon:'👁', price:53.52, url:'https://www.camprotect.fr/product/ajax-motionprotect-curtain-blanc', img:CDN+'69280ddc5df6bc2930c094f3_Design%20sans%20titre%20(21).png', imgNoir:CDN+'69280fcf98c98b15b48d8ec6_Design%20sans%20titre%20(22).png' },
-  dp:     { name:'DoorProtect Blanc', desc:'Contact d\'ouverture porte/fenêtre sans fil', cat:'Protection contre les intrusions', icon:'🚪', price:27.07, url:'https://www.camprotect.fr/product/doorprotect-blanc', img:CDN+'699836f2e4d3ecdb7e2e5b06_685a60a844c3c948997bed2f_78.png', imgNoir:CDN+'69283f2e18cb725912337541_Design%20sans%20titre%20(31).png' },
-  gp:     { name:'GlassProtect Blanc', desc:'Détecteur bris de vitre sans fil', cat:'Protection contre les intrusions', icon:'🔍', price:46.00, url:'https://www.camprotect.fr/product/ajax-glassprotect-blanc', img:CDN+'692839ce6c2347512c215a7b_Design%20sans%20titre%20(28).png', imgNoir:CDN+'69283a6dea39bc08decbe4e4_Design%20sans%20titre%20(29).png' },
-  hs:     { name:'HomeSiren Blanc', desc:'Sirène intérieure sans fil 105 dB', cat:'Sirènes', icon:'🔔', price:93.00, url:'https://www.camprotect.fr/product/ajax-homesiren-blanc', img:CDN+'692809052fc9f046bdc9a637_Design%20sans%20titre%20(19).png', imgNoir:CDN+'69280860bdc3ba581946db58_Design%20sans%20titre%20(18).png' },
-  ss:     { name:'StreetSiren Blanc', desc:'Sirène extérieure sans fil IP55', cat:'Sirènes', icon:'🔔', price:182.00, url:'https://www.camprotect.fr/product/ajax-streetsiren-blanc', img:CDN+'692727e1f07e723e9be9bd69_Design%20sans%20titre%20(13).png', imgNoir:CDN+'6927275c2eb724bf9b736cac_Design%20sans%20titre%20(12).png' },
-  kp:     { name:'KeyPad Blanc', desc:'Clavier de code sans fil', cat:'Accès', icon:'⌨️', price:76.00, url:'https://www.camprotect.fr/product/ajax-keypad-blanc', img:CDN+'6927264754c405f62aa32ef3_Design%20sans%20titre%20(11).png', imgNoir:CDN+'692725c045d74d5cedd27196_Design%20sans%20titre%20(10).png' },
-  kp_p:   { name:'KeyPad Plus Blanc', desc:'Clavier tactile Pass/Tag/code', cat:'Accès', icon:'⌨️', price:120.00, url:'https://www.camprotect.fr/product/ajax-keypad-plus-blanc', img:CDN+'6927264754c405f62aa32ef3_Design%20sans%20titre%20(11).png', imgNoir:CDN+'692725c045d74d5cedd27196_Design%20sans%20titre%20(10).png' },
-  rex:    { name:'ReX 2 Blanc', desc:'Amplificateur de portée radio', cat:'Infrastructure', icon:'📡', price:130.65, url:'https://www.camprotect.fr/product/ajax-rex-2-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgNoir:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png' },
-  bc28:   { name:'BulletCam 5MP 2.8mm Blanche', desc:'Caméra bullet IP PoE IA intérieur/extérieur', cat:'Vidéosurveillance', icon:'📹', price:129.00, url:'https://www.camprotect.fr/product/ajax-bulletcam-blanche-5mp-2-8mm', img:CDN+'69c54add9b42009c2fb9116b_Bulletcam%205MP-2.8%20Blanche.png', imgNoir:'' },
-  tc28:   { name:'TurretCam 5MP 2.8mm Blanche', desc:'Caméra tourelle IP PoE IA 110° vision nocturne', cat:'Vidéosurveillance', icon:'📹', price:129.00, url:'https://www.camprotect.fr/product/camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche', img:CDN+'69cbca248634db3c54041e77_TurretCam%20blanche.png', imgNoir:CDN+'69cba6ddb7f897c56f45bb0f_TurretCam%20noire.png' },
-  dc28:   { name:'DomeCam Mini 5MP 2.8mm Blanche', desc:'Caméra dôme IP PoE intérieur discret', cat:'Vidéosurveillance', icon:'📹', price:75.67, url:'https://www.camprotect.fr/product/camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', img:CDN+'69cb6f2d3696164fd91fff25_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20blanche.png', imgNoir:CDN+'69ca8d0b53b8f1f9d7f31357_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20noire.png' },
-  fp:     { name:'FireProtect Blanc', desc:'Détecteur fumée et chaleur sans fil', cat:'Sécurité incendie', icon:'🔥', price:79.00, url:'https://www.camprotect.fr/product/ajax-fireprotect-blanc', img:'', imgNoir:'' },
-  fp_p:   { name:'FireProtect Plus Blanc', desc:'Détecteur fumée, chaleur et CO', cat:'Sécurité incendie', icon:'🔥', price:110.00, url:'https://www.camprotect.fr/product/fireprotect-plus-blanc', img:'', imgNoir:'' },
-  nvr8:   { name:'NVR Ajax HAC 8 canaux Blanc', desc:'Enregistreur vidéo réseau 8 canaux sans HDMI', cat:'Enregistreurs vidéo', icon:'💾', price:150.99, img:CDN+'69ccf30e369ca382c7be9ff4_246.png', imgNoir:CDN+'69ccf30e369ca382c7be9ff4_246.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-hac-ajax-8-canaux-blanc' },
-  nvr16:  { name:'NVR Ajax HAC 16 canaux Blanc', desc:'Enregistreur vidéo réseau 16 canaux sans HDMI', cat:'Enregistreurs vidéo', icon:'💾', price:232.99, img:CDN+'69ccf30e369ca382c7be9ff4_246.png', imgNoir:CDN+'69ccf30e369ca382c7be9ff4_246.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-hac-ajax-16-canaux-blanc' },
-  nvr8h:  { name:'NVR Ajax DC 8 canaux Blanc', desc:'Enregistreur 8 canaux avec sortie HDMI', cat:'Enregistreurs vidéo', icon:'💾', price:124.99, img:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', imgNoir:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-dc-ajax-8-canaux-blanc' },
-  nvr16h: { name:'NVR Ajax DC 16 canaux Blanc', desc:'Enregistreur 16 canaux avec sortie HDMI', cat:'Enregistreurs vidéo', icon:'💾', price:202.01, img:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', imgNoir:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', url:'https://www.camprotect.fr/product/enregistreur-nvr-dc-ajax-16-canaux-blanc' },
-  sw4:    { name:'Switch PoE Gigabit 4 ports', desc:'Switch PoE pour 4 caméras IP', cat:'Réseau', icon:'🔌', price:50.24, img:CDN+'67aefd9329932c64adc6', imgNoir:'', url:'https://www.camprotect.fr/product/switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e' },
-  sw8:    { name:'Switch PoE 8 ports', desc:'Switch PoE 8 ports, 96W budget PoE total', cat:'Réseau', icon:'🔌', price:73.44, img:CDN+'68c14fdc7961ddd80ddc', imgNoir:'', url:'https://www.camprotect.fr/product/switch-poe-8-ports-pfs3110-8et-96' },
-  sw16:   { name:'Switch PoE Gigabit 16 ports', desc:'Switch PoE 16 ports haute densité', cat:'Réseau', icon:'🔌', price:234.87, img:CDN+'67af07673fbdeb8edbb6', imgNoir:'', url:'https://www.camprotect.fr/product/switch-poe-gigabit-16-ports-ds-3e0520hp-e' },
-  hdd:    { name:'Disque dur Seagate SkyHawk', desc:'Disque dur surveillance 24h/24, de 1 à 10 To', cat:'Stockage', icon:'🖥', price:75.00, img:CDN+'68de79358a2e78c9b377', imgNoir:'', url:'https://www.camprotect.fr/product/disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx' },
+var CAT = {
+  hub:   {n:'Hub 2 (4G) Blanc', d:'Centrale alarme Ajax 4G/Ethernet', c:'Centrales', p:257.22, url:'ajax-hub-2-4g-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgN:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png'},
+  hubp:  {n:'Hub 2 Plus Blanc', d:'Centrale Ajax 4G/Ethernet/Wi-Fi, 150 appareils', c:'Centrales', p:293.76, url:'ajax-hub-2-plus-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgN:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png'},
+  mp:    {n:'MotionProtect Blanc', d:'Detecteur mouvement IR interieur', c:'Detection', p:45.92, url:'motionprotect-blanc', img:CDN+'6928313c359219e7effa6010_Design%20sans%20titre%20(26).png', imgN:CDN+'692831ea44e7f54603612448_Design%20sans%20titre%20(27).png'},
+  mpp:   {n:'MotionProtect+ Blanc', d:'Detecteur dual tech PIR + micro-ondes', c:'Detection', p:63.02, url:'ajax-motionprotect-plus-blanc', img:CDN+'6928313c359219e7effa6010_Design%20sans%20titre%20(26).png', imgN:CDN+'692831ea44e7f54603612448_Design%20sans%20titre%20(27).png'},
+  mpo:   {n:'MotionProtect Outdoor Blanc', d:'Detecteur mouvement exterieur IP55', c:'Detection', p:158.89, url:'ajax-motionprotect-outdoor-blanc', img:CDN+'69247ddee63e9f3dada6ab2b_Design%20sans%20titre%20(5).png', imgN:''},
+  mc:    {n:'MotionCam Blanc', d:'Detecteur mouvement avec verification photo', c:'Detection', p:104.77, url:'ajax-motioncam-blanc', img:CDN+'69281547b092a2a58aefde5f_Design%20sans%20titre%20(24).png', imgN:CDN+'69281616b4a3d1136a1ea304_Design%20sans%20titre%20(25).png'},
+  mco:   {n:'MotionCam Outdoor Blanc', d:'Detecteur photo exterieur IP55', c:'Detection', p:195.44, url:'ajax-motioncam-outdoor-blanc', img:CDN+'6924635a1ed512b9de9f1907_Design%20sans%20titre%20(4).png', imgN:''},
+  mcc:   {n:'MotionProtect Curtain Blanc', d:'Detecteur rideau pour couloirs et acces', c:'Detection', p:53.52, url:'ajax-motionprotect-curtain-blanc', img:CDN+'69280ddc5df6bc2930c094f3_Design%20sans%20titre%20(21).png', imgN:CDN+'69280fcf98c98b15b48d8ec6_Design%20sans%20titre%20(22).png'},
+  dp:    {n:'DoorProtect Blanc', d:'Contact ouverture porte/fenetre sans fil', c:'Detection', p:27.07, url:'doorprotect-blanc', img:CDN+'699836f2e4d3ecdb7e2e5b06_685a60a844c3c948997bed2f_78.png', imgN:CDN+'69283f2e18cb725912337541_Design%20sans%20titre%20(31).png'},
+  gp:    {n:'GlassProtect Blanc', d:'Detecteur bris de vitre sans fil', c:'Detection', p:46.00, url:'ajax-glassprotect-blanc', img:CDN+'692839ce6c2347512c215a7b_Design%20sans%20titre%20(28).png', imgN:CDN+'69283a6dea39bc08decbe4e4_Design%20sans%20titre%20(29).png'},
+  hs:    {n:'HomeSiren Blanc', d:'Sirene interieure sans fil 105 dB', c:'Sirenes', p:93.00, url:'ajax-homesiren-blanc', img:CDN+'692809052fc9f046bdc9a637_Design%20sans%20titre%20(19).png', imgN:CDN+'69280860bdc3ba581946db58_Design%20sans%20titre%20(18).png'},
+  ss:    {n:'StreetSiren Blanc', d:'Sirene exterieure sans fil IP55', c:'Sirenes', p:182.00, url:'ajax-streetsiren-blanc', img:CDN+'692727e1f07e723e9be9bd69_Design%20sans%20titre%20(13).png', imgN:CDN+'6927275c2eb724bf9b736cac_Design%20sans%20titre%20(12).png'},
+  kp:    {n:'KeyPad Blanc', d:'Clavier de code sans fil', c:'Acces', p:76.00, url:'ajax-keypad-blanc', img:CDN+'6927264754c405f62aa32ef3_Design%20sans%20titre%20(11).png', imgN:CDN+'692725c045d74d5cedd27196_Design%20sans%20titre%20(10).png'},
+  kpp:   {n:'KeyPad Plus Blanc', d:'Clavier tactile Pass/Tag/code', c:'Acces', p:120.00, url:'ajax-keypad-plus-blanc', img:CDN+'6927264754c405f62aa32ef3_Design%20sans%20titre%20(11).png', imgN:CDN+'692725c045d74d5cedd27196_Design%20sans%20titre%20(10).png'},
+  rex:   {n:'ReX 2 Blanc', d:'Amplificateur de portee radio', c:'Infrastructure', p:130.65, url:'ajax-rex-2-blanc', img:CDN+'69286325cde31576c8d7137a_Design%20sans%20titre%20(32).png', imgN:CDN+'6928639eefca0580c9f804b6_Design%20sans%20titre%20(33).png'},
+  tc28:  {n:'TurretCam 5MP 2.8mm Blanche', d:'Camera tourelle IP PoE IA 110 vision nocturne', c:'Videosurveillance', p:129.00, url:'camera-tourelle-ajax-turretcam-5mp-2-8mm-blanche', img:CDN+'69cbca248634db3c54041e77_TurretCam%20blanche.png', imgN:CDN+'69cba6ddb7f897c56f45bb0f_TurretCam%20noire.png'},
+  bc28:  {n:'BulletCam 5MP 2.8mm Blanche', d:'Camera bullet IP PoE IA interieur/exterieur', c:'Videosurveillance', p:129.00, url:'ajax-bulletcam-blanche-5mp-2-8mm', img:CDN+'69c54add9b42009c2fb9116b_Bulletcam%205MP-2.8%20Blanche.png', imgN:''},
+  dc28:  {n:'DomeCam Mini 5MP 2.8mm Blanche', d:'Camera dome IP PoE interieur discret', c:'Videosurveillance', p:75.67, url:'camera-dome-ajax-domecam-mini-5mp-2-8mm-blanche', img:CDN+'69cb6f2d3696164fd91fff25_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20blanche.png', imgN:CDN+'69ca8d0b53b8f1f9d7f31357_Cam%C3%A9ra%20D%C3%B4me%20Ajax%20DomeCam%20Mini%20noire.png'},
+  nvr8:  {n:'NVR Ajax HAC 8 canaux Blanc', d:'Enregistreur 8 canaux sans HDMI', c:'Enregistreurs', p:150.99, url:'enregistreur-nvr-hac-ajax-8-canaux-blanc', img:CDN+'69ccf30e369ca382c7be9ff4_246.png', imgN:''},
+  nvr16: {n:'NVR Ajax HAC 16 canaux Blanc', d:'Enregistreur 16 canaux sans HDMI', c:'Enregistreurs', p:232.99, url:'enregistreur-nvr-hac-ajax-16-canaux-blanc', img:CDN+'69ccf30e369ca382c7be9ff4_246.png', imgN:''},
+  nvr8h: {n:'NVR Ajax DC 8 canaux Blanc', d:'Enregistreur 8 canaux avec sortie HDMI', c:'Enregistreurs', p:124.99, url:'enregistreur-nvr-dc-ajax-8-canaux-blanc', img:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', imgN:''},
+  nvr16h:{n:'NVR Ajax DC 16 canaux Blanc', d:'Enregistreur 16 canaux avec sortie HDMI', c:'Enregistreurs', p:202.01, url:'enregistreur-nvr-dc-ajax-16-canaux-blanc', img:CDN+'69ccd8c7cbddd77eae49377c_NVR%20Ajax%20blanc.png', imgN:''},
+  sw4:   {n:'Switch PoE Gigabit 4 ports', d:'Switch PoE pour 4 cameras IP', c:'Reseau', p:50.24, url:'switch-poe-gigabit-5-ports-hikvision-ds-3e0505hp-e', img:CDN+'67aefd9329932c64adc6', imgN:''},
+  sw8:   {n:'Switch PoE 8 ports', d:'Switch PoE 8 ports, 96W budget PoE', c:'Reseau', p:73.44, url:'switch-poe-8-ports-pfs3110-8et-96', img:CDN+'68c14fdc7961ddd80ddc', imgN:''},
+  sw16:  {n:'Switch PoE Gigabit 16 ports', d:'Switch PoE 16 ports haute densite', c:'Reseau', p:234.87, url:'switch-poe-gigabit-16-ports-ds-3e0520hp-e', img:CDN+'67af07673fbdeb8edbb6', imgN:''},
+  hdd:   {n:'Disque dur Seagate SkyHawk', d:'Disque dur surveillance 24h/24, 1 a 10 To', c:'Stockage', p:75.00, url:'disque-dur-seagate-skyhawk-1-to-a-10-to-st-xxxx', img:CDN+'68de79358a2e78c9b377', imgN:''},
+  fp:    {n:'FireProtect Blanc', d:'Detecteur fumee et chaleur sans fil', c:'Incendie', p:79.00, url:'ajax-fireprotect-blanc', img:'', imgN:''},
+  fpp:   {n:'FireProtect Plus Blanc', d:'Detecteur fumee, chaleur et CO', c:'Incendie', p:110.00, url:'fireprotect-plus-blanc', img:'', imgN:''},
+  cab90: {n:'Cable reseau RJ45 Cat6 FUTP - Couronne 90m', d:'Cable Cat6 FUTP vert, couronne de 90 metres', c:'Cablage', p:125.00, url:'cable-reseau-rj45-cat6-futp', img:CDN+'687d39d3e47b9854e77133e7_6700-cable-reseau-cat6-futp-1x4-z.webp', imgN:''},
+  cab305:{n:'Cable reseau RJ45 Cat6 FUTP - Bobine 305m', d:'Cable Cat6 FUTP vert, bobine de 305 metres', c:'Cablage', p:375.00, url:'cable-reseau-rj45-cat6-futp', img:CDN+'687d39d3e47b9854e77133e7_6700-cable-reseau-cat6-futp-1x4-z.webp', imgN:''}
 };
 
-// ── MOTEUR DE RECOMMANDATION ──────────────────────────
-function buildRecommendation() {
-  const { type, features, params, extras } = S;
-  const { floors, rooms, entries, windows, area } = params;
-  const res = {};
+var CATS = ['Centrales','Infrastructure','Detection','Sirenes','Acces','Videosurveillance','Enregistreurs','Reseau','Stockage','Incendie','Cablage'];
 
-  function add(key, qty) {
-    if (!CATALOG[key]) return;
-    res[key] = (res[key] || 0) + qty;
+function fp(v){ return v.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20AC'; }
+function tot(){ return ST.prods.reduce(function(t,p){return t+p.p*p.q;},0); }
+
+function updDots(){
+  for(var i=1;i<=6;i++){
+    var el=document.getElementById('sd'+i);
+    el.className='sd'+(i===ST.step?' active':i<ST.step?' done':'');
   }
-
-  // CENTRALE — toujours Hub 4G sauf Hub Plus si grand système
-  const totalDevicesEst = rooms * 2 + entries + windows + (features.has('outdoor') ? 3 : 0);
-  if (totalDevicesEst > 80 || type === 'entreprise') add('hub_p', 1);
-  else add('hub', 1); // Hub 2 4G par défaut
-
-  // RÉPÉTEUR si plusieurs étages ou grande surface
-  if (floors > 1 || area > 150) add('rex', Math.min(floors - 1 + (area > 200 ? 1 : 0), 3));
-
-  // SÉCURITÉ INTÉRIEURE
-  if (features.has('indoor')) {
-    const pirKey = extras.has('photo_verif') ? 'mc' : 'mp';
-    add(pirKey, Math.max(1, rooms));
-    add('dp', entries);
-    if (windows > 0) add('gp', Math.min(windows, Math.ceil(windows / 2)));
-    add('hs', 1);
-  }
-
-  // SÉCURITÉ EXTÉRIEURE
-  if (features.has('outdoor')) {
-    const pirOutKey = extras.has('photo_verif') ? 'mc_o' : 'mp_o';
-    add(pirOutKey, Math.max(1, Math.ceil(area / 100)));
-    add('ss', 1);
-    if (extras.has('perimeter')) add('mc_c', Math.max(1, entries));
-  }
-
-  // GARAGE
-  if (extras.has('garage')) add('mc_c', 1);
-
-  // COFFRE-FORT
-  if (extras.has('safe')) add('mp_p', 1);
-
-  // CLAVIER
-  if (extras.has('keypad') || features.has('indoor')) {
-    const kpKey = (type === 'entreprise' || type === 'bureau') ? 'kp_p' : 'kp';
-    add(kpKey, entries);
-  }
-
-  // PÉRIMÈTRE
-  if (extras.has('perimeter') && !features.has('outdoor')) add('mc_c', entries);
-
-  // CAMÉRAS IR (filaires infrarouge)
-  if (features.has('cam_ir')) {
-    const camQty = (type === 'apt' || type === 'maison')
-      ? Math.max(1, Math.ceil(rooms / 3))
-      : Math.max(1, Math.ceil(area / 80));
-    add('tc28', camQty);
-  }
-
-  // CAMÉRAS HYBRIDE/DÔME
-  if (features.has('cam_hybrid')) {
-    add('dc28', Math.max(1, Math.ceil(rooms / 4)));
-  }
-
-  // NVR — ajouté dès que sélectionné, avec caméras si aucune autre sélectionnée
-  if (features.has('nvr') || features.has('nvr_hdmi')) {
-    const totalCams = (res.tc28 || 0) + (res.bc28 || 0) + (res.dc28 || 0);
-    // Si pas de caméras sélectionnées, en ajouter automatiquement
-    const camCount = totalCams > 0 ? totalCams : Math.max(2, Math.ceil(rooms / 3));
-    if (totalCams === 0) add('tc28', camCount);
-    const finalCams = (res.tc28 || 0) + (res.bc28 || 0) + (res.dc28 || 0);
-    // NVR adapté
-    const useHdmi = features.has('nvr_hdmi');
-    if (useHdmi) {
-      add(finalCams > 8 ? 'nvr16h' : 'nvr8h', 1);
-    } else {
-      add(finalCams > 8 ? 'nvr16' : 'nvr8', 1);
-    }
-    // Switch PoE adapté au nombre de caméras
-    if (finalCams <= 4) add('sw4', 1);
-    else if (finalCams <= 8) add('sw8', 1);
-    else add('sw16', 1);
-    // Disque dur
-    add('hdd', 1);
-  } else if (features.has('cam_ir') || features.has('cam_hybrid')) {
-    // Caméras sans NVR : ajouter quand même un switch PoE
-    const totalCams = (res.tc28 || 0) + (res.bc28 || 0) + (res.dc28 || 0);
-    if (totalCams <= 4) add('sw4', 1);
-    else if (totalCams <= 8) add('sw8', 1);
-    else add('sw16', 1);
-  }
-
-  // SÉCURITÉ INCENDIE
-  if (type === 'entreprise' || extras.has('fire')) {
-    add('fp', Math.max(1, Math.ceil(rooms / 3)));
-  }
-
-  // Convertir en tableau avec support couleur
-  return Object.entries(res)
-    .filter(([,qty]) => qty > 0)
-    .map(([key, qty]) => ({
-      key, qty,
-      name: CATALOG[key].name,
-      desc: CATALOG[key].desc,
-      cat: CATALOG[key].cat,
-      icon: CATALOG[key].icon,
-      unitPrice: CATALOG[key].price,
-      url: CATALOG[key].url,
-      plannerKey: CATALOG[key].plannerKey,
-      img: '',
-      color: 'blanc', // blanc | noir
-    }));
 }
 
-// ── CALCUL TOTAL ──────────────────────────────────────
-function calcTotal(products) {
-  return products.reduce((t, p) => t + p.unitPrice * p.qty, 0);
+function render(){
+  updDots();
+  var app=document.getElementById('app');
+  document.getElementById('stk').classList.remove('show');
+  if(ST.step===1) app.innerHTML=s1();
+  else if(ST.step===2) app.innerHTML=s2();
+  else if(ST.step===3) app.innerHTML=s3();
+  else if(ST.step===4) app.innerHTML=s4();
+  else if(ST.step===5) app.innerHTML=s5();
+  else if(ST.step===6){ renderResult(); return; }
+  window.scrollTo(0,0);
 }
 
-function fmtPrice(val) {
-  return val.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-}
-
-// ── RENDU PAR ÉTAPE ───────────────────────────────────
-function render() {
-  const app = document.getElementById('app');
-  const dots = [1,2,3,4,5];
-  dots.forEach(i => {
-    const d = document.getElementById('sdot-' + i);
-    d.className = 'step-dot' + (i === S.step ? ' active' : i < S.step ? ' done' : '');
+function s1(){
+  var types=[
+    {k:'apt', i:'&#127963;', l:'Appartement'},
+    {k:'mai', i:'&#127968;', l:'Maison'},
+    {k:'bur', i:'&#127970;', l:'Bureau'},
+    {k:'ent', i:'&#127978;', l:'Entreprise (commerce, entrepot, cafe, etc.)'}
+  ];
+  var html='<div class="spage"><h2 class="stit">Selectionnez le type d\'etablissement</h2><div class="opts">';
+  types.forEach(function(t){
+    html+='<div class="opt'+(ST.type===t.k?' sel':'')+'" onclick="selType(\''+t.k+'\')">';
+    html+='<div class="orad"></div><div class="oico">'+t.i+'</div><div class="otxt">'+t.l+'</div></div>';
   });
-
-  switch(S.step) {
-    case 1: app.innerHTML = renderStep1(); break;
-    case 2: app.innerHTML = renderStep2(); break;
-    case 3: app.innerHTML = renderStep3(); break;
-    case 4: app.innerHTML = renderStep4(); break;
-    case 5: renderResult(); return;
-  }
-  document.getElementById('sticky-total').classList.remove('show');
+  html+='</div><div class="nav"><div></div><button class="btn bnx" onclick="goNext()" '+(ST.type?'':'disabled')+'>Suivant &#8594;</button></div></div>';
+  return html;
 }
 
-// ── ÉTAPE 1 ───────────────────────────────────────────
-function renderStep1() {
-  const types = [
-    { key:'apt', icon:'🏢', label:'Appartement' },
-    { key:'maison', icon:'🏠', label:'Maison' },
-    { key:'bureau', icon:'🏗', label:'Bureau' },
-    { key:'entreprise', icon:'🏪', label:'Entreprise (commerce, entrepôt, café, etc.)' },
-  ];
-  return `
-    <div class="step-page">
-      <h2 class="step-title">Sélectionnez le type d'établissement</h2>
-      <div class="options">
-        ${types.map(t => `
-          <div class="opt${S.type===t.key?' selected':''}" onclick="selectType('${t.key}')">
-            <div class="opt-radio"></div>
-            <div class="opt-icon">${t.icon}</div>
-            <div class="opt-text">${t.label}</div>
-          </div>
-        `).join('')}
-      </div>
-      <div class="nav">
-        <div></div>
-        <button class="btn btn-next" onclick="nextStep()" ${!S.type?'disabled':''}>Suivant →</button>
-      </div>
-    </div>`;
-}
-
-function selectType(key) {
-  S.type = key;
-  // Defaults par type
-  if (key === 'apt') { S.params = { floors:1, rooms:4, entries:1, windows:3, area:60 }; }
-  else if (key === 'maison') { S.params = { floors:2, rooms:8, entries:2, windows:8, area:120 }; }
-  else if (key === 'bureau') { S.params = { floors:1, rooms:5, entries:2, windows:6, area:100 }; }
-  else { S.params = { floors:1, rooms:4, entries:2, windows:4, area:150 }; }
+function selType(k){
+  ST.type=k;
+  if(k==='apt') ST.par={floors:1,rooms:4,entries:1,windows:3,area:60};
+  else if(k==='mai') ST.par={floors:2,rooms:8,entries:2,windows:8,area:120};
+  else if(k==='bur') ST.par={floors:1,rooms:5,entries:2,windows:6,area:100};
+  else ST.par={floors:1,rooms:4,entries:2,windows:4,area:150};
   render();
 }
 
-// ── ÉTAPE 2 ───────────────────────────────────────────
-function renderStep2() {
-  const groups = [
-    {
-      key: 'intrusion',
-      label: 'Protection contre les intrusions',
-      openKey: 'grp_intrusion',
-      items: [
-        { key:'indoor', name:'Sécurité intérieure', desc:'Protégez votre établissement grâce à la détection instantanée des intrusions' },
-        { key:'outdoor', name:'Sécurité extérieure', desc:'Étendez la portée du système de sécurité aux territoires adjacents' },
-        { key:'panic', name:'Bouton de panique', desc:'Notifie instantanément l\'alarme et appelle au secours' },
-      ],
-      subgroups: null
-    },
-    {
-      key: 'video',
-      label: 'Vidéosurveillance',
-      openKey: 'grp_video',
-      items: null,
-      subgroups: [
-        {
-          label: 'Caméras filaires',
-          items: [
-            { key:'cam_ir', name:'Avec éclairage infrarouge', desc:'Voyez clairement même dans l\'obscurité grâce à une vision nocturne nette en noir et blanc' },
-            { key:'cam_hybrid', name:'Avec éclairage hybride (couleur)', desc:'Obtenez des détails en couleurs vives même dans des conditions de faible luminosité' },
-          ]
-        },
-        {
-          label: 'Enregistreurs vidéo réseau',
-          items: [
-            { key:'nvr', name:'Sans HDMI', desc:'Accédez aux flux en direct et aux vidéos enregistrées à distance via les applications Ajax' },
-            { key:'nvr_hdmi', name:'Avec prise en charge HDMI', desc:'Affichez la vidéo directement sur un écran externe ou à distance via les applications Ajax' },
-          ]
-        }
-      ]
-    }
+function s2(){
+  var groups=[
+    {k:'i', l:'Protection contre les intrusions', items:[
+      {k:'indoor', n:'Securite interieure', d:'Protegez votre etablissement grace a la detection instantanee des intrusions'},
+      {k:'outdoor', n:'Securite exterieure', d:'Etendez la portee du systeme aux territoires adjacents'},
+      {k:'panic', n:'Bouton de panique', d:'Notifie instantanement l\'alarme et appelle au secours'}
+    ], sub:null},
+    {k:'v', l:'Videosurveillance', items:null, sub:[
+      {l:'Cameras filaires', items:[
+        {k:'cam_ir', n:'Avec eclairage infrarouge', d:'Vision nocturne nette en noir et blanc, usage interieur/exterieur'},
+        {k:'cam_hyb', n:'Avec eclairage hybride (couleur)', d:'Details en couleurs vives dans des conditions de faible luminosite'}
+      ]},
+      {l:'Enregistreurs video reseau', items:[
+        {k:'nvr', n:'Sans HDMI', d:'Acces aux flux en direct et aux videos enregistrees via les applications Ajax'},
+        {k:'nvr_hdmi', n:'Avec prise en charge HDMI', d:'Affichez la video directement sur un ecran externe ou a distance'}
+      ]}
+    ]},
+    {k:'f', l:'Securite incendie', items:[
+      {k:'fire_smoke', n:'Detection de chaleur et de fumee', d:'Assurez une detection rapide et precise des incendies'},
+      {k:'fire_co', n:'Detection de CO', d:'Soyez au courant d\'une concentration dangereuse de monoxyde de carbone'}
+    ], sub:null}
   ];
-
-  // Track open state per group
-  if (!S.grpOpen) S.grpOpen = { grp_intrusion: true, grp_video: false };
-
-  const hasSelection = S.features.size > 0;
-
-  return `
-    <div class="step-page">
-      <h2 class="step-title">Sélectionnez les fonctionnalités du système</h2>
-      ${groups.map(g => {
-        const isOpen = S.grpOpen[g.openKey];
-        return `
-        <div class="group-card">
-          <div class="group-header ${isOpen?'open':''}" onclick="toggleGrp('${g.openKey}')">
-            ${g.label}
-            <span class="chevron">▲</span>
-          </div>
-          <div class="group-body ${isOpen?'open':''}">
-            ${g.items ? g.items.map(item => `
-              <div class="chk-item${S.features.has(item.key)?' checked':''}" onclick="toggleFeatureOnly('${item.key}')">
-                <div class="chk-box"></div>
-                <div>
-                  <div class="chk-name">${item.name}</div>
-                  <div class="chk-desc">${item.desc}</div>
-                </div>
-              </div>
-            `).join('') : ''}
-            ${g.subgroups ? g.subgroups.map(sg => `
-              <div class="group-sub">${sg.label}</div>
-              ${sg.items.map(item => `
-                <div class="chk-item${S.features.has(item.key)?' checked':''}" onclick="toggleFeatureOnly('${item.key}')">
-                  <div class="chk-box"></div>
-                  <div>
-                    <div class="chk-name">${item.name}</div>
-                    <div class="chk-desc">${item.desc}</div>
-                  </div>
-                </div>
-              `).join('')}
-            `).join('') : ''}
-          </div>
-        </div>`;
-      }).join('')}
-      ${!hasSelection ? `<div style="text-align:center;font-size:13px;color:#e85d04;margin-top:8px;">Veuillez sélectionner au moins une fonctionnalité pour continuer.</div>` : ''}
-      <div class="nav">
-        <button class="btn btn-back" onclick="prevStep()">← Retour</button>
-        <button class="btn btn-next" onclick="nextStep2()" ${!hasSelection?'disabled':''}>Suivant →</button>
-      </div>
-    </div>`;
-}
-
-function toggleGrp(key) {
-  if (!S.grpOpen) S.grpOpen = { grp_intrusion: true, grp_video: false };
-  S.grpOpen[key] = !S.grpOpen[key];
-  // Toggle DOM directly without full re-render
-  const cards = document.querySelectorAll('.group-card');
-  cards.forEach(card => {
-    const header = card.querySelector('.group-header');
-    const body = card.querySelector('.group-body');
-    const onclick = header.getAttribute('onclick');
-    if (onclick && onclick.includes(key)) {
-      header.classList.toggle('open', S.grpOpen[key]);
-      body.classList.toggle('open', S.grpOpen[key]);
-    }
-  });
-}
-
-function toggleFeatureOnly(key) {
-  S.features.has(key) ? S.features.delete(key) : S.features.add(key);
-  // Update DOM directly without re-render (avoids accordion closing)
-  document.querySelectorAll('.chk-item').forEach(el => {
-    const onclick = el.getAttribute('onclick');
-    if (onclick && onclick.includes(`'${key}'`)) {
-      el.classList.toggle('checked', S.features.has(key));
-    }
-  });
-  // Update next button state
-  const btn = document.querySelector('.btn-next');
-  if (btn) btn.disabled = S.features.size === 0;
-  // Update/remove validation message
-  const existing = document.querySelector('.step2-warning');
-  if (existing) existing.style.display = S.features.size > 0 ? 'none' : 'block';
-}
-
-function nextStep2() {
-  if (S.features.size === 0) return;
-  nextStep();
-}
-
-function toggleGroup(el) {
-  el.classList.toggle('open');
-  el.nextElementSibling.classList.toggle('open');
-}
-
-function toggleFeature(key) {
-  S.features.has(key) ? S.features.delete(key) : S.features.add(key);
-  render();
-}
-
-// ── ÉTAPE 3 ───────────────────────────────────────────
-function renderStep3() {
-  const rows = [
-    { key:'floors', icon:'🏗', name:'Étages', desc:'Dans le cas d\'installations à plusieurs étages, des amplificateurs peuvent être nécessaires', min:1, max:20 },
-    { key:'rooms', icon:'🛋', name:'Pièces, y compris la cuisine', desc:'Différents dispositifs assurent la sécurité dans chaque pièce', min:1, max:50 },
-    { key:'entries', icon:'🚪', name:'Entrées', desc:'Chaque entrée de l\'établissement doit être protégée', min:0, max:20 },
-    { key:'windows', icon:'🔲', name:'Fenêtres', desc:'Toutes les fenêtres accessibles de l\'extérieur doivent être protégées', min:0, max:50 },
-    { key:'area', icon:'📐', name:'Superficie (m²)', desc:'Pour protéger de vastes territoires, des amplificateurs peuvent être nécessaires', min:10, max:5000, step:10 },
-  ];
-
-  return `
-    <div class="step-page">
-      <h2 class="step-title">Spécifiez les paramètres de l'établissement</h2>
-      <div class="params">
-        ${rows.map(r => `
-          <div class="param-row">
-            <div class="param-icon">${r.icon}</div>
-            <div class="param-info">
-              <div class="param-name">${r.name}</div>
-              <div class="param-desc">${r.desc}</div>
-            </div>
-            <div class="spinner">
-              <button class="spin-btn" onclick="adjustParam('${r.key}',-${r.step||1},${r.min})">−</button>
-              <input class="spin-val" type="number" id="p-${r.key}" value="${S.params[r.key]}" min="${r.min}" max="${r.max}" onchange="setParam('${r.key}',this.value,${r.min},${r.max})">
-              <button class="spin-btn" onclick="adjustParam('${r.key}',${r.step||1},${r.min},${r.max})">+</button>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      <div class="nav">
-        <button class="btn btn-back" onclick="prevStep()">← Retour</button>
-        <button class="btn btn-next" onclick="nextStep()">Suivant →</button>
-      </div>
-    </div>`;
-}
-
-function adjustParam(key, delta, min, max) {
-  const cur = S.params[key];
-  S.params[key] = Math.max(min, Math.min(max || 9999, cur + delta));
-  const el = document.getElementById('p-' + key);
-  if (el) el.value = S.params[key];
-}
-
-function setParam(key, val, min, max) {
-  S.params[key] = Math.max(min, Math.min(max || 9999, parseInt(val) || min));
-}
-
-// ── ÉTAPE 4 ───────────────────────────────────────────
-function renderStep4() {
-  const extras = [
-    { key:'photo_verif', name:'Vérification photo des alarmes', desc:'Distinguez les menaces réelles grâce à la vérification photo (MotionCam)' },
-    { key:'perimeter', name:'Protection du périmètre', desc:'Protégez les entrées et les zones de passage en utilisant des détecteurs rideau' },
-    { key:'garage', name:'Protection du garage', desc:'Sécurisez les grandes portes avec un détecteur de mouvement rideau' },
-    { key:'safe', name:'Protection des coffres-forts et espaces sécurisés', desc:'Recevez une notification instantanée si quelqu\'un tente de forcer votre coffre-fort' },
-    { key:'keypad', name:'Clavier de contrôle', desc:'Permettez au personnel d\'accéder facilement à l\'installation' },
-  ];
-
-  return `
-    <div class="step-page">
-      <h2 class="step-title">Sélectionnez des fonctionnalités supplémentaires</h2>
-      <div class="group-card">
-        ${extras.map(item => `
-          <div class="chk-item${S.extras.has(item.key)?' checked':''}" onclick="toggleExtra('${item.key}')">
-            <div class="chk-box"></div>
-            <div>
-              <div class="chk-name">${item.name}</div>
-              <div class="chk-desc">${item.desc}</div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      <div class="nav">
-        <button class="btn btn-back" onclick="prevStep()">← Retour</button>
-        <button class="btn btn-next" onclick="goResult()">Voir ma configuration →</button>
-      </div>
-    </div>`;
-}
-
-function toggleExtra(key) {
-  S.extras.has(key) ? S.extras.delete(key) : S.extras.add(key);
-  render();
-}
-
-// ── RÉSULTAT ──────────────────────────────────────────
-function goResult() {
-  S.products = buildRecommendation();
-  S.step = 5;
-  render();
-}
-
-function renderResult() {
-  const app = document.getElementById('app');
-  // Fetch prices from data.json if available
-  fetchPrices().then(() => {
-    const total = calcTotal(S.products);
-    const byCategory = {};
-    S.products.forEach(p => {
-      if (!byCategory[p.cat]) byCategory[p.cat] = [];
-      byCategory[p.cat].push(p);
-    });
-
-    const catOrder = ['Centrales','Infrastructure','Protection contre les intrusions','Sirènes','Accès','Vidéosurveillance','Enregistreurs vidéo','Réseau','Stockage','Sécurité incendie'];
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
-    const timeStr = now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
-    const tva = total * 0.2;
-    const ttc = total * 1.2;
-
-    let html = `<div class="step-page">
-      <!-- Header visible uniquement à l'impression -->
-      <div class="print-header">
-        <div class="print-logo" style="background:#1a1a1a;border-radius:8px;padding:10px 16px;display:inline-flex;align-items:center;"><img src="https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg" alt="CamProtect" style="height:34px;width:auto;display:block;"></div>
-        <div class="print-date">Généré le ${dateStr} à ${timeStr}<br>Configuration système Ajax</div>
-      </div>
-      <!-- Header visible à l'écran -->
-      <div class="result-header">
-        <div class="result-title">Votre système Ajax<br><small style="font-size:14px;color:var(--sub);font-weight:500;">${S.products.reduce((t,p)=>t+p.qty,0)} dispositifs</small></div>
-        <div class="result-total-box">
-          <div class="result-total-label">Total estimatif HT</div>
-          <div class="result-total-val" id="result-total-val">${fmtPrice(total)}</div>
-        </div>
-      </div>`;
-
-    catOrder.forEach(cat => {
-      const items = byCategory[cat];
-      if (!items) return;
-      html += `<div class="result-category">${cat}</div>`;
-      items.forEach(p => {
-        // Image : priorité data.json via fetchPrices, puis catalog statique
-        const catalogImg = CATALOG[p.key]?.img || '';
-        const imgSrc = p.img || catalogImg;
-        const imgHtml = imgSrc
-          ? `<img class="prod-img" src="${imgSrc}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-          : '';
-        const placeholderStyle = imgSrc ? 'display:none' : '';
-        html += `
-        <div class="product-card" id="pc-${p.key}">
-          ${imgHtml}
-          <div class="prod-img-placeholder" style="${placeholderStyle}">${p.icon}</div>
-          <div class="prod-info">
-            <div class="prod-name" id="pname-${p.key}">${p.name}</div>
-            <div class="prod-desc">${p.desc}</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
-              <button onclick="toggleColor('${p.key}','blanc')" id="cblanc-${p.key}" style="width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid var(--orange);cursor:pointer;" title="Blanc"></button>
-              ${CATALOG[p.key]?.imgNoir ? `<button onclick="toggleColor('${p.key}','noir')" id="cnoir-${p.key}" style="width:18px;height:18px;border-radius:50%;background:#222;border:2px solid #ccc;cursor:pointer;" title="Noir"></button>` : ''}
-              <a class="prod-link" href="${p.url}" target="_blank">Voir sur CamProtect →</a>
-            </div>
-          </div>
-          <div class="prod-right">
-            <div class="prod-qty">
-              <button class="qty-btn" onclick="changeQty('${p.key}',-1)">−</button>
-              <div class="qty-val" id="qty-${p.key}">${p.qty}</div>
-              <button class="qty-btn" onclick="changeQty('${p.key}',1)">+</button>
-            </div>
-            <div class="prod-price">
-              <div class="prod-price-val" id="price-${p.key}">${fmtPrice(p.unitPrice * p.qty)}</div>
-              <div class="prod-price-unit">${fmtPrice(p.unitPrice)} / unité HT</div>
-            </div>
-            <button class="prod-del" onclick="removeProduct('${p.key}')" title="Supprimer">✕</button>
-          </div>
-        </div>`;
+  var hasSel=Object.keys(ST.feat).some(function(k){return ST.feat[k];});
+  var html='<div class="spage"><h2 class="stit">Selectionnez les fonctionnalites du systeme</h2>';
+  groups.forEach(function(g){
+    var isOpen=ST.grp[g.k];
+    html+='<div class="gc"><div class="gh'+(isOpen?' op':'')+'" onclick="togGrp(\''+g.k+'\')">';
+    html+=g.l+'<span class="chv">&#9650;</span></div>';
+    html+='<div class="gb'+(isOpen?' op':'')+'">';
+    if(g.items){
+      g.items.forEach(function(item){
+        var on=ST.feat[item.k];
+        html+='<div class="ci'+(on?' chk':'')+'" onclick="togFeat(\''+item.k+'\')">';
+        html+='<div class="cb"></div><div><div class="cn">'+item.n+'</div><div class="cd">'+item.d+'</div></div></div>';
       });
-    });
-
-    html += `
-      <!-- Totaux en bas — visibles uniquement à l'impression -->
-      <div class="print-totals" id="print-totals">
-        <div class="print-total-row">
-          <span class="label">Total HT</span>
-          <span class="val" id="print-ht">${fmtPrice(total)}</span>
-        </div>
-        <div class="print-total-row">
-          <span class="label">TVA (20%)</span>
-          <span class="val" id="print-tva">${fmtPrice(tva)}</span>
-        </div>
-        <div class="print-total-row main">
-          <span class="label">Total TTC</span>
-          <span class="val" id="print-ttc">${fmtPrice(ttc)}</span>
-        </div>
-      </div>
-      <div class="result-footer">
-        <button class="btn-print" onclick="printDevis()">🖨 Imprimer / PDF</button>
-        <button class="btn-restart" onclick="restart()">↩ Recommencer</button>
-      </div>
-    </div>`;
-
-    app.innerHTML = html;
-    updateStickyTotal();
-    document.getElementById('sticky-total').classList.add('show');
-    document.getElementById('sdot-5').className = 'step-dot active';
-  });
-}
-
-async function fetchPrices() {
-  try {
-    const r = await fetch('https://raw.githubusercontent.com/IMS-SX304/camprotect-json/refs/heads/main/data.json', {cache:'default'});
-    if (!r.ok) return;
-    const d = await r.json();
-    const map = d.planner_map || {};
-    // Stocker les images noir/blanc pour chaque produit
-    S._plannerMap = map;
-    S.products.forEach(p => {
-      const pk = p.plannerKey || p.key;
-      if (map[pk]) {
-        if (map[pk].prix_ht) p.unitPrice = map[pk].prix_ht;
-        if (map[pk].image) p.img = map[pk].image; // image blanc par défaut
-      }
-    });
-  } catch(e) {}
-}
-
-function toggleColor(key, color) {
-  const p = S.products.find(x => x.key === key);
-  if (!p) return;
-  p.color = color;
-
-  // Update color button borders
-  const bBlanc = document.getElementById('cblanc-' + key);
-  const bNoir = document.getElementById('cnoir-' + key);
-  if (bBlanc) bBlanc.style.borderColor = color === 'blanc' ? 'var(--orange)' : '#ccc';
-  if (bNoir) bNoir.style.borderColor = color === 'noir' ? 'var(--orange)' : '#ccc';
-
-  // Update product name
-  const nameEl = document.getElementById('pname-' + key);
-  if (nameEl) {
-    const baseName = p.name.replace(/ Blanc$| Blanche$| Noir$| Noire$/, '');
-    nameEl.textContent = baseName + (color === 'noir' ? ' Noir' : ' Blanc');
-  }
-
-  // Update image — utilise imgNoir depuis catalog si disponible
-  const catalogEntry = CATALOG[key];
-  const imgEl = document.querySelector(`#pc-${key} .prod-img`);
-  const placeholderEl = document.querySelector(`#pc-${key} .prod-img-placeholder`);
-  if (imgEl && catalogEntry) {
-    const newSrc = color === 'noir'
-      ? (catalogEntry.imgNoir || catalogEntry.img || p.img)
-      : (catalogEntry.img || p.img);
-    if (newSrc) {
-      imgEl.src = newSrc;
-      imgEl.style.display = '';
-      if (placeholderEl) placeholderEl.style.display = 'none';
     }
+    if(g.sub){
+      g.sub.forEach(function(sg){
+        html+='<div class="gsub">'+sg.l+'</div>';
+        sg.items.forEach(function(item){
+          var on=ST.feat[item.k];
+          html+='<div class="ci'+(on?' chk':'')+'" onclick="togFeat(\''+item.k+'\')">';
+          html+='<div class="cb"></div><div><div class="cn">'+item.n+'</div><div class="cd">'+item.d+'</div></div></div>';
+        });
+      });
+    }
+    html+='</div></div>';
+  });
+  if(!hasSel) html+='<div class="warn">Veuillez selectionner au moins une fonctionnalite pour continuer.</div>';
+  html+='<div class="nav"><button class="btn bbk" onclick="goPrev()">&#8592; Retour</button>';
+  html+='<button class="btn bnx" onclick="goNext()" '+(hasSel?'':'disabled')+'>Suivant &#8594;</button></div></div>';
+  return html;
+}
+
+function togGrp(k){
+  ST.grp[k]=!ST.grp[k];
+  document.querySelectorAll('.gc').forEach(function(card){
+    var hdr=card.querySelector('.gh');
+    var body=card.querySelector('.gb');
+    if(hdr&&hdr.getAttribute('onclick')&&hdr.getAttribute('onclick').indexOf("'"+k+"'")!==-1){
+      hdr.classList.toggle('op',ST.grp[k]);
+      body.classList.toggle('op',ST.grp[k]);
+    }
+  });
+}
+
+function togFeat(k){
+  ST.feat[k]=!ST.feat[k];
+  document.querySelectorAll('.ci').forEach(function(el){
+    var oc=el.getAttribute('onclick');
+    if(oc&&oc.indexOf("'"+k+"'")!==-1) el.classList.toggle('chk',!!ST.feat[k]);
+  });
+  var hasSel=Object.keys(ST.feat).some(function(k2){return ST.feat[k2];});
+  var btn=document.querySelector('.bnx');
+  if(btn) btn.disabled=!hasSel;
+  var w=document.querySelector('.warn');
+  if(w) w.style.display=hasSel?'none':'block';
+}
+
+function s3(){
+  var rows=[
+    {k:'floors', i:'&#127959;', n:'Etages', d:'Plusieurs etages peuvent necessiter des amplificateurs', min:1, max:20, step:1},
+    {k:'rooms', i:'&#128716;', n:'Pieces (cuisine incluse)', d:'Differents dispositifs assurent la securite dans chaque piece', min:1, max:50, step:1},
+    {k:'entries', i:'&#128682;', n:'Entrees', d:'Chaque entree doit etre protegee', min:0, max:20, step:1},
+    {k:'windows', i:'&#10064;', n:'Fenetres', d:'Toutes les fenetres accessibles de l\'exterieur doivent etre protegees', min:0, max:50, step:1},
+    {k:'area', i:'&#128207;', n:'Superficie (m2)', d:'Pour proteger de vastes territoires, des amplificateurs peuvent etre necessaires', min:10, max:5000, step:10}
+  ];
+  var html='<div class="spage"><h2 class="stit">Specifiez les parametres de l\'etablissement</h2><div class="params">';
+  rows.forEach(function(r){
+    html+='<div class="pr"><div class="pico">'+r.i+'</div>';
+    html+='<div class="pi2"><div class="pn">'+r.n+'</div><div class="pd">'+r.d+'</div></div>';
+    html+='<div class="sp">';
+    html+='<button class="sb" onclick="adjPar(\''+r.k+'\','+(-(r.step))+','+r.min+','+r.max+')">&#8722;</button>';
+    html+='<input id="par-'+r.k+'" class="sv" type="number" value="'+ST.par[r.k]+'" min="'+r.min+'" max="'+r.max+'" onchange="setPar(\''+r.k+'\',this.value,'+r.min+','+r.max+')">';
+    html+='<button class="sb" onclick="adjPar(\''+r.k+'\','+r.step+','+r.min+','+r.max+')">+</button>';
+    html+='</div></div>';
+  });
+  html+='</div><div class="nav"><button class="btn bbk" onclick="goPrev()">&#8592; Retour</button>';
+  html+='<button class="btn bnx" onclick="goNext()">Suivant &#8594;</button></div></div>';
+  return html;
+}
+
+function adjPar(k,d,min,max){
+  ST.par[k]=Math.max(min,Math.min(max,ST.par[k]+d));
+  var el=document.getElementById('par-'+k);
+  if(el) el.value=ST.par[k];
+}
+function setPar(k,v,min,max){ ST.par[k]=Math.max(min,Math.min(max,parseInt(v)||min)); }
+
+function s4(){
+  var items=[
+    {k:'photo_v', n:'Verification photo des alarmes', d:'Distinguez les menaces reelles grace a la verification photo (MotionCam)'},
+    {k:'perim', n:'Protection du perimetre', d:'Protegez les entrees et zones de passage avec des detecteurs rideau'},
+    {k:'garage', n:'Protection du garage', d:'Securisez les grandes portes avec un detecteur rideau'},
+    {k:'safe', n:'Protection coffres-forts et espaces securises', d:'Notification instantanee si quelqu\'un tente de forcer votre coffre-fort'},
+    {k:'kpad', n:'Clavier de controle', d:'Permettez au personnel d\'acceder facilement a l\'installation'},
+    {k:'cab90', n:'Cablage reseau - Couronne 90m', d:'Cable Cat6 FUTP 90m pour petites installations (appartement, maison)'},
+    {k:'cab305', n:'Cablage reseau - Bobine 305m', d:'Cable Cat6 FUTP 305m pour grandes installations (bureau, entreprise)'}
+  ];
+  var html='<div class="spage"><h2 class="stit">Selectionnez des fonctionnalites supplementaires</h2>';
+  html+='<div class="gc">';
+  items.forEach(function(item){
+    var on=ST.ext[item.k];
+    html+='<div class="ci'+(on?' chk':'')+'" onclick="togExt(\''+item.k+'\')">';
+    html+='<div class="cb"></div><div><div class="cn">'+item.n+'</div><div class="cd">'+item.d+'</div></div></div>';
+  });
+  html+='</div>';
+  html+='<div class="nav"><button class="btn bbk" onclick="goPrev()">&#8592; Retour</button>';
+  html+='<button class="btn bnx" onclick="goNext()">Suivant &#8594;</button></div></div>';
+  return html;
+}
+
+function togExt(k){
+  ST.ext[k]=!ST.ext[k];
+  document.querySelectorAll('.ci').forEach(function(el){
+    var oc=el.getAttribute('onclick');
+    if(oc&&oc.indexOf("'"+k+"'")!==-1) el.classList.toggle('chk',!!ST.ext[k]);
+  });
+}
+
+function s5(){
+  var c=ST.cli;
+  var html='<div class="spage"><h2 class="stit">Informations client <span style="font-size:16px;font-weight:500;color:var(--sub)">(optionnel)</span></h2>';
+  html+='<div class="cf">';
+  html+='<div class="cfr">';
+  html+='<div class="cff"><label class="cfl">Nom / Prenom</label><input class="cfi" type="text" placeholder="Jean Dupont" value="'+c.nom+'" oninput="ST.cli.nom=this.value"></div>';
+  html+='<div class="cff"><label class="cfl">Societe</label><input class="cfi" type="text" placeholder="Nom de la societe" value="'+c.soc+'" oninput="ST.cli.soc=this.value"></div>';
+  html+='</div>';
+  html+='<div class="cfr">';
+  html+='<div class="cff"><label class="cfl">Telephone</label><input class="cfi" type="tel" placeholder="06 xx xx xx xx" value="'+c.tel+'" oninput="ST.cli.tel=this.value"></div>';
+  html+='<div class="cff"><label class="cfl">Email</label><input class="cfi" type="email" placeholder="email@exemple.fr" value="'+c.email+'" oninput="ST.cli.email=this.value"></div>';
+  html+='</div>';
+  html+='<div class="cff"><label class="cfl">Adresse du chantier</label><input class="cfi" type="text" placeholder="123 rue de la Paix, 75001 Paris" value="'+c.adr+'" oninput="ST.cli.adr=this.value"></div>';
+  html+='<div class="cfr">';
+  html+='<div class="cff"><label class="cfl">Nom du projet / chantier</label><input class="cfi" type="text" placeholder="Villa Martin - Alarme Ajax" value="'+c.chan+'" oninput="ST.cli.chan=this.value"></div>';
+  html+='<div class="cff"><label class="cfl">Reference devis</label><input class="cfi" type="text" placeholder="DEV-2026-001" value="'+c.ref+'" oninput="ST.cli.ref=this.value"></div>';
+  html+='</div>';
+  html+='</div>';
+  html+='<div class="nav"><button class="btn bbk" onclick="goPrev()">&#8592; Retour</button>';
+  html+='<button class="btn bnx" onclick="buildAndShow()">Voir ma configuration &#8594;</button></div></div>';
+  return html;
+}
+
+function buildReco(){
+  var t=ST.type, f=ST.feat, p=ST.par, e=ST.ext;
+  var fl=p.floors, ro=p.rooms, en=p.entries, wi=p.windows, ar=p.area;
+  var res={};
+  function add(k,q){ if(CAT[k]) res[k]=(res[k]||0)+q; }
+
+  var est=ro*2+en+wi+(f.outdoor?3:0);
+  if(est>80||t==='ent') add('hubp',1); else add('hub',1);
+  if(fl>1||ar>150) add('rex',Math.min(fl-1+(ar>200?1:0),3));
+
+  if(f.indoor){
+    var pk=e.photo_v?'mc':'mp';
+    add(pk,Math.max(1,ro));
+    add('dp',en);
+    if(wi>0) add('gp',Math.min(wi,Math.ceil(wi/2)));
+    add('hs',1);
+  }
+  if(f.outdoor){
+    var pok=e.photo_v?'mco':'mpo';
+    add(pok,Math.max(1,Math.ceil(ar/100)));
+    add('ss',1);
+    if(e.perim) add('mcc',Math.max(1,en));
+  }
+  if(e.garage) add('mcc',1);
+  if(e.safe) add('mpp',1);
+  if(e.kpad||f.indoor){ add((t==='ent'||t==='bur')?'kpp':'kp',en||1); }
+  if(e.perim&&!f.outdoor) add('mcc',en||1);
+
+  if(f.cam_ir){
+    var cq=(t==='apt'||t==='mai')?Math.max(1,Math.ceil(ro/3)):Math.max(1,Math.ceil(ar/80));
+    add('tc28',cq);
+  }
+  if(f.cam_hyb) add('dc28',Math.max(1,Math.ceil(ro/4)));
+
+  if(f.nvr||f.nvr_hdmi){
+    var tc=(res.tc28||0)+(res.bc28||0)+(res.dc28||0);
+    if(tc===0){ var aq=Math.max(2,Math.ceil(ro/3)); add('tc28',aq); tc=aq; }
+    if(f.nvr_hdmi) add(tc>8?'nvr16h':'nvr8h',1); else add(tc>8?'nvr16':'nvr8',1);
+    if(tc<=4) add('sw4',1); else if(tc<=8) add('sw8',1); else add('sw16',1);
+    add('hdd',1);
+  } else if(f.cam_ir||f.cam_hyb){
+    var tc2=(res.tc28||0)+(res.bc28||0)+(res.dc28||0);
+    if(tc2<=4) add('sw4',1); else if(tc2<=8) add('sw8',1); else add('sw16',1);
   }
 
-  // Update URL vers la version couleur correcte
-  const linkEl = document.querySelector(`#pc-${key} .prod-link`);
-  if (linkEl && catalogEntry) {
-    const baseUrl = color === 'noir'
-      ? catalogEntry.url.replace('-blanc', '-noir').replace('-blanche', '-noire')
-      : catalogEntry.url;
-    linkEl.href = baseUrl;
+  if(f.fire_smoke||f.fire_co||t==='ent'){
+    add(f.fire_co?'fpp':'fp',Math.max(1,Math.ceil(ro/3)));
   }
+  if(e.cab90) add('cab90',1);
+  if(e.cab305) add('cab305',1);
+
+  return Object.keys(res).filter(function(k){return res[k]>0;}).map(function(k){
+    return {k:k, q:res[k], p:CAT[k].p, col:'blanc'};
+  });
 }
 
-function changeQty(key, delta) {
-  const p = S.products.find(x => x.key === key);
-  if (!p) return;
-  p.qty = Math.max(0, p.qty + delta);
-  if (p.qty === 0) {
-    removeProduct(key); return;
-  }
-  document.getElementById('qty-' + key).textContent = p.qty;
-  document.getElementById('price-' + key).textContent = fmtPrice(p.unitPrice * p.qty);
-  updateStickyTotal();
+function buildAndShow(){
+  ST.prods=buildReco();
+  fetchPrices();
+  ST.step=6;
+  render();
 }
 
-function removeProduct(key) {
-  S.products = S.products.filter(p => p.key !== key);
-  const el = document.getElementById('pc-' + key);
-  if (el) el.remove();
-  updateStickyTotal();
+function fetchPrices(){
+  fetch('https://raw.githubusercontent.com/IMS-SX304/camprotect-json/refs/heads/main/data.json',{cache:'default'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var map=d.planner_map||{};
+      var keyMap={hub:'hub',hubp:'hub_p',mp:'mp',mpp:'mp_p',mpo:'mp_o',mc:'mc',mco:'mc_o',mcc:'mp_c',dp:'dp',gp:'gp',hs:'hs',ss:'ss',kp:'kp',kpp:'kp_p',rex:'rex',tc28:'tc28',dc28:'dc28',bc28:'bc28'};
+      ST.prods.forEach(function(pr){
+        var mk=keyMap[pr.k];
+        if(mk&&map[mk]&&map[mk].prix_ht){ pr.p=map[mk].prix_ht; }
+      });
+      updTotals();
+    }).catch(function(){});
 }
 
-function showPrintTip() {
-  printDevis();
-}
+function renderResult(){
+  var t=tot(), tva=t*0.2, ttc=t*1.2;
+  var now=new Date();
+  var ds=now.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var ts=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  var byCat={};
+  ST.prods.forEach(function(pr){ if(!byCat[CAT[pr.k].c]) byCat[CAT[pr.k].c]=[]; byCat[CAT[pr.k].c].push(pr); });
 
-function printDevis() {
-  const total = calcTotal(S.products);
-  const tva = total * 0.2;
-  const ttc = total * 1.2;
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
-  const timeStr = now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
-  const logoUrl = 'https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/672ca6fb548c6879fedaea63_Design%20sans%20titre%20(5).svg';
+  var html='<div class="spage">';
+  html+='<div class="ph"><img src="'+LOGO+'" alt="CamProtect"><div class="phd">Genere le '+ds+' a '+ts+'<br>Configuration systeme Ajax'+(ST.cli.ref?' - Ref: '+ST.cli.ref:'')+'</div></div>';
+  html+='<div class="rh"><div class="rt">Votre systeme Ajax<br><small style="font-size:13px;font-weight:500;color:var(--sub)">'+ST.prods.reduce(function(t,p){return t+p.q;},0)+' dispositifs</small></div>';
+  html+='<div class="rtb"><div class="rtbl">Total estimatif HT</div><div class="rtbv" id="rtbv">'+fp(t)+'</div></div></div>';
 
-  // Construire les lignes produits
-  const catOrder = ['Centrales','Infrastructure','Protection contre les intrusions','Sirènes','Accès','Vidéosurveillance','Enregistreurs vidéo','Réseau','Stockage','Sécurité incendie'];
-  const byCategory = {};
-  S.products.forEach(p => { if (!byCategory[p.cat]) byCategory[p.cat]=[]; byCategory[p.cat].push(p); });
-
-  let prodRows = '';
-  catOrder.forEach(cat => {
-    const items = byCategory[cat];
-    if (!items) return;
-    prodRows += `<tr><td colspan="4" style="padding:10px 0 4px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6b7280;border-bottom:1px solid #e5e7eb;">${cat}</td></tr>`;
-    items.forEach(p => {
-      const imgSrc = p.img || CATALOG[p.key]?.img || '';
-      prodRows += `<tr style="border-bottom:1px solid #f0f0f0;">
-        <td style="padding:10px 8px;"><img src="${imgSrc}" style="width:40px;height:40px;object-fit:contain;" onerror="this.style.display='none'"></td>
-        <td style="padding:10px 8px;font-size:13px;"><strong>${p.name}</strong><br><span style="color:#6b7280;font-size:11px;">${p.desc}</span></td>
-        <td style="padding:10px 8px;text-align:center;font-size:13px;font-weight:600;">${p.qty}</td>
-        <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;">${fmtPrice(p.unitPrice * p.qty)}</td>
-      </tr>`;
+  CATS.forEach(function(cat){
+    var items=byCat[cat];
+    if(!items) return;
+    html+='<div class="rcat">'+cat+'</div>';
+    items.forEach(function(pr){
+      var info=CAT[pr.k];
+      var imgSrc=pr.col==='noir'&&info.imgN?info.imgN:info.img;
+      html+='<div class="pc" id="pc-'+pr.k+'">';
+      if(imgSrc) html+='<img class="pimg" src="'+imgSrc+'" alt="'+info.n+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">';
+      html+='<div class="pph" style="'+(imgSrc?'display:none':'')+'">&#128247;</div>';
+      html+='<div class="pinf"><div class="pnm" id="pnm-'+pr.k+'">'+info.n+'</div>';
+      html+='<div class="pds">'+info.d+'</div>';
+      html+='<div class="pco">';
+      html+='<div class="pcb" style="background:#fff;border-color:var(--orange)" onclick="setCol(\''+pr.k+'\',\'blanc\')" title="Blanc"></div>';
+      if(info.imgN) html+='<div class="pcb" style="background:#222;border-color:#ccc" id="cn-'+pr.k+'" onclick="setCol(\''+pr.k+'\',\'noir\')" title="Noir"></div>';
+      html+='<a class="pl" href="https://www.camprotect.fr/product/'+info.url+'" id="purl-'+pr.k+'" target="_blank">Voir sur CamProtect</a>';
+      html+='</div></div>';
+      html+='<div class="pr2"><div class="pq"><button class="qb" onclick="chgQ(\''+pr.k+'\',-1)">&#8722;</button><div class="qv" id="pq-'+pr.k+'">'+pr.q+'</div><button class="qb" onclick="chgQ(\''+pr.k+'\',1)">+</button></div>';
+      html+='<div class="ppr"><div class="pprv" id="ppr-'+pr.k+'">'+fp(info.p*pr.q)+'</div><div class="ppru">'+fp(info.p)+' / u. HT</div></div>';
+      html+='<button class="pdl" onclick="delProd(\''+pr.k+'\')" title="Supprimer">&#215;</button></div></div>';
     });
   });
 
-  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-  <title>Configuration Ajax — CamProtect</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'DM Sans',sans-serif;color:#111;background:#fff;padding:32px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:2px solid #E85D04;margin-bottom:28px;}
-    .logo-box{display:inline-block;border-radius:8px;overflow:hidden;line-height:0;}
-    .logo-box img{height:34px;width:auto;display:block;padding:8px 14px;background:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .date{font-size:12px;color:#6b7280;text-align:right;line-height:1.7;}
-    table{width:100%;border-collapse:collapse;}
-    .totals{margin-top:28px;border-top:2px solid #111;padding-top:16px;}
-    .tot-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid #e5e7eb;}
-    .tot-row.ttc{font-size:18px;font-weight:800;border-bottom:none;padding-top:12px;}
-    .tot-row.ttc .v{color:#E85D04;}
-    .l{color:#6b7280;}.tot-row.ttc .l{color:#111;}
-    @media print{body{padding:0;}}
-  </style></head><body>
-  <div class="header">
-    <div class="logo-box"><img src="${logoUrl}" alt="CamProtect"></div>
-    <div class="date">Généré le ${dateStr} à ${timeStr}<br>Configuration système Ajax</div>
-  </div>
-  <table>
-    <thead><tr style="background:#f9f9f9;">
-      <th style="padding:8px;text-align:left;font-size:11px;color:#6b7280;width:52px;"></th>
-      <th style="padding:8px;text-align:left;font-size:11px;color:#6b7280;">Produit</th>
-      <th style="padding:8px;text-align:center;font-size:11px;color:#6b7280;width:60px;">Qté</th>
-      <th style="padding:8px;text-align:right;font-size:11px;color:#6b7280;width:100px;">Prix HT</th>
-    </tr></thead>
-    <tbody>${prodRows}</tbody>
-  </table>
-  <div class="totals">
-    <div class="tot-row"><span class="l">Total HT</span><span class="v">${fmtPrice(total)}</span></div>
-    <div class="tot-row"><span class="l">TVA (20%)</span><span class="v">${fmtPrice(tva)}</span></div>
-    <div class="tot-row ttc"><span class="l">Total TTC</span><span class="v">${fmtPrice(ttc)}</span></div>
-  </div>
-  <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};}<\/script>
-  </body></html>`;
+  html+='<div class="ptot" id="ptot">';
+  html+='<div class="totr"><span class="tl">Total HT</span><span id="pht">'+fp(t)+'</span></div>';
+  html+='<div class="totr"><span class="tl">TVA (20%)</span><span id="ptva">'+fp(tva)+'</span></div>';
+  html+='<div class="totr ttc"><span class="tl">Total TTC</span><span class="tv" id="pttc">'+fp(ttc)+'</span></div>';
+  html+='</div>';
 
-  const w = window.open('', '_blank', 'width=900,height=700');
-  if (w) { w.document.write(html); w.document.close(); }
-  else { window.print(); } // fallback si popup bloqué
+  html+='<div class="rf"><button class="bpr" onclick="doPrint()">&#128424; Imprimer / PDF</button>';
+  html+='<button class="brs" onclick="doRestart()">&#8617; Recommencer</button></div></div>';
+
+  document.getElementById('app').innerHTML=html;
+  document.getElementById('stk').classList.add('show');
+  document.getElementById('sd6').className='sd active';
+  updTotals();
 }
 
-function updateStickyTotal() {
-  const total = calcTotal(S.products);
-  document.getElementById('st-val').textContent = fmtPrice(total);
-  const rBox = document.getElementById('result-total-val');
-  if (rBox) rBox.textContent = fmtPrice(total);
-  // Mettre à jour les totaux print
-  const tva = total * 0.2;
-  const ttc = total * 1.2;
-  const elHT = document.getElementById('print-ht');
-  const elTVA = document.getElementById('print-tva');
-  const elTTC = document.getElementById('print-ttc');
-  if (elHT) elHT.textContent = fmtPrice(total);
-  if (elTVA) elTVA.textContent = fmtPrice(tva);
-  if (elTTC) elTTC.textContent = fmtPrice(ttc);
+function setCol(k,col){
+  var pr=ST.prods.find(function(p){return p.k===k;});
+  if(!pr) return;
+  pr.col=col;
+  var info=CAT[k];
+  var imgSrc=col==='noir'&&info.imgN?info.imgN:info.img;
+  var img=document.querySelector('#pc-'+k+' .pimg');
+  var ph=document.querySelector('#pc-'+k+' .pph');
+  if(img){ img.src=imgSrc||''; img.style.display=imgSrc?'':'none'; }
+  if(ph) ph.style.display=imgSrc?'none':'flex';
+  var nm=document.getElementById('pnm-'+k);
+  if(nm){ var base=info.n.replace(/ Blanc$| Blanche$| Noir$| Noire$/,''); nm.textContent=base+(col==='noir'?' Noir':' Blanc'); }
+  var bu=document.querySelector('#pc-'+k+' .pcb:first-of-type');
+  var bn=document.getElementById('cn-'+k);
+  if(bu) bu.style.borderColor=col==='blanc'?'var(--orange)':'#ccc';
+  if(bn) bn.style.borderColor=col==='noir'?'var(--orange)':'#ccc';
+  var ul=document.getElementById('purl-'+k);
+  if(ul){
+    var base2=info.url;
+    ul.href='https://www.camprotect.fr/product/'+(col==='noir'?base2.replace(/-blanc$/,'-noir').replace(/-blanche$/,'-noire'):base2);
+  }
 }
 
-// ── NAVIGATION ────────────────────────────────────────
-function nextStep() { if (S.step < 4) { S.step++; render(); window.scrollTo(0,0); } }
-function prevStep() { if (S.step > 1) { S.step--; render(); window.scrollTo(0,0); } }
-function restart() {
-  S.step = 1; S.type = null;
-  S.features = new Set(); S.extras = new Set();
-  S.params = { floors:1, rooms:5, entries:1, windows:4, area:80 };
-  S.products = [];
-  render(); window.scrollTo(0,0);
+function chgQ(k,d){
+  var pr=ST.prods.find(function(p){return p.k===k;});
+  if(!pr) return;
+  pr.q=Math.max(0,pr.q+d);
+  if(pr.q===0){ delProd(k); return; }
+  var qe=document.getElementById('pq-'+k);
+  if(qe) qe.textContent=pr.q;
+  var pe=document.getElementById('ppr-'+k);
+  if(pe) pe.textContent=fp(CAT[k].p*pr.q);
+  updTotals();
 }
 
-// ── INIT ─────────────────────────────────────────────
+function delProd(k){
+  ST.prods=ST.prods.filter(function(p){return p.k!==k;});
+  var el=document.getElementById('pc-'+k);
+  if(el) el.remove();
+  updTotals();
+}
+
+function updTotals(){
+  var t=tot(), tva=t*0.2, ttc=t*1.2;
+  var sv=document.getElementById('stv');
+  if(sv) sv.textContent=fp(t);
+  var rv=document.getElementById('rtbv');
+  if(rv) rv.textContent=fp(t);
+  var ht=document.getElementById('pht');
+  if(ht) ht.textContent=fp(t);
+  var tv=document.getElementById('ptva');
+  if(tv) tv.textContent=fp(tva);
+  var tc=document.getElementById('pttc');
+  if(tc) tc.textContent=fp(ttc);
+}
+
+function doPrint(){
+  var t=tot(), tva=t*0.2, ttc=t*1.2;
+  var now=new Date();
+  var ds=now.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var ts=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  var c=ST.cli;
+  var byCat={};
+  ST.prods.forEach(function(pr){ if(!byCat[CAT[pr.k].c]) byCat[CAT[pr.k].c]=[]; byCat[CAT[pr.k].c].push(pr); });
+
+  var rows='';
+  CATS.forEach(function(cat){
+    var items=byCat[cat];
+    if(!items) return;
+    rows+='<tr><td colspan="4" style="padding:10px 0 4px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6b7280;border-bottom:1px solid #e5e7eb;">'+cat+'</td></tr>';
+    items.forEach(function(pr){
+      var info=CAT[pr.k];
+      var img=pr.col==='noir'&&info.imgN?info.imgN:info.img;
+      rows+='<tr style="border-bottom:1px solid #f0f0f0;">';
+      rows+='<td style="padding:8px;"><img src="'+img+'" style="width:40px;height:40px;object-fit:contain;" onerror="this.style.display=\'none\'"></td>';
+      rows+='<td style="padding:8px;font-size:13px;"><strong>'+info.n+'</strong><br><span style="color:#6b7280;font-size:11px;">'+info.d+'</span></td>';
+      rows+='<td style="padding:8px;text-align:center;font-size:13px;font-weight:600;">'+pr.q+'</td>';
+      rows+='<td style="padding:8px;text-align:right;font-size:13px;font-weight:700;">'+fp(info.p*pr.q)+'</td>';
+      rows+='</tr>';
+    });
+  });
+
+  var cliBlock='';
+  if(c.nom||c.soc||c.adr||c.chan){
+    cliBlock='<div style="background:#f9f9f9;border-radius:8px;padding:16px 20px;margin-bottom:24px;font-size:13px;">';
+    if(c.chan) cliBlock+='<div style="font-size:15px;font-weight:700;margin-bottom:8px;">'+c.chan+'</div>';
+    cliBlock+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;">';
+    if(c.nom) cliBlock+='<div><span style="color:#6b7280;font-size:11px;text-transform:uppercase;display:block;">Client</span><strong>'+c.nom+'</strong></div>';
+    if(c.soc) cliBlock+='<div><span style="color:#6b7280;font-size:11px;text-transform:uppercase;display:block;">Societe</span><strong>'+c.soc+'</strong></div>';
+    if(c.tel) cliBlock+='<div><span style="color:#6b7280;font-size:11px;text-transform:uppercase;display:block;">Telephone</span>'+c.tel+'</div>';
+    if(c.email) cliBlock+='<div><span style="color:#6b7280;font-size:11px;text-transform:uppercase;display:block;">Email</span>'+c.email+'</div>';
+    if(c.adr) cliBlock+='<div style="grid-column:1/-1"><span style="color:#6b7280;font-size:11px;text-transform:uppercase;display:block;">Adresse</span>'+c.adr+'</div>';
+    cliBlock+='</div></div>';
+  }
+
+  var refStr=c.ref?' - Ref: '+c.ref:'';
+  var win=window.open('','_blank','width=900,height=700');
+  if(!win){ window.print(); return; }
+  win.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Config Ajax - CamProtect</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box;}'
+    +'body{font-family:DM Sans,sans-serif;color:#111;background:#fff;padding:32px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    +'.hd{display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:2px solid #E85D04;margin-bottom:22px;}'
+    +'.lb{display:inline-block;border-radius:8px;overflow:hidden;line-height:0;}'
+    +'.lb img{height:34px;display:block;padding:8px 14px;background:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    +'.dt{font-size:12px;color:#6b7280;text-align:right;line-height:1.7;}'
+    +'table{width:100%;border-collapse:collapse;}'
+    +'.tot{margin-top:24px;border-top:2px solid #111;padding-top:14px;}'
+    +'.tr{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid #e5e7eb;}'
+    +'.tr.ttc{font-size:18px;font-weight:800;border-bottom:none;padding-top:10px;}'
+    +'.tr.ttc .v{color:#E85D04;} .l{color:#6b7280;} .tr.ttc .l{color:#111;}'
+    +'@media print{body{padding:0;}}</style></head><body>'
+    +'<div class="hd"><div class="lb"><img src="'+LOGO+'" alt="CamProtect"></div>'
+    +'<div class="dt">Genere le '+ds+' a '+ts+'<br>Configuration systeme Ajax'+refStr+'</div></div>'
+    +cliBlock
+    +'<table><thead><tr style="background:#f9f9f9;">'
+    +'<th style="padding:8px;text-align:left;font-size:11px;color:#6b7280;width:52px;"></th>'
+    +'<th style="padding:8px;text-align:left;font-size:11px;color:#6b7280;">Produit</th>'
+    +'<th style="padding:8px;text-align:center;font-size:11px;color:#6b7280;width:60px;">Qte</th>'
+    +'<th style="padding:8px;text-align:right;font-size:11px;color:#6b7280;width:100px;">Prix HT</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="tot">'
+    +'<div class="tr"><span class="l">Total HT</span><span>'+fp(t)+'</span></div>'
+    +'<div class="tr"><span class="l">TVA (20%)</span><span>'+fp(tva)+'</span></div>'
+    +'<div class="tr ttc"><span class="l">Total TTC</span><span class="v">'+fp(ttc)+'</span></div>'
+    +'</div>'
+    +'<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>'
+    +'</body></html>');
+  win.document.close();
+}
+
+function goNext(){ if(ST.step<5){ST.step++;render();} }
+function goPrev(){ if(ST.step>1){ST.step--;render();} }
+function doRestart(){
+  ST.step=1; ST.type=null; ST.feat={}; ST.ext={}; ST.prods=[];
+  ST.cli={nom:'',soc:'',tel:'',email:'',adr:'',chan:'',ref:''};
+  ST.grp={i:true,v:false,f:false};
+  render();
+}
+
 render();
 </script>
 </body>
