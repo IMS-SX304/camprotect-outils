@@ -7,12 +7,13 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
+html{background:#f5f5f5;}
 :root{
   --bg:#f5f5f5;--white:#fff;--dark:#111;--orange:#E85D04;--orange-light:#fff3ec;
   --orange-border:#ffd4b8;--border:#e5e7eb;--text:#1a1a1a;--sub:#6b7280;
   --radius:12px;--shadow:0 2px 12px rgba(0,0,0,.08);
 }
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body{font-family:'DM Sans',sans-serif;background:#f5f5f5;color:#1a1a1a;min-height:100vh;}
 
 /* ── HEADER ── */
 .header{background:var(--dark);padding:16px 24px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--orange);}
@@ -133,7 +134,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .print-totals{display:block!important;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
-@page{margin:1.2cm;}
 
 /* ── PRINT HEADER & TOTALS ── */
 .print-header{display:none;justify-content:space-between;align-items:center;padding:16px 0 20px;border-bottom:2px solid #E85D04;margin-bottom:24px;}
