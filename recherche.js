@@ -1,16 +1,17 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.1.0
+   PAGE /recherche — CamProtect v1.2.0
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
 
-   Changelog v1.1.0 :
-   - Système d'univers produits (ajax, videosurveillance, network,
-     cables, power, mounting, display, storage)
-   - Ajax = écosystème fermé : recherche Ajax → résultats Ajax only
-   - Matrice de compatibilité pour accessoires cross-univers
-   - Filtres (marque, catégorie, couleur, prix) calculés uniquement
-     sur les résultats primaires de l'univers détecté
+   Changelog :
+   v1.1.0 - Système d'univers produits (ajax, videosurveillance,
+            network, cables, power, mounting, display, storage)
+          - Ajax = écosystème fermé
+   v1.2.0 - Compléments Ajax contextuels : au lieu d'une section
+            accessoires vide, propose les produits Ajax complémentaires
+            (Hub, sirène, clavier, autres détecteurs) selon priorité
+          - Titre et sous-titre de la section adaptés dynamiquement
    ================================================================ */
 
 (function () {
@@ -87,20 +88,14 @@ function expandTokenWithSynonyms(token) {
   return SYNONYM_MAP.has(n) ? Array.from(SYNONYM_MAP.get(n)) : [n];
 }
 
-// ============= UNIVERS PRODUITS (v1.1.0) =============
-
-// Triggers par univers — chaque mot qui, trouvé dans la requête,
-// active l'univers correspondant. Ajax a priorité absolue.
+// ============= UNIVERS PRODUITS =============
 const UNIVERSE_TRIGGERS = {
   ajax: [
-    // Termes explicites
     'ajax', 'jeweller', 'fibra',
-    // Produits Ajax nominatifs
     'doorprotect', 'motionprotect', 'motioncam', 'combiprotect',
     'curtainoutdoor', 'dualcurtain', 'glassprotect', 'fireprotect',
     'homesiren', 'streetsiren', 'keypad', 'multitransmitter',
     'rex', 'waterstop', 'hub',
-    // Types de produits exclusivement Ajax chez CamProtect
     'detecteur', 'capteur', 'sirene', 'clavier', 'centrale',
     'telecommande', 'alarme', 'ouverture', 'mouvement',
     'bris', 'incendie', 'fumee', 'innondation'
@@ -134,56 +129,39 @@ const UNIVERSE_TRIGGERS = {
   ]
 };
 
-// Classification d'un produit dans son univers principal
 function getProductUniverse(item) {
   const brand = normalize(item.brand);
   const pt    = normalize(item.productType);
-
-  // Rule 1 : toute marque AJAX → univers ajax (écosystème fermé)
   if (brand === 'ajax') return 'ajax';
-
-  // Rule 2 : classification par productType pour les autres marques
   if (pt === 'camera' || pt === 'enregistreur') return 'videosurveillance';
-
   if (['switch', 'injecteur', "point d'accès", 'point d\'acces',
        'prolongateur réseau', 'prolongateur reseau'].includes(pt)) return 'network';
-
   if (['rj45', 'rj45-futp', 'coaxial', 'coaxial-kx6',
        'cordon', 'connecteur', 'pince'].includes(pt)) return 'cables';
-
   if (['alimentation', "coffret d'alimentation", 'coffret d\'alimentation',
        'onduleur', "cable d'alimentation", 'cable d\'alimentation'].includes(pt)) return 'power';
-
   if (['support mural', "support d'angle", 'support d\'angle',
        'support de montage', 'boite de jonction', 'boîte de jonction',
        'accessoire de protection', 'support inclinable',
        "support d'écran 1 articulation", 'support d\'ecran 1 articulation',
        "support d'écran 2 articulations", 'support d\'ecran 2 articulations',
        'casquette'].includes(pt)) return 'mounting';
-
   if (pt === 'écran' || pt === 'ecran') return 'display';
-
   if (pt === 'hdd 3.5' || pt === 'hdd 3.5"') return 'storage';
-
   return 'other';
 }
 
-// Détecte l'univers ciblé par la requête (ajax prioritaire)
 function detectUniverse(query) {
   const nq = normalize(query);
   const tokens = nq.split(/\s+/).filter(t => t.length > 1);
   if (!tokens.length) return null;
-
   const priority = ['ajax', 'videosurveillance', 'network', 'cables',
                     'power', 'mounting', 'display', 'storage'];
-
   const scores = {};
   priority.forEach(u => scores[u] = 0);
-
   tokens.forEach(tok => {
     priority.forEach(universe => {
       const triggers = UNIVERSE_TRIGGERS[universe];
-      // Match exact ou inclusion substring (pour variations comme "cameras", "detecteurs")
       const hit = triggers.some(t => {
         if (t === tok) return true;
         if (tok.length >= 4 && tok.includes(t) && t.length >= 3) return true;
@@ -193,11 +171,7 @@ function detectUniverse(query) {
       if (hit) scores[universe]++;
     });
   });
-
-  // Ajax gagne s'il a au moins un match, même avec d'autres univers scorés
   if (scores.ajax > 0) return 'ajax';
-
-  // Sinon, univers au score max
   let best = null, bestScore = 0;
   priority.forEach(u => {
     if (scores[u] > bestScore) {
@@ -208,9 +182,8 @@ function detectUniverse(query) {
   return best;
 }
 
-// Matrice : pour chaque univers, quels univers d'accessoires sont pertinents
 const UNIVERSE_COMPATIBILITY = {
-  ajax: ['ajax'],  // Écosystème fermé
+  ajax: ['ajax'],
   videosurveillance: ['videosurveillance', 'network', 'power', 'mounting',
                       'display', 'storage', 'cables'],
   network: ['network', 'cables', 'power'],
@@ -220,6 +193,50 @@ const UNIVERSE_COMPATIBILITY = {
   display: ['display', 'mounting'],
   storage: ['storage']
 };
+
+// ============= COMPLÉMENTS AJAX (v1.2.0) =============
+// Groupes de productTypes complémentaires, par ordre de priorité
+// dans une installation Ajax typique.
+const AJAX_COMPLEMENT_GROUPS = [
+  { types: ['centrale'], max: 2 },                              // Hub (critique)
+  { types: ['sirene'], max: 2 },                                // Sirène
+  { types: ['clavier'], max: 1 },                               // Keypad
+  { types: ["detecteur d'ouverture"], max: 2 },
+  { types: ["detecteur d'incendie"], max: 1 },
+  { types: ['detecteur'], max: 1 },                             // Mouvement, autre
+  { types: ['detecteur rideau'], max: 1 },
+  { types: ["detecteur d'innondation"], max: 1 },
+  { types: ['telecommande'], max: 1 }
+];
+
+function buildAjaxComplements(allProducts, primaryProductTypes) {
+  const ajaxProducts = allProducts.filter(p => normalize(p.brand) === 'ajax');
+  const complements = [];
+  const used = new Set();
+
+  for (const group of AJAX_COMPLEMENT_GROUPS) {
+    if (complements.length >= 8) break;
+    // Exclure les types déjà présents dans les résultats primaires
+    const candidates = ajaxProducts.filter(p => {
+      const pt = normalize(p.productType);
+      const pid = p.url || p.slug;
+      return group.types.some(t => normalize(t) === pt)
+          && !primaryProductTypes.has(pt)
+          && !used.has(pid);
+    });
+    // Trier par prix croissant pour montrer l'entrée de gamme
+    candidates.sort((a, b) => {
+      const pa = priceTtcFromItem(a), pb = priceTtcFromItem(b);
+      return (pa || Infinity) - (pb || Infinity);
+    });
+    const take = candidates.slice(0, group.max);
+    take.forEach(p => {
+      complements.push({ item: { original: p }, score: 0 });
+      used.add(p.url || p.slug);
+    });
+  }
+  return complements.slice(0, 8);
+}
 
 // ============= FUSE CONFIG =============
 const FUSE_OPTIONS = {
@@ -291,8 +308,6 @@ function saveCache(meta, products) {
 function runSearch(fuse, rawQuery) {
   const tokens = normalize(rawQuery).split(/\s+/).filter(t => t.length > 1);
   if (tokens.length === 0) return { primary: [], accessories: [], universe: null };
-
-  // Multi-token AND avec synonymes OR par token
   const expanded = tokens.map(t => expandTokenWithSynonyms(t));
   const accumulated = new Map();
   expanded.forEach(group => {
@@ -324,13 +339,10 @@ function runSearch(fuse, rawQuery) {
   });
   all.sort((a, b) => a.score - b.score);
 
-  // Détection d'univers + filtrage
   const universe = detectUniverse(rawQuery);
   if (!universe) {
-    // Mode élargi : pas de filtrage d'univers
     return { primary: all, accessories: [], universe: null };
   }
-
   const allowedAccessory = UNIVERSE_COMPATIBILITY[universe] || [universe];
   const primary = [];
   const accessories = [];
@@ -341,7 +353,6 @@ function runSearch(fuse, rawQuery) {
     } else if (allowedAccessory.includes(itemUniverse)) {
       accessories.push(r);
     }
-    // Autres produits : exclus (hors univers compatible)
   });
   return { primary, accessories, universe };
 }
@@ -382,6 +393,7 @@ function highlight(text, regex) {
 
 // ============= STATE =============
 const PAGE_SIZE = 12;
+let allProducts = [];        // Catalogue complet (pour les compléments Ajax)
 let allResults = [];
 let allAccessories = [];
 let detectedUniverse = null;
@@ -397,6 +409,8 @@ const activeFilters = {
   priceMax: null
 };
 let priceBounds = { min: 0, max: 0 };
+let relatedTitleOriginal = null;
+let relatedSubtitleOriginal = null;
 
 // ============= DOM =============
 const params = new URLSearchParams(window.location.search);
@@ -422,6 +436,15 @@ const relatedList       = document.getElementById("relatedAccessoriesList");
 
 if (!resultsList) return;
 if (countEl) { countEl.setAttribute('role', 'status'); countEl.setAttribute('aria-live', 'polite'); }
+
+// Mémoriser les textes originaux du titre/sous-titre de la section related
+// pour pouvoir les restaurer selon l'univers
+if (relatedSection) {
+  const titleNode = relatedSection.querySelector('h2, h3, .Result_related-title');
+  const subtitleNode = relatedSection.querySelector('p, .Result_related-subtitle');
+  if (titleNode) relatedTitleOriginal = titleNode.textContent;
+  if (subtitleNode) relatedSubtitleOriginal = subtitleNode.textContent;
+}
 
 // ============= INJECTION DYNAMIQUE =============
 const SORT_OPTIONS = [
@@ -619,7 +642,6 @@ function updatePriceSliderUI() {
   if (maxLabel) maxLabel.textContent = v2 + ' €';
 }
 function renderFilters() {
-  // Facettes calculées uniquement sur les résultats primaires (univers détecté)
   const facets = {
     brands:     buildFacet(allResults, 'brand'),
     categories: buildFacet(allResults, 'productType'),
@@ -752,12 +774,44 @@ function buildRelatedCard(item) {
     '</div>'
   );
 }
+
+// Met à jour le titre et sous-titre de la section selon le contexte
+function setRelatedHeading(title, subtitle) {
+  if (!relatedSection) return;
+  const titleNode = relatedSection.querySelector('h2, h3, .Result_related-title');
+  const subtitleNode = relatedSection.querySelector('p, .Result_related-subtitle');
+  if (titleNode) titleNode.textContent = title;
+  if (subtitleNode) subtitleNode.textContent = subtitle;
+}
+
 function renderRelated() {
   if (!relatedSection || !relatedList) return;
-  // Pas de section accessoires pour l'univers Ajax (écosystème fermé)
-  if (detectedUniverse === 'ajax' || allAccessories.length === 0) {
+
+  // Cas 1 : Univers Ajax → proposer des compléments Ajax
+  if (detectedUniverse === 'ajax') {
+    const primaryProductTypes = new Set(allResults.map(r => normalize(r.item.original.productType)));
+    const complements = buildAjaxComplements(allProducts, primaryProductTypes);
+    if (complements.length === 0) {
+      relatedSection.classList.remove('is-visible');
+      return;
+    }
+    setRelatedHeading(
+      'Complétez votre système Ajax',
+      'Les produits indispensables ou complémentaires pour faire fonctionner votre alarme.'
+    );
+    relatedSection.classList.add('is-visible');
+    relatedList.innerHTML = complements.map(r => buildRelatedCard(r.item.original)).join('');
+    return;
+  }
+
+  // Cas 2 : Autres univers → accessoires trouvés par la recherche
+  if (allAccessories.length === 0) {
     relatedSection.classList.remove('is-visible');
     return;
+  }
+  // Restaurer le titre original depuis Webflow
+  if (relatedTitleOriginal && relatedSubtitleOriginal) {
+    setRelatedHeading(relatedTitleOriginal, relatedSubtitleOriginal);
   }
   relatedSection.classList.add('is-visible');
   relatedList.innerHTML = allAccessories.slice(0, 8).map(r => buildRelatedCard(r.item.original)).join('');
@@ -853,6 +907,7 @@ loadStateFromUrl();
 renderSkeletons(3);
 
 function processData(products) {
+  allProducts = products;
   keywordCorpus = buildKeywordCorpus(products);
   const normalized = normalizeData(products);
   const fuse = new Fuse(normalized, FUSE_OPTIONS);
@@ -1050,7 +1105,7 @@ window.addEventListener('popstate', () => {
   applyFilters('popstate');
 });
 
-} // end of init()
+} // end init()
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
