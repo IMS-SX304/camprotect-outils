@@ -1,17 +1,16 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.2.0
+   PAGE /recherche — CamProtect v1.3.0
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
 
    Changelog :
-   v1.1.0 - Système d'univers produits (ajax, videosurveillance,
-            network, cables, power, mounting, display, storage)
-          - Ajax = écosystème fermé
-   v1.2.0 - Compléments Ajax contextuels : au lieu d'une section
-            accessoires vide, propose les produits Ajax complémentaires
-            (Hub, sirène, clavier, autres détecteurs) selon priorité
-          - Titre et sous-titre de la section adaptés dynamiquement
+   v1.1.0 - Système d'univers produits
+   v1.2.0 - Compléments Ajax contextuels
+   v1.3.0 - Add-to-cart depuis la recherche (quantité + bouton)
+            redirige vers /product/slug?qty=N&autoadd=1&src=recherche
+            nécessite le snippet product-autoadd.html dans le footer
+            du template page produit
    ================================================================ */
 
 (function () {
@@ -194,16 +193,14 @@ const UNIVERSE_COMPATIBILITY = {
   storage: ['storage']
 };
 
-// ============= COMPLÉMENTS AJAX (v1.2.0) =============
-// Groupes de productTypes complémentaires, par ordre de priorité
-// dans une installation Ajax typique.
+// ============= COMPLÉMENTS AJAX =============
 const AJAX_COMPLEMENT_GROUPS = [
-  { types: ['centrale'], max: 2 },                              // Hub (critique)
-  { types: ['sirene'], max: 2 },                                // Sirène
-  { types: ['clavier'], max: 1 },                               // Keypad
+  { types: ['centrale'], max: 2 },
+  { types: ['sirene'], max: 2 },
+  { types: ['clavier'], max: 1 },
   { types: ["detecteur d'ouverture"], max: 2 },
   { types: ["detecteur d'incendie"], max: 1 },
-  { types: ['detecteur'], max: 1 },                             // Mouvement, autre
+  { types: ['detecteur'], max: 1 },
   { types: ['detecteur rideau'], max: 1 },
   { types: ["detecteur d'innondation"], max: 1 },
   { types: ['telecommande'], max: 1 }
@@ -213,10 +210,8 @@ function buildAjaxComplements(allProducts, primaryProductTypes) {
   const ajaxProducts = allProducts.filter(p => normalize(p.brand) === 'ajax');
   const complements = [];
   const used = new Set();
-
   for (const group of AJAX_COMPLEMENT_GROUPS) {
     if (complements.length >= 8) break;
-    // Exclure les types déjà présents dans les résultats primaires
     const candidates = ajaxProducts.filter(p => {
       const pt = normalize(p.productType);
       const pid = p.url || p.slug;
@@ -224,7 +219,6 @@ function buildAjaxComplements(allProducts, primaryProductTypes) {
           && !primaryProductTypes.has(pt)
           && !used.has(pid);
     });
-    // Trier par prix croissant pour montrer l'entrée de gamme
     candidates.sort((a, b) => {
       const pa = priceTtcFromItem(a), pb = priceTtcFromItem(b);
       return (pa || Infinity) - (pb || Infinity);
@@ -283,7 +277,7 @@ function normalizeData(data) {
 }
 
 // ============= CACHE =============
-const CACHE_KEY = 'cp_search_data_v2';
+const CACHE_KEY = 'cp_search_data_v3'; // v3 pour forcer refresh avec sku_id
 const CACHE_TTL = 60 * 60 * 1000;
 function loadCache() {
   try {
@@ -393,7 +387,7 @@ function highlight(text, regex) {
 
 // ============= STATE =============
 const PAGE_SIZE = 12;
-let allProducts = [];        // Catalogue complet (pour les compléments Ajax)
+let allProducts = [];
 let allResults = [];
 let allAccessories = [];
 let detectedUniverse = null;
@@ -437,8 +431,6 @@ const relatedList       = document.getElementById("relatedAccessoriesList");
 if (!resultsList) return;
 if (countEl) { countEl.setAttribute('role', 'status'); countEl.setAttribute('aria-live', 'polite'); }
 
-// Mémoriser les textes originaux du titre/sous-titre de la section related
-// pour pouvoir les restaurer selon l'univers
 if (relatedSection) {
   const titleNode = relatedSection.querySelector('h2, h3, .Result_related-title');
   const subtitleNode = relatedSection.querySelector('p, .Result_related-subtitle');
@@ -727,6 +719,40 @@ function buildSpecs(item) {
   }
   return out;
 }
+
+// ============= ADD-TO-CART (v1.3.0) =============
+// Génère le bloc sélecteur quantité + bouton "Ajouter au panier"
+// Retourne une string vide si le produit n'a pas de sku_id (add-to-cart indisponible)
+function buildQuickBuy(item) {
+  const priceTtc = priceTtcFromItem(item);
+  if (!item.sku_id || priceTtc == null) return '';
+  return (
+    '<div class="search-result-buy">' +
+      '<div class="qty-selector" data-qty="1">' +
+        '<button class="qty-btn qty-minus" type="button" aria-label="Diminuer la quantité">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
+        '</button>' +
+        '<span class="qty-value" aria-live="polite">1</span>' +
+        '<button class="qty-btn qty-plus" type="button" aria-label="Augmenter la quantité">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
+        '</button>' +
+      '</div>' +
+      '<button class="add-to-cart-btn" type="button"' +
+        ' data-sku-id="' + escapeHtml(item.sku_id) + '"' +
+        ' data-url="' + escapeHtml(item.url) + '"' +
+        ' data-title="' + escapeHtml(item.title) + '"' +
+        ' data-price="' + priceTtc.toFixed(2) + '">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<circle cx="9" cy="21" r="1"></circle>' +
+          '<circle cx="20" cy="21" r="1"></circle>' +
+          '<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>' +
+        '</svg>' +
+        '<span class="add-to-cart-btn__label">Ajouter au panier</span>' +
+      '</button>' +
+    '</div>'
+  );
+}
+
 function buildCard(item, position) {
   const brand = (item.brand || '').trim();
   const cat = (item.productType || '').trim();
@@ -744,9 +770,10 @@ function buildCard(item, position) {
   if (priceStr) footerParts.push('<div class="search-result-price">' + priceStr + '<span class="ttc-label">TTC</span></div>');
   if (warranty) footerParts.push('<div class="search-result-warranty">Garantie ' + escapeHtml(warranty) + '</div>');
   const footerHtml = footerParts.length ? '<div class="search-result-footer">' + footerParts.join('') + '</div>' : '';
+  const buyHtml = buildQuickBuy(item);
   return (
     '<div class="search-result-item" data-position="' + position + '" data-url="' + escapeHtml(item.url) + '" data-title="' + escapeHtml(item.title) + '" data-price="' + (priceTtc != null ? priceTtc.toFixed(2) : '') + '">' +
-      '<a href="' + escapeHtml(item.url) + '">' +
+      '<a class="search-result-main" href="' + escapeHtml(item.url) + '">' +
         '<img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.title) + '" loading="lazy">' +
         '<div class="search-result-text">' +
           (badges.length ? '<div class="search-result-badges">' + badges.join('') + '</div>' : '') +
@@ -756,6 +783,7 @@ function buildCard(item, position) {
           specsHtml + footerHtml +
         '</div>' +
       '</a>' +
+      buyHtml +
     '</div>'
   );
 }
@@ -775,7 +803,6 @@ function buildRelatedCard(item) {
   );
 }
 
-// Met à jour le titre et sous-titre de la section selon le contexte
 function setRelatedHeading(title, subtitle) {
   if (!relatedSection) return;
   const titleNode = relatedSection.querySelector('h2, h3, .Result_related-title');
@@ -786,8 +813,6 @@ function setRelatedHeading(title, subtitle) {
 
 function renderRelated() {
   if (!relatedSection || !relatedList) return;
-
-  // Cas 1 : Univers Ajax → proposer des compléments Ajax
   if (detectedUniverse === 'ajax') {
     const primaryProductTypes = new Set(allResults.map(r => normalize(r.item.original.productType)));
     const complements = buildAjaxComplements(allProducts, primaryProductTypes);
@@ -803,13 +828,10 @@ function renderRelated() {
     relatedList.innerHTML = complements.map(r => buildRelatedCard(r.item.original)).join('');
     return;
   }
-
-  // Cas 2 : Autres univers → accessoires trouvés par la recherche
   if (allAccessories.length === 0) {
     relatedSection.classList.remove('is-visible');
     return;
   }
-  // Restaurer le titre original depuis Webflow
   if (relatedTitleOriginal && relatedSubtitleOriginal) {
     setRelatedHeading(relatedTitleOriginal, relatedSubtitleOriginal);
   }
@@ -1065,6 +1087,8 @@ resultsList.addEventListener('click', e => {
 resultsList.addEventListener('click', e => {
   const card = e.target.closest('.search-result-item');
   if (!card) return;
+  // Ne pas déclencher select_item si clic sur les contrôles buy
+  if (e.target.closest('.search-result-buy')) return;
   ga4('select_item', {
     item_list_name: 'Résultats de recherche',
     search_term: query,
@@ -1072,6 +1096,76 @@ resultsList.addEventListener('click', e => {
   });
 });
 
+// ============= HANDLERS QUANTITÉ + ADD TO CART (v1.3.0) =============
+resultsList.addEventListener('click', e => {
+  // Bouton diminuer
+  const minus = e.target.closest('.qty-minus');
+  if (minus) {
+    e.preventDefault();
+    const selector = minus.closest('.qty-selector');
+    const valueEl = selector.querySelector('.qty-value');
+    const current = parseInt(valueEl.textContent, 10) || 1;
+    if (current > 1) {
+      valueEl.textContent = String(current - 1);
+      selector.dataset.qty = String(current - 1);
+    }
+    return;
+  }
+  // Bouton augmenter
+  const plus = e.target.closest('.qty-plus');
+  if (plus) {
+    e.preventDefault();
+    const selector = plus.closest('.qty-selector');
+    const valueEl = selector.querySelector('.qty-value');
+    const current = parseInt(valueEl.textContent, 10) || 1;
+    if (current < 99) {
+      valueEl.textContent = String(current + 1);
+      selector.dataset.qty = String(current + 1);
+    }
+    return;
+  }
+  // Bouton Ajouter au panier
+  const addBtn = e.target.closest('.add-to-cart-btn');
+  if (addBtn) {
+    e.preventDefault();
+    const skuId = addBtn.dataset.skuId;
+    const url = addBtn.dataset.url;
+    const title = addBtn.dataset.title;
+    const price = parseFloat(addBtn.dataset.price) || 0;
+    if (!skuId || !url) {
+      console.warn('Recherche add-to-cart : sku_id ou url manquant sur le bouton');
+      return;
+    }
+    const card = addBtn.closest('.search-result-item');
+    const valueEl = card && card.querySelector('.qty-value');
+    const qty = valueEl ? parseInt(valueEl.textContent, 10) || 1 : 1;
+
+    // Feedback visuel pendant la redirection
+    addBtn.disabled = true;
+    addBtn.classList.add('is-loading');
+    const label = addBtn.querySelector('.add-to-cart-btn__label');
+    if (label) label.textContent = 'Ajout en cours...';
+
+    ga4('add_to_cart', {
+      currency: 'EUR',
+      value: +(price * qty).toFixed(2),
+      items: [{
+        item_id: skuId, item_name: title, price,
+        quantity: qty, item_list_name: 'Résultats de recherche'
+      }]
+    });
+
+    // Construire l'URL cible. Conserver les fragments éventuels.
+    const sep = url.indexOf('?') === -1 ? '?' : '&';
+    const targetUrl = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche';
+
+    // Petit délai pour que l'animation de loading soit visible
+    setTimeout(() => { window.location.href = targetUrl; }, 80);
+    return;
+  }
+});
+
+// Également brancher les handlers sur la section accessoires pour le prefetch
 const prefetched = new Set();
 function bindPrefetch(container) {
   if (!container) return;
