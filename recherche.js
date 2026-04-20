@@ -1,8 +1,16 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.0.0
+   PAGE /recherche — CamProtect v1.1.0
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
+
+   Changelog v1.1.0 :
+   - Système d'univers produits (ajax, videosurveillance, network,
+     cables, power, mounting, display, storage)
+   - Ajax = écosystème fermé : recherche Ajax → résultats Ajax only
+   - Matrice de compatibilité pour accessoires cross-univers
+   - Filtres (marque, catégorie, couleur, prix) calculés uniquement
+     sur les résultats primaires de l'univers détecté
    ================================================================ */
 
 (function () {
@@ -79,6 +87,140 @@ function expandTokenWithSynonyms(token) {
   return SYNONYM_MAP.has(n) ? Array.from(SYNONYM_MAP.get(n)) : [n];
 }
 
+// ============= UNIVERS PRODUITS (v1.1.0) =============
+
+// Triggers par univers — chaque mot qui, trouvé dans la requête,
+// active l'univers correspondant. Ajax a priorité absolue.
+const UNIVERSE_TRIGGERS = {
+  ajax: [
+    // Termes explicites
+    'ajax', 'jeweller', 'fibra',
+    // Produits Ajax nominatifs
+    'doorprotect', 'motionprotect', 'motioncam', 'combiprotect',
+    'curtainoutdoor', 'dualcurtain', 'glassprotect', 'fireprotect',
+    'homesiren', 'streetsiren', 'keypad', 'multitransmitter',
+    'rex', 'waterstop', 'hub',
+    // Types de produits exclusivement Ajax chez CamProtect
+    'detecteur', 'capteur', 'sirene', 'clavier', 'centrale',
+    'telecommande', 'alarme', 'ouverture', 'mouvement',
+    'bris', 'incendie', 'fumee', 'innondation'
+  ],
+  videosurveillance: [
+    'camera', 'cam', 'cameras', 'bullet', 'dome', 'tourelle',
+    'turret', 'turretcam', 'domecam', 'bulletcam',
+    'nvr', 'dvr', 'xvr', 'enregistreur',
+    'hikvision', 'dahua', 'ezviz', 'wizsense'
+  ],
+  network: [
+    'switch', 'commutateur', 'injecteur', 'poe',
+    'prolongateur', 'access', 'acces'
+  ],
+  cables: [
+    'rj45', 'ethernet', 'coaxial', 'cable', 'cordon',
+    'kx6', 'rg59', 'rg6'
+  ],
+  power: [
+    'onduleur', 'ups', 'alimentation', 'coffret'
+  ],
+  mounting: [
+    'support', 'bracket', 'equerre', 'fixation',
+    'jonction', 'casquette', 'protection'
+  ],
+  display: [
+    'ecran', 'moniteur'
+  ],
+  storage: [
+    'hdd', 'disque', 'stockage'
+  ]
+};
+
+// Classification d'un produit dans son univers principal
+function getProductUniverse(item) {
+  const brand = normalize(item.brand);
+  const pt    = normalize(item.productType);
+
+  // Rule 1 : toute marque AJAX → univers ajax (écosystème fermé)
+  if (brand === 'ajax') return 'ajax';
+
+  // Rule 2 : classification par productType pour les autres marques
+  if (pt === 'camera' || pt === 'enregistreur') return 'videosurveillance';
+
+  if (['switch', 'injecteur', "point d'accès", 'point d\'acces',
+       'prolongateur réseau', 'prolongateur reseau'].includes(pt)) return 'network';
+
+  if (['rj45', 'rj45-futp', 'coaxial', 'coaxial-kx6',
+       'cordon', 'connecteur', 'pince'].includes(pt)) return 'cables';
+
+  if (['alimentation', "coffret d'alimentation", 'coffret d\'alimentation',
+       'onduleur', "cable d'alimentation", 'cable d\'alimentation'].includes(pt)) return 'power';
+
+  if (['support mural', "support d'angle", 'support d\'angle',
+       'support de montage', 'boite de jonction', 'boîte de jonction',
+       'accessoire de protection', 'support inclinable',
+       "support d'écran 1 articulation", 'support d\'ecran 1 articulation',
+       "support d'écran 2 articulations", 'support d\'ecran 2 articulations',
+       'casquette'].includes(pt)) return 'mounting';
+
+  if (pt === 'écran' || pt === 'ecran') return 'display';
+
+  if (pt === 'hdd 3.5' || pt === 'hdd 3.5"') return 'storage';
+
+  return 'other';
+}
+
+// Détecte l'univers ciblé par la requête (ajax prioritaire)
+function detectUniverse(query) {
+  const nq = normalize(query);
+  const tokens = nq.split(/\s+/).filter(t => t.length > 1);
+  if (!tokens.length) return null;
+
+  const priority = ['ajax', 'videosurveillance', 'network', 'cables',
+                    'power', 'mounting', 'display', 'storage'];
+
+  const scores = {};
+  priority.forEach(u => scores[u] = 0);
+
+  tokens.forEach(tok => {
+    priority.forEach(universe => {
+      const triggers = UNIVERSE_TRIGGERS[universe];
+      // Match exact ou inclusion substring (pour variations comme "cameras", "detecteurs")
+      const hit = triggers.some(t => {
+        if (t === tok) return true;
+        if (tok.length >= 4 && tok.includes(t) && t.length >= 3) return true;
+        if (t.length >= 4 && t.includes(tok) && tok.length >= 3) return true;
+        return false;
+      });
+      if (hit) scores[universe]++;
+    });
+  });
+
+  // Ajax gagne s'il a au moins un match, même avec d'autres univers scorés
+  if (scores.ajax > 0) return 'ajax';
+
+  // Sinon, univers au score max
+  let best = null, bestScore = 0;
+  priority.forEach(u => {
+    if (scores[u] > bestScore) {
+      best = u;
+      bestScore = scores[u];
+    }
+  });
+  return best;
+}
+
+// Matrice : pour chaque univers, quels univers d'accessoires sont pertinents
+const UNIVERSE_COMPATIBILITY = {
+  ajax: ['ajax'],  // Écosystème fermé
+  videosurveillance: ['videosurveillance', 'network', 'power', 'mounting',
+                      'display', 'storage', 'cables'],
+  network: ['network', 'cables', 'power'],
+  cables: ['cables', 'network'],
+  power: ['power'],
+  mounting: ['mounting'],
+  display: ['display', 'mounting'],
+  storage: ['storage']
+};
+
 // ============= FUSE CONFIG =============
 const FUSE_OPTIONS = {
   keys: [
@@ -145,63 +287,12 @@ function saveCache(meta, products) {
   } catch (e) {}
 }
 
-// ============= MAPPING productType → tokens =============
-const INTENT_TO_PRODUCT_TYPE = new Map();
-function registerIntent(tokens, productTypeNorm) {
-  tokens.forEach(t => {
-    const n = normalize(t);
-    if (!INTENT_TO_PRODUCT_TYPE.has(n)) INTENT_TO_PRODUCT_TYPE.set(n, new Set());
-    INTENT_TO_PRODUCT_TYPE.get(n).add(productTypeNorm);
-  });
-}
-function buildIntentMap(products) {
-  INTENT_TO_PRODUCT_TYPE.clear();
-  const uniquePT = new Set();
-  products.forEach(p => {
-    const pt = normalize(p.productType);
-    if (pt) uniquePT.add(pt);
-  });
-  uniquePT.forEach(pt => {
-    pt.split(/\s+/).forEach(tok => {
-      if (tok.length > 2) registerIntent([tok], pt);
-    });
-    registerIntent([pt], pt);
-    pt.split(/\s+/).forEach(tok => {
-      const syns = expandTokenWithSynonyms(tok);
-      if (syns.length > 1) registerIntent(syns, pt);
-    });
-  });
-  const INTENT_OVERRIDES = [
-    { tokens: ['camera', 'cam', 'cameras'], pt: 'camera' },
-    { tokens: ['enregistreur', 'nvr', 'dvr', 'xvr'], pt: 'enregistreur' },
-    { tokens: ['detecteur', 'capteur'], pt: 'detecteur' },
-    { tokens: ['sirene'], pt: 'sirene' },
-    { tokens: ['clavier', 'keypad'], pt: 'clavier' },
-    { tokens: ['switch', 'commutateur'], pt: 'switch' },
-    { tokens: ['ecran', 'moniteur'], pt: 'ecran' },
-    { tokens: ['onduleur', 'ups'], pt: 'onduleur' }
-  ];
-  INTENT_OVERRIDES.forEach(({ tokens, pt }) => {
-    uniquePT.forEach(realPt => {
-      if (realPt.includes(pt)) registerIntent(tokens, realPt);
-    });
-  });
-}
-function detectTargetProductTypes(query) {
-  const tokens = normalize(query).split(/\s+/).filter(t => t.length > 1);
-  const targets = new Set();
-  tokens.forEach(tok => {
-    if (INTENT_TO_PRODUCT_TYPE.has(tok)) {
-      INTENT_TO_PRODUCT_TYPE.get(tok).forEach(pt => targets.add(pt));
-    }
-  });
-  return targets.size > 0 ? targets : null;
-}
-
 // ============= RECHERCHE =============
-function runSearch(fuse, rawQuery, products) {
+function runSearch(fuse, rawQuery) {
   const tokens = normalize(rawQuery).split(/\s+/).filter(t => t.length > 1);
-  if (tokens.length === 0) return { primary: [], accessories: [], targetPTs: null };
+  if (tokens.length === 0) return { primary: [], accessories: [], universe: null };
+
+  // Multi-token AND avec synonymes OR par token
   const expanded = tokens.map(t => expandTokenWithSynonyms(t));
   const accumulated = new Map();
   expanded.forEach(group => {
@@ -233,16 +324,26 @@ function runSearch(fuse, rawQuery, products) {
   });
   all.sort((a, b) => a.score - b.score);
 
-  const targetPTs = detectTargetProductTypes(rawQuery);
-  if (!targetPTs) return { primary: all, accessories: [], targetPTs: null };
+  // Détection d'univers + filtrage
+  const universe = detectUniverse(rawQuery);
+  if (!universe) {
+    // Mode élargi : pas de filtrage d'univers
+    return { primary: all, accessories: [], universe: null };
+  }
 
-  const primary = [], accessories = [];
+  const allowedAccessory = UNIVERSE_COMPATIBILITY[universe] || [universe];
+  const primary = [];
+  const accessories = [];
   all.forEach(r => {
-    const pt = normalize(r.item.original.productType);
-    if (pt && targetPTs.has(pt)) primary.push(r);
-    else accessories.push(r);
+    const itemUniverse = getProductUniverse(r.item.original);
+    if (itemUniverse === universe) {
+      primary.push(r);
+    } else if (allowedAccessory.includes(itemUniverse)) {
+      accessories.push(r);
+    }
+    // Autres produits : exclus (hors univers compatible)
   });
-  return { primary, accessories, targetPTs };
+  return { primary, accessories, universe };
 }
 
 // ============= HIGHLIGHTING =============
@@ -283,6 +384,7 @@ function highlight(text, regex) {
 const PAGE_SIZE = 12;
 let allResults = [];
 let allAccessories = [];
+let detectedUniverse = null;
 let displayed = 0;
 let highlightRegex = null;
 let sortMode = 'relevance';
@@ -517,6 +619,7 @@ function updatePriceSliderUI() {
   if (maxLabel) maxLabel.textContent = v2 + ' €';
 }
 function renderFilters() {
+  // Facettes calculées uniquement sur les résultats primaires (univers détecté)
   const facets = {
     brands:     buildFacet(allResults, 'brand'),
     categories: buildFacet(allResults, 'productType'),
@@ -651,13 +754,15 @@ function buildRelatedCard(item) {
 }
 function renderRelated() {
   if (!relatedSection || !relatedList) return;
-  if (allAccessories.length === 0) {
+  // Pas de section accessoires pour l'univers Ajax (écosystème fermé)
+  if (detectedUniverse === 'ajax' || allAccessories.length === 0) {
     relatedSection.classList.remove('is-visible');
     return;
   }
   relatedSection.classList.add('is-visible');
   relatedList.innerHTML = allAccessories.slice(0, 8).map(r => buildRelatedCard(r.item.original)).join('');
 }
+
 function renderCards(results, reset) {
   if (reset) { clearCards(); displayed = 0; }
   if (results.length === 0 && displayed === 0) {
@@ -698,7 +803,7 @@ function buildKeywordCorpus(products) {
     add(p.productType);
     add(p.cameraForm);
   });
-  ['camera','detecteur','enregistreur','sirene','kit','switch','cable','ecran','hub','centrale','alarme','surveillance','videosurveillance','clavier','keypad','ouverture','mouvement','incendie','onduleur'].forEach(w => words.add(w));
+  ['camera','detecteur','enregistreur','sirene','kit','switch','cable','ecran','hub','centrale','alarme','surveillance','videosurveillance','clavier','keypad','ouverture','mouvement','incendie','onduleur','doorprotect','motionprotect','ajax','hikvision','dahua','ezviz'].forEach(w => words.add(w));
   return Array.from(words).map(w => ({ w }));
 }
 function findClosestSuggestion(q) {
@@ -748,13 +853,13 @@ loadStateFromUrl();
 renderSkeletons(3);
 
 function processData(products) {
-  buildIntentMap(products);
   keywordCorpus = buildKeywordCorpus(products);
   const normalized = normalizeData(products);
   const fuse = new Fuse(normalized, FUSE_OPTIONS);
-  const { primary, accessories, targetPTs } = runSearch(fuse, query, normalized);
+  const { primary, accessories, universe } = runSearch(fuse, query);
   allResults = primary;
   allAccessories = accessories;
+  detectedUniverse = universe;
   highlightRegex = buildHighlightRegex(query);
   renderFilters();
   const filtered = getFilteredResults();
@@ -766,7 +871,7 @@ function processData(products) {
     search_term: query,
     results_count: allResults.length,
     accessories_count: allAccessories.length,
-    intent_detected: targetPTs ? Array.from(targetPTs).join(',') : 'none'
+    universe_detected: universe || 'none'
   });
 }
 
@@ -947,7 +1052,6 @@ window.addEventListener('popstate', () => {
 
 } // end of init()
 
-// Exécution robuste : DOMContentLoaded OU directement si DOM déjà prêt
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
