@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.3.0
+   PAGE /recherche — CamProtect v1.4.0
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
@@ -7,10 +7,12 @@
    Changelog :
    v1.1.0 - Système d'univers produits
    v1.2.0 - Compléments Ajax contextuels
-   v1.3.0 - Add-to-cart depuis la recherche (quantité + bouton)
-            redirige vers /product/slug?qty=N&autoadd=1&src=recherche
-            nécessite le snippet product-autoadd.html dans le footer
-            du template page produit
+   v1.3.0 - Add-to-cart depuis la recherche (redirection + auto-add)
+   v1.4.0 - Add-to-cart via IFRAME INVISIBLE (bypass de la redirection).
+            L'user reste sur /recherche, un iframe masqué charge la
+            page produit et déclenche silencieusement l'ajout Webflow.
+            Toast inline + tentative de rafraîchissement du compteur
+            panier de la navbar.
    ================================================================ */
 
 (function () {
@@ -277,7 +279,7 @@ function normalizeData(data) {
 }
 
 // ============= CACHE =============
-const CACHE_KEY = 'cp_search_data_v3'; // v3 pour forcer refresh avec sku_id
+const CACHE_KEY = 'cp_search_data_v3';
 const CACHE_TTL = 60 * 60 * 1000;
 function loadCache() {
   try {
@@ -482,6 +484,83 @@ if (sidebar) {
   closeBtn.setAttribute('aria-label', 'Fermer les filtres');
   closeBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
   sidebar.insertBefore(closeBtn, sidebar.firstChild);
+}
+
+// ============= TOAST INLINE (v1.4.0) =============
+let cpToastEl = null;
+function ensureToast() {
+  if (cpToastEl) return cpToastEl;
+  const t = document.createElement('div');
+  t.id = 'cpSearchToast';
+  t.setAttribute('role', 'status');
+  t.setAttribute('aria-live', 'polite');
+  t.style.cssText =
+    'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(220%);' +
+    'display:inline-flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);' +
+    'padding:14px 20px;background:#1a1a1a;color:#fff;border-radius:99px;' +
+    'box-shadow:0 12px 32px rgba(0,0,0,0.25);font-family:inherit;font-size:14px;' +
+    'font-weight:600;z-index:99999;transition:transform 0.42s cubic-bezier(.2,.9,.3,1);';
+  document.body.appendChild(t);
+  cpToastEl = t;
+  return t;
+}
+function showToast(message, opts) {
+  opts = opts || {};
+  const t = ensureToast();
+  const iconBg = opts.error ? '#ef4444' : '#22c55e';
+  const iconSvg = opts.error
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  t.innerHTML =
+    '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:' + iconBg + ';color:#fff;border-radius:50%;flex-shrink:0;">' + iconSvg + '</span>' +
+    '<span>' + escapeHtml(message) + '</span>';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { t.style.transform = 'translateX(-50%) translateY(0)'; });
+  });
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => {
+    t.style.transform = 'translateX(-50%) translateY(220%)';
+  }, opts.duration || 3500);
+}
+
+// ============= CART COUNTER REFRESH (v1.4.0) =============
+// Tente plusieurs méthodes pour rafraîchir le compteur de l'icône panier
+function refreshCartCounter(addedQty) {
+  // Méthode 1 : API Webflow Commerce (si dispo)
+  try {
+    if (window.Webflow && typeof window.Webflow.require === 'function') {
+      const commerce = window.Webflow.require('commerce');
+      if (commerce) {
+        if (typeof commerce.refreshCart === 'function') { commerce.refreshCart(); return; }
+        if (typeof commerce.cart === 'function') { commerce.cart(); return; }
+      }
+    }
+  } catch (e) {}
+
+  // Méthode 2 : manipulation DOM directe du compteur natif Webflow
+  const counterSelectors = [
+    '.w-commerce-commercecartopenlinkcount',
+    '[data-node-type="commerce-cart-open-link-count"]',
+    '.w-commerce-commercecartitemcount'
+  ];
+  let updated = false;
+  counterSelectors.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
+      const current = parseInt(el.textContent, 10) || 0;
+      el.textContent = String(current + addedQty);
+      // Show the counter if hidden
+      el.style.display = '';
+      updated = true;
+    });
+  });
+
+  // Méthode 3 : dispatch d'events que Webflow pourrait écouter
+  try {
+    window.dispatchEvent(new CustomEvent('wf-commerce-cart-updated'));
+    document.dispatchEvent(new CustomEvent('cartupdate'));
+  } catch (e) {}
+
+  return updated;
 }
 
 // ============= URL STATE =============
@@ -720,9 +799,6 @@ function buildSpecs(item) {
   return out;
 }
 
-// ============= ADD-TO-CART (v1.3.0) =============
-// Génère le bloc sélecteur quantité + bouton "Ajouter au panier"
-// Retourne une string vide si le produit n'a pas de sku_id (add-to-cart indisponible)
 function buildQuickBuy(item) {
   const priceTtc = priceTtcFromItem(item);
   if (!item.sku_id || priceTtc == null) return '';
@@ -982,7 +1058,7 @@ if (cached && cached.products) {
     });
 }
 
-// ============= ÉVÉNEMENTS =============
+// ============= ÉVÉNEMENTS FILTRES & TRI =============
 const debouncedApply = debounce(applyFilters, 150);
 function bindFilterGroup(container, filterKey, stateSet) {
   if (!container) return;
@@ -1087,7 +1163,6 @@ resultsList.addEventListener('click', e => {
 resultsList.addEventListener('click', e => {
   const card = e.target.closest('.search-result-item');
   if (!card) return;
-  // Ne pas déclencher select_item si clic sur les contrôles buy
   if (e.target.closest('.search-result-buy')) return;
   ga4('select_item', {
     item_list_name: 'Résultats de recherche',
@@ -1096,7 +1171,23 @@ resultsList.addEventListener('click', e => {
   });
 });
 
-// ============= HANDLERS QUANTITÉ + ADD TO CART (v1.3.0) =============
+// ============= HANDLERS QUANTITÉ + ADD TO CART v1.4.0 (IFRAME) =============
+let pendingAddToCart = null; // { iframe, btn, label, origText, timeoutId, listener }
+
+function cleanupPending() {
+  if (!pendingAddToCart) return;
+  const p = pendingAddToCart;
+  if (p.timeoutId) clearTimeout(p.timeoutId);
+  if (p.listener) window.removeEventListener('message', p.listener);
+  if (p.iframe && p.iframe.parentNode) p.iframe.parentNode.removeChild(p.iframe);
+  if (p.btn) {
+    p.btn.disabled = false;
+    p.btn.classList.remove('is-loading');
+    if (p.label) p.label.textContent = p.origText || 'Ajouter au panier';
+  }
+  pendingAddToCart = null;
+}
+
 resultsList.addEventListener('click', e => {
   // Bouton diminuer
   const minus = e.target.closest('.qty-minus');
@@ -1124,27 +1215,31 @@ resultsList.addEventListener('click', e => {
     }
     return;
   }
-  // Bouton Ajouter au panier
+  // Bouton Ajouter au panier → iframe invisible
   const addBtn = e.target.closest('.add-to-cart-btn');
   if (addBtn) {
     e.preventDefault();
+    if (pendingAddToCart) return; // éviter les doubles clics sur d'autres cartes
+
     const skuId = addBtn.dataset.skuId;
     const url = addBtn.dataset.url;
     const title = addBtn.dataset.title;
     const price = parseFloat(addBtn.dataset.price) || 0;
     if (!skuId || !url) {
-      console.warn('Recherche add-to-cart : sku_id ou url manquant sur le bouton');
+      console.warn('Recherche add-to-cart : sku_id ou url manquant');
       return;
     }
     const card = addBtn.closest('.search-result-item');
     const valueEl = card && card.querySelector('.qty-value');
     const qty = valueEl ? parseInt(valueEl.textContent, 10) || 1 : 1;
 
-    // Feedback visuel pendant la redirection
+    const labelEl = addBtn.querySelector('.add-to-cart-btn__label');
+    const origText = labelEl ? labelEl.textContent : 'Ajouter au panier';
+
+    // Feedback visuel
     addBtn.disabled = true;
     addBtn.classList.add('is-loading');
-    const label = addBtn.querySelector('.add-to-cart-btn__label');
-    if (label) label.textContent = 'Ajout en cours...';
+    if (labelEl) labelEl.textContent = 'Ajout en cours…';
 
     ga4('add_to_cart', {
       currency: 'EUR',
@@ -1155,17 +1250,58 @@ resultsList.addEventListener('click', e => {
       }]
     });
 
-    // Construire l'URL cible. Conserver les fragments éventuels.
+    // Construire l'URL iframe avec silent=1
     const sep = url.indexOf('?') === -1 ? '?' : '&';
-    const targetUrl = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche';
+    const iframeSrc = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche&silent=1';
 
-    // Petit délai pour que l'animation de loading soit visible
-    setTimeout(() => { window.location.href = targetUrl; }, 80);
+    // Créer l'iframe hors viewport (invisible mais fonctionnel)
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.setAttribute('tabindex', '-1');
+    iframe.style.cssText =
+      'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;' +
+      'border:0;opacity:0;pointer-events:none;visibility:hidden;';
+    iframe.src = iframeSrc;
+
+    // Écoute postMessage
+    const listener = (ev) => {
+      if (ev.origin !== window.location.origin) return;
+      if (!ev.data || typeof ev.data !== 'object') return;
+      if (ev.data.type === 'cp-cart-added') {
+        // Succès
+        cleanupPending();
+        showToast('Produit ajouté au panier', { duration: 3500 });
+        const refreshed = refreshCartCounter(qty);
+        // Si on n'a pas pu update le compteur et que la navbar a bien un élément panier,
+        // l'user verra le vrai compteur au prochain refresh de page.
+      } else if (ev.data.type === 'cp-cart-error') {
+        // Échec : fallback redirection classique
+        cleanupPending();
+        showToast('Ajout impossible — redirection…', { error: true, duration: 2000 });
+        setTimeout(() => {
+          window.location.href = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche';
+        }, 800);
+      }
+    };
+    window.addEventListener('message', listener);
+
+    // Timeout failsafe (6s)
+    const timeoutId = setTimeout(() => {
+      if (!pendingAddToCart) return;
+      cleanupPending();
+      showToast('L\'ajout prend plus de temps que prévu — redirection…', { error: true, duration: 2000 });
+      setTimeout(() => {
+        window.location.href = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche';
+      }, 800);
+    }, 6000);
+
+    pendingAddToCart = { iframe, btn: addBtn, label: labelEl, origText, timeoutId, listener };
+    document.body.appendChild(iframe);
     return;
   }
 });
 
-// Également brancher les handlers sur la section accessoires pour le prefetch
+// Prefetch au hover
 const prefetched = new Set();
 function bindPrefetch(container) {
   if (!container) return;
