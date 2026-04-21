@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.4.1
+   PAGE /recherche — CamProtect v1.4.2
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
@@ -9,10 +9,13 @@
    v1.2.0 - Compléments Ajax contextuels
    v1.3.0 - Add-to-cart depuis la recherche (redirection + auto-add)
    v1.4.0 - Add-to-cart via IFRAME INVISIBLE (bypass de la redirection).
-   v1.4.1 - Correctif drawer panier : au clic sur "Mon panier" après
-            un ajout iframe, reload silencieux avec auto-ouverture du
-            drawer (Webflow re-synchronise son state avec le cookie).
-            Petit overlay "Chargement du panier..." pour masquer le flash.
+   v1.4.1 - Correctif drawer panier : reload + auto-open après ajout iframe
+   v1.4.2 - Overlay de reload PERSISTANT des deux côtés de la navigation
+            via classe html.cp-cart-reloading + sessionStorage + script
+            inline dans l'embed. Disparition du flash blanc, transition
+            fluide en fade-out. Le reload reste nécessaire (Webflow
+            Commerce ne peut pas être forcé à relire son cookie panier)
+            mais il est désormais invisible visuellement.
    ================================================================ */
 
 (function () {
@@ -20,13 +23,25 @@
 
 function init() {
 
-// ============= AUTO-OPEN DRAWER APRÈS RELOAD (v1.4.1) =============
+// ============= AUTO-OPEN DRAWER APRÈS RELOAD (v1.4.2) =============
 // Si on arrive sur la page avec le flag sessionStorage "cp-open-cart-on-load",
-// c'est qu'un ajout iframe précédent a déclenché ce reload pour que Webflow
-// resynchronise son drawer panier. On ouvre le drawer automatiquement.
+// c'est qu'un ajout iframe a déclenché ce reload. La classe
+// "cp-cart-reloading" a été mise sur <html> par le script inline de l'embed
+// (masquant le body pendant que Webflow init). On ouvre le drawer, puis on
+// fade-out l'overlay.
 try {
   if (sessionStorage.getItem('cp-open-cart-on-load') === '1') {
     sessionStorage.removeItem('cp-open-cart-on-load');
+    const htmlEl = document.documentElement;
+
+    // Failsafe : dans tous les cas, on retire l'overlay après 3s pour ne
+    // jamais laisser l'user bloqué derrière un écran blanc.
+    const failsafe = setTimeout(function () {
+      htmlEl.classList.remove('cp-cart-reloading');
+      htmlEl.classList.remove('cp-cart-reloading-exit');
+    }, 3000);
+
+    // Laisser Webflow Commerce init avant d'ouvrir le drawer
     setTimeout(function () {
       const cartLink = document.querySelector(
         '[data-node-type="commerce-cart-open-link"], ' +
@@ -36,9 +51,21 @@ try {
       if (cartLink) {
         try { cartLink.click(); } catch (e) {}
       }
-    }, 700); // Laisser Webflow commerce init avant d'ouvrir le drawer
+      // Fade-out de l'overlay 300ms après l'ouverture du drawer
+      setTimeout(function () {
+        clearTimeout(failsafe);
+        htmlEl.classList.remove('cp-cart-reloading');
+        htmlEl.classList.add('cp-cart-reloading-exit');
+        setTimeout(function () {
+          htmlEl.classList.remove('cp-cart-reloading-exit');
+        }, 400);
+      }, 300);
+    }, 500);
   }
-} catch (e) {}
+} catch (e) {
+  // En cas d'erreur, retirer l'overlay immédiatement
+  document.documentElement.classList.remove('cp-cart-reloading');
+}
 
 // ============= UTILS =============
 function normalize(str) {
@@ -1191,11 +1218,13 @@ resultsList.addEventListener('click', e => {
   });
 });
 
-// ============= INTERCEPTEUR CLIC ICÔNE PANIER v1.4.1 =============
-// Quand un ajout iframe a eu lieu, le cookie panier est à jour mais le
-// state JS de Webflow Commerce est resté figé. Si l'user clique sur
-// l'icône panier, le drawer afficherait "panier vide". On intercepte
-// le clic, on affiche un overlay "Chargement...", puis reload + auto-open.
+// ============= INTERCEPTEUR CLIC ICÔNE PANIER v1.4.2 =============
+// Quand un ajout iframe a eu lieu, le state JS de Webflow Commerce est
+// figé. Si l'user clique sur l'icône panier, le drawer afficherait
+// "panier vide". On intercepte le clic, on applique la classe overlay
+// immédiatement (qui persistera via sessionStorage + script inline de
+// l'embed au prochain chargement), puis on reload.
+// Tout est en CSS pur via des pseudo-éléments sur html : aucun flash.
 document.addEventListener('click', function (e) {
   if (!window._cpCartDirty) return;
   const cartLink = e.target.closest(
@@ -1209,29 +1238,17 @@ document.addEventListener('click', function (e) {
   e.stopPropagation();
   e.stopImmediatePropagation();
 
-  // Overlay de chargement pour masquer le flash du reload
-  const overlay = document.createElement('div');
-  overlay.id = 'cpCartReloadOverlay';
-  overlay.style.cssText =
-    'position:fixed;inset:0;background:rgba(255,255,255,0.92);' +
-    'z-index:999999;display:flex;align-items:center;justify-content:center;' +
-    'font-family:inherit;';
-  overlay.innerHTML =
-    '<div style="display:inline-flex;align-items:center;gap:12px;padding:18px 28px;' +
-    'background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);' +
-    'font-size:14px;font-weight:600;color:#1a1a1a;">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="2.5" stroke-linecap="round" style="animation:cpSpin 0.9s linear infinite;">' +
-        '<path d="M21 12a9 9 0 1 1-6.219-8.56"></path>' +
-      '</svg>' +
-      '<span>Chargement du panier…</span>' +
-    '</div>' +
-    '<style>@keyframes cpSpin { to { transform: rotate(360deg); } }</style>';
-  document.body.appendChild(overlay);
+  // L'overlay s'applique INSTANTANÉMENT via CSS (pseudo-éléments sur html).
+  // Il restera visible pendant toute la transition (avant reload + pendant
+  // reload + après reload jusqu'à l'ouverture du drawer).
+  document.documentElement.classList.add('cp-cart-reloading');
 
   try { sessionStorage.setItem('cp-open-cart-on-load', '1'); } catch (ex) {}
 
-  // Petit délai pour que l'overlay soit peint avant le reload
-  setTimeout(function () { window.location.reload(); }, 80);
+  // Micro-délai pour que le navigateur ait le temps de peindre l'overlay
+  // avant d'initier la navigation (sinon certains navigateurs affichent
+  // brièvement l'ancienne page sans overlay).
+  setTimeout(function () { window.location.reload(); }, 60);
 }, true); // capture phase : avant les handlers Webflow
 
 // ============= HANDLERS QUANTITÉ + ADD TO CART v1.4.0 (IFRAME) =============
