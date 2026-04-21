@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.4.2
+   PAGE /recherche — CamProtect v1.4.3
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
@@ -11,11 +11,10 @@
    v1.4.0 - Add-to-cart via IFRAME INVISIBLE (bypass de la redirection).
    v1.4.1 - Correctif drawer panier : reload + auto-open après ajout iframe
    v1.4.2 - Overlay de reload PERSISTANT des deux côtés de la navigation
-            via classe html.cp-cart-reloading + sessionStorage + script
-            inline dans l'embed. Disparition du flash blanc, transition
-            fluide en fade-out. Le reload reste nécessaire (Webflow
-            Commerce ne peut pas être forcé à relire son cookie panier)
-            mais il est désormais invisible visuellement.
+   v1.4.3 - Support multi-bouton Filtrer (querySelectorAll au lieu de
+            getElementById) pour robustesse si le Designer contient
+            plusieurs instances du bouton avec le même ID.
+            Couplé à CSS v1.2.0 : mobile UX refondu complet.
    ================================================================ */
 
 (function () {
@@ -471,8 +470,8 @@ const loadMoreBtn       = document.getElementById("loadMoreBtn");
 const sortHost          = document.getElementById("sortDropdownHost");
 const priceInputsHost   = document.getElementById("priceInputsHost");
 const priceRangeDisplay = document.getElementById("priceRangeDisplay");
-const openFiltersBtn    = document.getElementById("openFiltersMobile");
-const mobileFilterCount = document.getElementById("mobileFilterCount");
+const openFiltersBtns   = document.querySelectorAll("#openFiltersMobile, [data-open-filters-mobile]");
+const mobileFilterCounts = document.querySelectorAll("#mobileFilterCount, [data-mobile-filter-count]");
 const sidebar           = document.getElementById("searchFilters");
 const relatedSection    = document.getElementById("relatedAccessories");
 const relatedList       = document.getElementById("relatedAccessoriesList");
@@ -675,9 +674,10 @@ function countActiveFilters() {
     + (activeFilters.priceMax != null ? 1 : 0);
 }
 function updateMobileFilterBadge() {
-  if (!mobileFilterCount) return;
+  if (!mobileFilterCounts || !mobileFilterCounts.length) return;
   const n = countActiveFilters();
-  mobileFilterCount.textContent = n > 0 ? String(n) : '';
+  const txt = n > 0 ? String(n) : '';
+  mobileFilterCounts.forEach(el => { el.textContent = txt; });
 }
 function shortSpec(str) {
   if (!str) return '';
@@ -1192,7 +1192,9 @@ document.addEventListener('click', e => {
   }
 });
 
-openFiltersBtn && openFiltersBtn.addEventListener('click', e => { e.preventDefault(); openDrawer(); });
+openFiltersBtns.forEach(btn => {
+  btn.addEventListener('click', e => { e.preventDefault(); openDrawer(); });
+});
 document.addEventListener('click', e => {
   if (e.target && e.target.id === 'filterDrawerOverlay') closeDrawer();
   if (e.target.closest && e.target.closest('.drawer-close-btn')) closeDrawer();
