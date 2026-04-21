@@ -1,20 +1,19 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.4.6
+   PAGE /recherche — CamProtect v1.4.7
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
 
    Changelog :
    v1.4.4 - Mesure dynamique navbar via CSS variables (insuffisant)
-   v1.4.5 - Inline styles sur wrapper + drawer (mais bloqués par
-            !important dans le stylesheet)
-   v1.4.6 - CORRECTIF CRITIQUE : setProperty(name, value, 'important')
-            pour forcer les inline styles à battre les !important du
-            stylesheet. Couplé à CSS v1.3.1 qui retire les !important
-            sur top/height du drawer. Mode debug visuel via ?cp-debug=1
-            (panneau noir en bas à droite qui affiche ce qui est détecté).
-            Attribut [data-cp-navbar-detected] ajouté sur l'élément
-            trouvé pour inspection dans le DevTools.
+   v1.4.5 - Inline styles sur wrapper + drawer (mais bloqués par !important)
+   v1.4.6 - Fix critique !important + setProperty important + debug mode
+   v1.4.7 - Fonction ga4() "consent-safe" : push uniquement dans
+            dataLayer (init si nécessaire) au lieu de tester gtag().
+            Les events déclenchés AVANT que GTM soit chargé (user pas
+            encore cliqué "Accepter cookies") restent queued et sont
+            rattrapés quand GTM se charge. Aucun event perdu, aucun
+            tracking sans consentement.
    ================================================================ */
 
 (function () {
@@ -206,11 +205,16 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 function ga4(eventName, params) {
+  // v1.4.7 : push uniquement dans dataLayer (init si nécessaire).
+  // Cette approche est "consent-safe" : tant que GTM/gtag ne sont pas
+  // chargés (user pas encore accepté les cookies), les events restent
+  // queued dans le dataLayer. Quand GTM se charge après consentement,
+  // il rattrape automatiquement tous les events queued. Aucun event
+  // perdu, et aucun tracking sans consentement (le dataLayer est juste
+  // un tableau JS inerte tant que personne ne le parse).
   try {
-    if (typeof window.gtag === 'function') window.gtag('event', eventName, params || {});
-    else if (window.dataLayer && typeof window.dataLayer.push === 'function') {
-      window.dataLayer.push(Object.assign({ event: eventName }, params || {}));
-    }
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(Object.assign({ event: eventName }, params || {}));
   } catch (e) {}
 }
 
