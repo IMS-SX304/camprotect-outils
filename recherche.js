@@ -1,19 +1,19 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.4.7
+   PAGE /recherche — CamProtect v1.4.8
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
 
    Changelog :
-   v1.4.4 - Mesure dynamique navbar via CSS variables (insuffisant)
    v1.4.5 - Inline styles sur wrapper + drawer (mais bloqués par !important)
    v1.4.6 - Fix critique !important + setProperty important + debug mode
-   v1.4.7 - Fonction ga4() "consent-safe" : push uniquement dans
-            dataLayer (init si nécessaire) au lieu de tester gtag().
-            Les events déclenchés AVANT que GTM soit chargé (user pas
-            encore cliqué "Accepter cookies") restent queued et sont
-            rattrapés quand GTM se charge. Aucun event perdu, aucun
-            tracking sans consentement.
+   v1.4.7 - Fonction ga4() "consent-safe" (push dataLayer uniquement)
+   v1.4.8 - Fix format e-commerce GA4 : les events select_item, add_to_cart,
+            view_item, etc. sont maintenant wrappés dans { ecommerce: {...} }
+            avec un reset ecommerce: null préalable pour éviter le merge.
+            Sans ça, GA4 ignorait items, currency, value car pas dans le
+            bon format. Les events custom (search, filter_applied, etc.)
+            restent au format plat.
    ================================================================ */
 
 (function () {
@@ -205,16 +205,31 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 function ga4(eventName, params) {
-  // v1.4.7 : push uniquement dans dataLayer (init si nécessaire).
-  // Cette approche est "consent-safe" : tant que GTM/gtag ne sont pas
-  // chargés (user pas encore accepté les cookies), les events restent
-  // queued dans le dataLayer. Quand GTM se charge après consentement,
-  // il rattrape automatiquement tous les events queued. Aucun event
-  // perdu, et aucun tracking sans consentement (le dataLayer est juste
-  // un tableau JS inerte tant que personne ne le parse).
+  // v1.4.8 : pour les events e-commerce standard GA4 (select_item, add_to_cart,
+  // view_item, begin_checkout, purchase, etc.), GA4 attend les paramètres dans
+  // un wrapper "ecommerce:" + dataLayer.push doit être précédé d'un reset
+  // (ecommerce: null) pour éviter le merge avec les événements précédents.
+  // Pour les events de recherche customs, on garde le format plat.
+  const ECOMMERCE_EVENTS = new Set([
+    'select_item', 'add_to_cart', 'view_item', 'view_item_list',
+    'remove_from_cart', 'begin_checkout', 'add_shipping_info',
+    'add_payment_info', 'purchase', 'refund', 'view_cart'
+  ]);
+
   try {
     window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push(Object.assign({ event: eventName }, params || {}));
+
+    if (ECOMMERCE_EVENTS.has(eventName)) {
+      // Format e-commerce GA4 : reset d'abord, puis push avec wrapper ecommerce
+      window.dataLayer.push({ ecommerce: null });
+      window.dataLayer.push({
+        event: eventName,
+        ecommerce: params || {}
+      });
+    } else {
+      // Format custom : paramètres à plat
+      window.dataLayer.push(Object.assign({ event: eventName }, params || {}));
+    }
   } catch (e) {}
 }
 
