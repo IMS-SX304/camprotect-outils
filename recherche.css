@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.3.0 (mobile UX + bouton Ajouter empilé)
+   PAGE /recherche — CamProtect v1.3.1 (fix !important bloquant inline styles)
    Hébergé sur GitHub Pages : camprotect-outils/recherche.css
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    ================================================================ */
@@ -726,13 +726,15 @@ body.filter-drawer-open { overflow: hidden; }
   }
 
   /* Drawer filtres : commence SOUS la navbar */
+  /* NOTE : top et height SANS !important pour que les inline styles JS
+     (applyNavbarOffset) puissent les surcharger avec la valeur mesurée */
   #searchFilters {
     position: fixed !important;
-    top: var(--cp-navbar-height-tablet) !important;
+    top: var(--cp-navbar-height-tablet);
     right: -320px;
     width: 300px;
     max-width: 85vw;
-    height: calc(100vh - var(--cp-navbar-height-tablet)) !important;
+    height: calc(100vh - var(--cp-navbar-height-tablet));
     max-height: none;
     z-index: 999;
     transition: right 0.25s ease;
@@ -781,10 +783,10 @@ body.filter-drawer-open { overflow: hidden; }
     gap: 0.75rem !important;
   }
 
-  /* Drawer sous navbar mobile */
+  /* Drawer sous navbar mobile (top/height sans !important — JS override) */
   #searchFilters {
-    top: var(--cp-navbar-height-mobile) !important;
-    height: calc(100vh - var(--cp-navbar-height-mobile)) !important;
+    top: var(--cp-navbar-height-mobile);
+    height: calc(100vh - var(--cp-navbar-height-mobile));
     padding: 1rem !important;
   }
 
