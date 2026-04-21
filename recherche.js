@@ -1,24 +1,20 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.4.5
+   PAGE /recherche — CamProtect v1.4.6
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
 
    Changelog :
-   v1.1.0 - Système d'univers produits
-   v1.2.0 - Compléments Ajax contextuels
-   v1.3.0 - Add-to-cart depuis la recherche (redirection + auto-add)
-   v1.4.0 - Add-to-cart via IFRAME INVISIBLE (bypass de la redirection).
-   v1.4.1 - Correctif drawer panier : reload + auto-open après ajout iframe
-   v1.4.2 - Overlay de reload PERSISTANT des deux côtés de la navigation
-   v1.4.3 - Support multi-bouton Filtrer + CSS v1.2.0 mobile UX
    v1.4.4 - Mesure dynamique navbar via CSS variables (insuffisant)
-   v1.4.5 - INLINE STYLES sur wrapper + drawer pour le décalage navbar
-            (priorité maximale, contourne tout problème de cascade).
-            Re-mesure dans openDrawer() pour alignement garanti. Ajout
-            sélecteur .navbar_container pour Webflow standard.
-            CSS v1.3.0 : sélecteur quantité empilé au-dessus du bouton
-            Ajouter sur mobile pour éliminer tout overflow.
+   v1.4.5 - Inline styles sur wrapper + drawer (mais bloqués par
+            !important dans le stylesheet)
+   v1.4.6 - CORRECTIF CRITIQUE : setProperty(name, value, 'important')
+            pour forcer les inline styles à battre les !important du
+            stylesheet. Couplé à CSS v1.3.1 qui retire les !important
+            sur top/height du drawer. Mode debug visuel via ?cp-debug=1
+            (panneau noir en bas à droite qui affiche ce qui est détecté).
+            Attribut [data-cp-navbar-detected] ajouté sur l'élément
+            trouvé pour inspection dans le DevTools.
    ================================================================ */
 
 (function () {
@@ -32,6 +28,27 @@ function init() {
 // plus bas, et applique le décalage en INLINE STYLES sur le wrapper et
 // le drawer. Inline styles = priorité maximale, ça contourne toute
 // problématique de cascade CSS ou de timing.
+// v1.4.6 : setProperty avec 'important' pour battre tout !important
+// éventuel dans le stylesheet. Marque la navbar détectée avec un
+// attribut [data-cp-navbar-detected]. Debug visuel via ?cp-debug=1.
+
+const _cpDebugMode = new URLSearchParams(window.location.search).get('cp-debug') === '1';
+let _cpDebugPanel = null;
+function _cpDebug(msg) {
+  if (!_cpDebugMode) return;
+  if (!_cpDebugPanel) {
+    _cpDebugPanel = document.createElement('div');
+    _cpDebugPanel.id = 'cpDebugPanel';
+    _cpDebugPanel.style.cssText =
+      'position:fixed;bottom:10px;right:10px;max-width:280px;padding:10px 12px;' +
+      'background:rgba(0,0,0,0.92);color:#0f0;font:11px/1.4 monospace;' +
+      'z-index:2147483647;border-radius:6px;border:1px solid #0f0;' +
+      'white-space:pre-wrap;word-break:break-word;';
+    document.body.appendChild(_cpDebugPanel);
+  }
+  _cpDebugPanel.textContent = msg;
+}
+
 function applyNavbarOffset() {
   const wrapper = document.getElementById('searchResultsPage');
   const filtersDrawer = document.getElementById('searchFilters');
@@ -39,43 +56,79 @@ function applyNavbarOffset() {
 
   // Sur desktop (>= 992px), pas besoin de décalage : la sidebar est en grid
   if (window.innerWidth >= 992) {
-    wrapper.style.paddingTop = '';
+    wrapper.style.removeProperty('padding-top');
     if (filtersDrawer) {
-      filtersDrawer.style.top = '';
-      filtersDrawer.style.height = '';
+      filtersDrawer.style.removeProperty('top');
+      filtersDrawer.style.removeProperty('height');
+      filtersDrawer.style.removeProperty('max-height');
     }
+    _cpDebug('Desktop mode (>= 992px) — no offset applied');
     return;
   }
+
+  // Nettoie l'attribut debug précédent
+  document.querySelectorAll('[data-cp-navbar-detected]').forEach(el => {
+    el.removeAttribute('data-cp-navbar-detected');
+  });
 
   // Sélecteurs larges pour couvrir tous les patterns Webflow possibles
   const candidates = document.querySelectorAll(
     '.navbar_container, ' +
     '[class*="navbar_component"], [class*="NavBar"], [class*="Navbar"], ' +
     'nav, [role="banner"], header, ' +
-    '[class*="navbar"]'
+    '[class*="navbar"], [class*="Navbar_"]'
   );
 
   let navbarBottom = 0;
+  let detectedEl = null;
+  const rejected = [];
   candidates.forEach(el => {
-    if (!el.offsetParent && el !== document.body) return;
+    const cs = window.getComputedStyle(el);
+    // Ignorer les éléments cachés (display:none retourne offsetParent null sauf body)
+    if (cs.display === 'none' || cs.visibility === 'hidden') return;
     const rect = el.getBoundingClientRect();
+    const cls = (el.className && typeof el.className === 'string' ? el.className : '').slice(0, 40);
     // Critères : doit être en haut, hauteur raisonnable
-    if (rect.top > 5 || rect.height < 30 || rect.height > 200) return;
-    if (rect.bottom > navbarBottom) navbarBottom = rect.bottom;
+    if (rect.top > 10) { rejected.push(`top${Math.round(rect.top)} ${cls}`); return; }
+    if (rect.height < 30 || rect.height > 200) { rejected.push(`h${Math.round(rect.height)} ${cls}`); return; }
+    if (rect.bottom > navbarBottom) {
+      navbarBottom = rect.bottom;
+      detectedEl = el;
+    }
   });
 
-  // Fallback : si rien trouvé, hauteur conservative de 70px
-  if (navbarBottom <= 0) navbarBottom = 70;
-
+  let fallbackUsed = false;
+  if (navbarBottom <= 0) { navbarBottom = 70; fallbackUsed = true; }
   const offsetPx = Math.ceil(navbarBottom);
-  // Padding-top du wrapper = navbar + petit espace
-  wrapper.style.paddingTop = (offsetPx + 16) + 'px';
 
-  // Drawer top + height calculés depuis la navbar
+  // Marque l'élément détecté pour inspection visuelle
+  if (detectedEl) detectedEl.setAttribute('data-cp-navbar-detected', 'true');
+
+  // Met à jour les variables CSS (pour que les règles avec var() prennent la bonne valeur)
+  document.documentElement.style.setProperty('--cp-navbar-height-mobile', offsetPx + 'px');
+  document.documentElement.style.setProperty('--cp-navbar-height-tablet', offsetPx + 'px');
+
+  // Applique les inline styles AVEC 'important' pour battre tout !important du stylesheet
+  wrapper.style.setProperty('padding-top', (offsetPx + 16) + 'px', 'important');
+
   if (filtersDrawer) {
-    filtersDrawer.style.top = offsetPx + 'px';
-    filtersDrawer.style.height = 'calc(100vh - ' + offsetPx + 'px)';
-    filtersDrawer.style.maxHeight = 'calc(100vh - ' + offsetPx + 'px)';
+    filtersDrawer.style.setProperty('top', offsetPx + 'px', 'important');
+    filtersDrawer.style.setProperty('height', 'calc(100vh - ' + offsetPx + 'px)', 'important');
+    filtersDrawer.style.setProperty('max-height', 'calc(100vh - ' + offsetPx + 'px)', 'important');
+  }
+
+  // Debug visuel
+  if (_cpDebugMode) {
+    const detCls = detectedEl
+      ? (detectedEl.className || detectedEl.tagName || '').toString().slice(0, 60)
+      : 'NONE';
+    _cpDebug(
+      'VP: ' + window.innerWidth + '×' + window.innerHeight + '\n' +
+      'Navbar: ' + (detectedEl ? 'FOUND' : 'FALLBACK') + ' (' + offsetPx + 'px)\n' +
+      'Classe: ' + detCls + '\n' +
+      (fallbackUsed ? 'FALLBACK 70px utilisé\n' : '') +
+      'Rejetés: ' + (rejected.length ? rejected.slice(0, 3).join(' | ') : '—')
+    );
   }
 }
 
