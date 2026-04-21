@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.4.4
+   PAGE /recherche — CamProtect v1.4.5
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
@@ -12,11 +12,13 @@
    v1.4.1 - Correctif drawer panier : reload + auto-open après ajout iframe
    v1.4.2 - Overlay de reload PERSISTANT des deux côtés de la navigation
    v1.4.3 - Support multi-bouton Filtrer + CSS v1.2.0 mobile UX
-   v1.4.4 - Mesure DYNAMIQUE de la hauteur de la navbar visible (PC/
-            Tablet/Mobile en components Webflow séparés). La variable
-            CSS --cp-navbar-height-* s'ajuste à la vraie hauteur, donc
-            le drawer filtres et le padding-top de page s'alignent
-            toujours pile sous la navbar quel que soit le breakpoint.
+   v1.4.4 - Mesure dynamique navbar via CSS variables (insuffisant)
+   v1.4.5 - INLINE STYLES sur wrapper + drawer pour le décalage navbar
+            (priorité maximale, contourne tout problème de cascade).
+            Re-mesure dans openDrawer() pour alignement garanti. Ajout
+            sélecteur .navbar_container pour Webflow standard.
+            CSS v1.3.0 : sélecteur quantité empilé au-dessus du bouton
+            Ajouter sur mobile pour éliminer tout overflow.
    ================================================================ */
 
 (function () {
@@ -24,39 +26,70 @@
 
 function init() {
 
-// ============= MESURE DYNAMIQUE NAVBAR (v1.4.4) =============
-// Calcule la vraie hauteur de la navbar visible (PC/Tablet/Mobile en
-// component séparé Webflow) et l'écrit dans une variable CSS pour que
-// le drawer filtres et le padding de page s'ajustent exactement.
-function measureNavbarHeight() {
-  // Cherche les composants navbar dans l'ordre : ceux visibles d'abord
+// ============= MESURE & APPLICATION NAVBAR OFFSET (v1.4.5) =============
+// Approche brute : mesure tous les éléments en haut de page susceptibles
+// d'être une navbar (>= 30px et <= 200px de haut, top <= 5px), prend le
+// plus bas, et applique le décalage en INLINE STYLES sur le wrapper et
+// le drawer. Inline styles = priorité maximale, ça contourne toute
+// problématique de cascade CSS ou de timing.
+function applyNavbarOffset() {
+  const wrapper = document.getElementById('searchResultsPage');
+  const filtersDrawer = document.getElementById('searchFilters');
+  if (!wrapper) return;
+
+  // Sur desktop (>= 992px), pas besoin de décalage : la sidebar est en grid
+  if (window.innerWidth >= 992) {
+    wrapper.style.paddingTop = '';
+    if (filtersDrawer) {
+      filtersDrawer.style.top = '';
+      filtersDrawer.style.height = '';
+    }
+    return;
+  }
+
+  // Sélecteurs larges pour couvrir tous les patterns Webflow possibles
   const candidates = document.querySelectorAll(
+    '.navbar_container, ' +
     '[class*="navbar_component"], [class*="NavBar"], [class*="Navbar"], ' +
-    'nav, [role="banner"], header'
+    'nav, [role="banner"], header, ' +
+    '[class*="navbar"]'
   );
-  let maxHeight = 0;
+
+  let navbarBottom = 0;
   candidates.forEach(el => {
-    if (!el.offsetParent) return; // élément masqué
+    if (!el.offsetParent && el !== document.body) return;
     const rect = el.getBoundingClientRect();
-    // Ne considérer que les navbars positionnées en haut (top < 5px)
+    // Critères : doit être en haut, hauteur raisonnable
     if (rect.top > 5 || rect.height < 30 || rect.height > 200) return;
-    if (rect.height > maxHeight) maxHeight = rect.height;
+    if (rect.bottom > navbarBottom) navbarBottom = rect.bottom;
   });
-  if (maxHeight > 0) {
-    document.documentElement.style.setProperty('--cp-navbar-height-mobile', maxHeight + 'px');
-    document.documentElement.style.setProperty('--cp-navbar-height-tablet', maxHeight + 'px');
+
+  // Fallback : si rien trouvé, hauteur conservative de 70px
+  if (navbarBottom <= 0) navbarBottom = 70;
+
+  const offsetPx = Math.ceil(navbarBottom);
+  // Padding-top du wrapper = navbar + petit espace
+  wrapper.style.paddingTop = (offsetPx + 16) + 'px';
+
+  // Drawer top + height calculés depuis la navbar
+  if (filtersDrawer) {
+    filtersDrawer.style.top = offsetPx + 'px';
+    filtersDrawer.style.height = 'calc(100vh - ' + offsetPx + 'px)';
+    filtersDrawer.style.maxHeight = 'calc(100vh - ' + offsetPx + 'px)';
   }
 }
-// Mesure au chargement initial puis surveille resize/scroll
-measureNavbarHeight();
+
+// Appel initial + re-mesures pour attraper les fonts/images qui se chargent
+applyNavbarOffset();
 let _navbarMeasureTimer = null;
 window.addEventListener('resize', () => {
   clearTimeout(_navbarMeasureTimer);
-  _navbarMeasureTimer = setTimeout(measureNavbarHeight, 120);
+  _navbarMeasureTimer = setTimeout(applyNavbarOffset, 120);
 });
-// Re-mesure après que les fonts/components Webflow se soient chargés
-setTimeout(measureNavbarHeight, 300);
-setTimeout(measureNavbarHeight, 1200);
+window.addEventListener('load', applyNavbarOffset);
+setTimeout(applyNavbarOffset, 300);
+setTimeout(applyNavbarOffset, 1200);
+setTimeout(applyNavbarOffset, 2500);
 
 // ============= AUTO-OPEN DRAWER APRÈS RELOAD (v1.4.2) =============
 // Si on arrive sur la page avec le flag sessionStorage "cp-open-cart-on-load",
@@ -1059,6 +1092,9 @@ function findClosestSuggestion(q) {
 // ============= DRAWER =============
 function openDrawer() {
   if (!sidebar) return;
+  // Re-mesure la navbar juste avant d'ouvrir : garantit alignement parfait
+  // même si la page a scrollé, redimensionné, ou si Webflow a fini de charger.
+  applyNavbarOffset();
   sidebar.classList.add('is-open');
   document.body.classList.add('filter-drawer-open');
   const o = document.getElementById('filterDrawerOverlay');
