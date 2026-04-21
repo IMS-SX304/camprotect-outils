@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.2.0 (mobile UX refondu)
+   PAGE /recherche — CamProtect v1.2.1 (mobile UX refondu + fix overflow bouton)
    Hébergé sur GitHub Pages : camprotect-outils/recherche.css
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    ================================================================ */
@@ -867,10 +867,11 @@ body.filter-drawer-open { overflow: hidden; }
     font-size: 1.05rem;
   }
 
-  /* Bouton Ajouter pleine largeur */
+  /* Bouton Ajouter pleine largeur, jamais en débordement */
   .search-result-buy {
     padding: 10px 14px !important;
     gap: 8px;
+    flex-wrap: nowrap;
   }
   .qty-selector {
     flex-shrink: 0;
@@ -887,7 +888,15 @@ body.filter-drawer-open { overflow: hidden; }
   .add-to-cart-btn {
     height: 40px;
     font-size: 13px;
-    flex: 1;
+    padding: 0 10px;
+    flex: 1 1 auto;
+    min-width: 0; /* Permet au bouton de rétrécir sans déborder */
+    overflow: hidden;
+  }
+  .add-to-cart-btn__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Related (compléments Ajax) */
@@ -922,20 +931,45 @@ body.filter-drawer-open { overflow: hidden; }
   }
 }
 
-/* ---- BREAKPOINT TRÈS ÉTROIT (<= 380px) ---- */
-@media (max-width: 380px) {
+/* ---- BREAKPOINT TRÈS ÉTROIT (<= 400px) ---- */
+@media (max-width: 400px) {
   .search-result-main > img {
     height: 150px !important;
   }
-  .add-to-cart-btn__label {
+  .search-result-text {
+    padding: 12px !important;
+  }
+  .search-result-buy {
+    padding: 10px 12px !important;
+    gap: 6px;
+  }
+  .add-to-cart-btn {
     font-size: 12px;
+    padding: 0 8px;
+    gap: 6px;
+  }
+  .add-to-cart-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  /* Sur très petit écran, on raccourcit le label */
+  .add-to-cart-btn__label::before {
+    content: "Ajouter";
+  }
+  .add-to-cart-btn__label {
+    font-size: 0; /* masque le texte original */
+  }
+  .add-to-cart-btn__label::before {
+    font-size: 12px;
+    font-weight: 600;
   }
   .qty-btn {
-    width: 30px;
+    width: 28px;
     height: 36px;
   }
   .qty-value {
-    min-width: 30px;
+    min-width: 28px;
     height: 36px;
+    font-size: 13px;
   }
 }
