@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.2.1 (mobile UX refondu + fix overflow bouton)
+   PAGE /recherche — CamProtect v1.3.0 (mobile UX + bouton Ajouter empilé)
    Hébergé sur GitHub Pages : camprotect-outils/recherche.css
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    ================================================================ */
@@ -867,36 +867,44 @@ body.filter-drawer-open { overflow: hidden; }
     font-size: 1.05rem;
   }
 
-  /* Bouton Ajouter pleine largeur, jamais en débordement */
+  /* ----------------------------------------------------------------
+     SECTION ACHAT v1.3.0 — empilage vertical sur mobile.
+     Sélecteur quantité au-dessus, bouton Ajouter au panier en dessous
+     en pleine largeur. Élimine tout overflow possible sur les cartes
+     étroites + label entièrement visible.
+     ---------------------------------------------------------------- */
   .search-result-buy {
-    padding: 10px 14px !important;
-    gap: 8px;
-    flex-wrap: nowrap;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 12px 14px !important;
   }
   .qty-selector {
+    align-self: center;
     flex-shrink: 0;
   }
   .qty-btn {
-    width: 32px;
+    width: 36px;
     height: 38px;
   }
   .qty-value {
-    min-width: 34px;
+    min-width: 40px;
     height: 38px;
     font-size: 14px;
   }
   .add-to-cart-btn {
-    height: 40px;
+    width: 100%;
+    height: 42px;
     font-size: 13px;
-    padding: 0 10px;
-    flex: 1 1 auto;
-    min-width: 0; /* Permet au bouton de rétrécir sans déborder */
-    overflow: hidden;
+    padding: 0 14px;
+    flex: 0 0 auto;
+    overflow: visible;
   }
   .add-to-cart-btn__label {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
     white-space: nowrap;
+    font-size: 13px;
   }
 
   /* Related (compléments Ajax) */
@@ -933,43 +941,29 @@ body.filter-drawer-open { overflow: hidden; }
 
 /* ---- BREAKPOINT TRÈS ÉTROIT (<= 400px) ---- */
 @media (max-width: 400px) {
+  #searchResultsPage.Result_Wrapper,
+  body #searchResultsPage {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
   .search-result-main > img {
     height: 150px !important;
   }
   .search-result-text {
     padding: 12px !important;
   }
+  .search-result-title {
+    font-size: 0.95rem !important;
+  }
   .search-result-buy {
     padding: 10px 12px !important;
-    gap: 6px;
   }
   .add-to-cart-btn {
+    height: 40px;
     font-size: 12px;
-    padding: 0 8px;
-    gap: 6px;
   }
   .add-to-cart-btn svg {
     width: 14px;
     height: 14px;
-  }
-  /* Sur très petit écran, on raccourcit le label */
-  .add-to-cart-btn__label::before {
-    content: "Ajouter";
-  }
-  .add-to-cart-btn__label {
-    font-size: 0; /* masque le texte original */
-  }
-  .add-to-cart-btn__label::before {
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .qty-btn {
-    width: 28px;
-    height: 36px;
-  }
-  .qty-value {
-    min-width: 28px;
-    height: 36px;
-    font-size: 13px;
   }
 }
