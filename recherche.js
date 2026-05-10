@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.4.8
+   PAGE /recherche — CamProtect v1.4.9
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
@@ -14,6 +14,16 @@
             Sans ça, GA4 ignorait items, currency, value car pas dans le
             bon format. Les events custom (search, filter_applied, etc.)
             restent au format plat.
+   v1.4.9 - Fix recherche par référence produit (productref) :
+            • Ajout d'une pré-passe d'exacte correspondance sur productref
+              avant le moteur Fuse, garantissant que saisir une ref comme
+              "38244.40.BL1" ou "DS-7732NXI-I4/16P/S" remonte toujours
+              le bon produit en tête, même quand le score Fuse agrégé
+              dépassait le threshold à cause des autres champs sans match.
+            • Ajout du champ productref_clean (ref sans tirets/slashes/points)
+              dans normalizeData et FUSE_OPTIONS (weight 0.30) pour couvrir
+              les saisies sans caractères spéciaux (ex : "DS7732NXII416PS").
+            • Poids productref relevé de 0.25 → 0.35 dans FUSE_OPTIONS.
    ================================================================ */
 
 (function () {
@@ -22,15 +32,6 @@
 function init() {
 
 // ============= MESURE & APPLICATION NAVBAR OFFSET (v1.4.5) =============
-// Approche brute : mesure tous les éléments en haut de page susceptibles
-// d'être une navbar (>= 30px et <= 200px de haut, top <= 5px), prend le
-// plus bas, et applique le décalage en INLINE STYLES sur le wrapper et
-// le drawer. Inline styles = priorité maximale, ça contourne toute
-// problématique de cascade CSS ou de timing.
-// v1.4.6 : setProperty avec 'important' pour battre tout !important
-// éventuel dans le stylesheet. Marque la navbar détectée avec un
-// attribut [data-cp-navbar-detected]. Debug visuel via ?cp-debug=1.
-
 const _cpDebugMode = new URLSearchParams(window.location.search).get('cp-debug') === '1';
 let _cpDebugPanel = null;
 function _cpDebug(msg) {
@@ -53,7 +54,6 @@ function applyNavbarOffset() {
   const filtersDrawer = document.getElementById('searchFilters');
   if (!wrapper) return;
 
-  // Sur desktop (>= 992px), pas besoin de décalage : la sidebar est en grid
   if (window.innerWidth >= 992) {
     wrapper.style.removeProperty('padding-top');
     if (filtersDrawer) {
@@ -65,12 +65,10 @@ function applyNavbarOffset() {
     return;
   }
 
-  // Nettoie l'attribut debug précédent
   document.querySelectorAll('[data-cp-navbar-detected]').forEach(el => {
     el.removeAttribute('data-cp-navbar-detected');
   });
 
-  // Sélecteurs larges pour couvrir tous les patterns Webflow possibles
   const candidates = document.querySelectorAll(
     '.navbar_container, ' +
     '[class*="navbar_component"], [class*="NavBar"], [class*="Navbar"], ' +
@@ -83,11 +81,9 @@ function applyNavbarOffset() {
   const rejected = [];
   candidates.forEach(el => {
     const cs = window.getComputedStyle(el);
-    // Ignorer les éléments cachés (display:none retourne offsetParent null sauf body)
     if (cs.display === 'none' || cs.visibility === 'hidden') return;
     const rect = el.getBoundingClientRect();
     const cls = (el.className && typeof el.className === 'string' ? el.className : '').slice(0, 40);
-    // Critères : doit être en haut, hauteur raisonnable
     if (rect.top > 10) { rejected.push(`top${Math.round(rect.top)} ${cls}`); return; }
     if (rect.height < 30 || rect.height > 200) { rejected.push(`h${Math.round(rect.height)} ${cls}`); return; }
     if (rect.bottom > navbarBottom) {
@@ -100,14 +96,11 @@ function applyNavbarOffset() {
   if (navbarBottom <= 0) { navbarBottom = 70; fallbackUsed = true; }
   const offsetPx = Math.ceil(navbarBottom);
 
-  // Marque l'élément détecté pour inspection visuelle
   if (detectedEl) detectedEl.setAttribute('data-cp-navbar-detected', 'true');
 
-  // Met à jour les variables CSS (pour que les règles avec var() prennent la bonne valeur)
   document.documentElement.style.setProperty('--cp-navbar-height-mobile', offsetPx + 'px');
   document.documentElement.style.setProperty('--cp-navbar-height-tablet', offsetPx + 'px');
 
-  // Applique les inline styles AVEC 'important' pour battre tout !important du stylesheet
   wrapper.style.setProperty('padding-top', (offsetPx + 16) + 'px', 'important');
 
   if (filtersDrawer) {
@@ -116,7 +109,6 @@ function applyNavbarOffset() {
     filtersDrawer.style.setProperty('max-height', 'calc(100vh - ' + offsetPx + 'px)', 'important');
   }
 
-  // Debug visuel
   if (_cpDebugMode) {
     const detCls = detectedEl
       ? (detectedEl.className || detectedEl.tagName || '').toString().slice(0, 60)
@@ -131,7 +123,6 @@ function applyNavbarOffset() {
   }
 }
 
-// Appel initial + re-mesures pour attraper les fonts/images qui se chargent
 applyNavbarOffset();
 let _navbarMeasureTimer = null;
 window.addEventListener('resize', () => {
@@ -144,24 +135,16 @@ setTimeout(applyNavbarOffset, 1200);
 setTimeout(applyNavbarOffset, 2500);
 
 // ============= AUTO-OPEN DRAWER APRÈS RELOAD (v1.4.2) =============
-// Si on arrive sur la page avec le flag sessionStorage "cp-open-cart-on-load",
-// c'est qu'un ajout iframe a déclenché ce reload. La classe
-// "cp-cart-reloading" a été mise sur <html> par le script inline de l'embed
-// (masquant le body pendant que Webflow init). On ouvre le drawer, puis on
-// fade-out l'overlay.
 try {
   if (sessionStorage.getItem('cp-open-cart-on-load') === '1') {
     sessionStorage.removeItem('cp-open-cart-on-load');
     const htmlEl = document.documentElement;
 
-    // Failsafe : dans tous les cas, on retire l'overlay après 3s pour ne
-    // jamais laisser l'user bloqué derrière un écran blanc.
     const failsafe = setTimeout(function () {
       htmlEl.classList.remove('cp-cart-reloading');
       htmlEl.classList.remove('cp-cart-reloading-exit');
     }, 3000);
 
-    // Laisser Webflow Commerce init avant d'ouvrir le drawer
     setTimeout(function () {
       const cartLink = document.querySelector(
         '[data-node-type="commerce-cart-open-link"], ' +
@@ -171,7 +154,6 @@ try {
       if (cartLink) {
         try { cartLink.click(); } catch (e) {}
       }
-      // Fade-out de l'overlay 300ms après l'ouverture du drawer
       setTimeout(function () {
         clearTimeout(failsafe);
         htmlEl.classList.remove('cp-cart-reloading');
@@ -183,7 +165,6 @@ try {
     }, 500);
   }
 } catch (e) {
-  // En cas d'erreur, retirer l'overlay immédiatement
   document.documentElement.classList.remove('cp-cart-reloading');
 }
 
@@ -205,11 +186,6 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 function ga4(eventName, params) {
-  // v1.4.8 : pour les events e-commerce standard GA4 (select_item, add_to_cart,
-  // view_item, begin_checkout, purchase, etc.), GA4 attend les paramètres dans
-  // un wrapper "ecommerce:" + dataLayer.push doit être précédé d'un reset
-  // (ecommerce: null) pour éviter le merge avec les événements précédents.
-  // Pour les events de recherche customs, on garde le format plat.
   const ECOMMERCE_EVENTS = new Set([
     'select_item', 'add_to_cart', 'view_item', 'view_item_list',
     'remove_from_cart', 'begin_checkout', 'add_shipping_info',
@@ -220,14 +196,12 @@ function ga4(eventName, params) {
     window.dataLayer = window.dataLayer || [];
 
     if (ECOMMERCE_EVENTS.has(eventName)) {
-      // Format e-commerce GA4 : reset d'abord, puis push avec wrapper ecommerce
       window.dataLayer.push({ ecommerce: null });
       window.dataLayer.push({
         event: eventName,
         ecommerce: params || {}
       });
     } else {
-      // Format custom : paramètres à plat
       window.dataLayer.push(Object.assign({ event: eventName }, params || {}));
     }
   } catch (e) {}
@@ -421,11 +395,14 @@ function buildAjaxComplements(allProducts, primaryProductTypes) {
   return complements.slice(0, 8);
 }
 
-// ============= FUSE CONFIG =============
+// ============= FUSE CONFIG (v1.4.9) =============
+// productref : 0.25 → 0.35 (boost recherche par ref)
+// productref_clean ajouté (weight 0.30) pour couvrir saisies sans char spéciaux
 const FUSE_OPTIONS = {
   keys: [
     { name: 'title', weight: 0.55 },
-    { name: 'productref', weight: 0.25 },
+    { name: 'productref', weight: 0.35 },
+    { name: 'productref_clean', weight: 0.30 },
     { name: 'brand', weight: 0.15 },
     { name: 'description', weight: 0.12 },
     { name: 'altwords', weight: 0.12 },
@@ -442,6 +419,8 @@ const FUSE_OPTIONS = {
   includeScore: true,
   ignoreLocation: true
 };
+
+// v1.4.9 : ajout de productref_clean (ref sans tirets, slashes, points)
 function normalizeData(data) {
   return data.map(item => ({
     original: item,
@@ -450,6 +429,7 @@ function normalizeData(data) {
     altwords: normalize(item.altwords),
     brand: normalize(item.brand),
     productref: normalize(item.productref),
+    productref_clean: normalize(item.productref || '').replace(/[\s\/\.\-]/g, ''),
     productType: normalize(item.productType),
     cameraForm: normalize(item.cameraForm),
     categorie1: normalize(item.categorie1),
@@ -487,10 +467,45 @@ function saveCache(meta, products) {
   } catch (e) {}
 }
 
-// ============= RECHERCHE =============
+// ============= RECHERCHE (v1.4.9) =============
+// PRÉ-PASSE : correspondance exacte sur productref avant Fuse.
+// Problème résolu : quand on cherche une ref comme "38244.40.BL1" ou
+// "DS-7732NXI-I4/16P/S", Fuse calcule un score agrégé sur TOUS les champs.
+// Les champs sans match (title, brand, description…) ont un score de 1.0
+// (pire cas). La moyenne pondérée dépasse threshold=0.35, le produit
+// disparaît des résultats malgré un match parfait sur productref.
+// Cette pré-passe contourne Fuse pour les refs exactes et les injecte en tête.
 function runSearch(fuse, rawQuery) {
   const tokens = normalize(rawQuery).split(/\s+/).filter(t => t.length > 1);
   if (tokens.length === 0) return { primary: [], accessories: [], universe: null };
+
+  // === PRÉ-PASSE : correspondance exacte sur productref (v1.4.9) ===
+  // Deux comparaisons :
+  //   1. ref nettoyée (sans tirets/slashes/points) vs query nettoyée
+  //      → couvre "DS7732NXII416PS" pour trouver "DS-7732NXI-I4/16P/S"
+  //   2. ref brute normalisée vs query brute normalisée
+  //      → couvre la saisie exacte "ds-7732nxi-i4/16p/s"
+  const nqRaw   = normalize(rawQuery);
+  const nqClean = nqRaw.replace(/[\s\/\.\-]/g, '');
+  const exactRefIds     = new Set();
+  const exactRefResults = [];
+
+  if (nqClean.length >= 4) {
+    allProducts.forEach(item => {
+      const refRaw   = normalize(item.productref || '');
+      const refClean = refRaw.replace(/[\s\/\.\-]/g, '');
+      if (!refClean) return;
+      if (refClean === nqClean || refRaw === nqRaw) {
+        const pid = item.url || item.slug;
+        if (pid && !exactRefIds.has(pid)) {
+          exactRefIds.add(pid);
+          exactRefResults.push({ item: { original: item }, score: 0 });
+        }
+      }
+    });
+  }
+  // =================================================================
+
   const expanded = tokens.map(t => expandTokenWithSynonyms(t));
   const accumulated = new Map();
   expanded.forEach(group => {
@@ -513,13 +528,18 @@ function runSearch(fuse, rawQuery) {
       }
     });
   });
+
   const requiredGroups = expanded.length;
-  const all = [];
+  const fuseRaw = [];
   accumulated.forEach(acc => {
     if (acc.groupsHit === requiredGroups) {
-      all.push({ item: acc.r.item, score: acc.totalScore / requiredGroups });
+      fuseRaw.push({ item: acc.r.item, score: acc.totalScore / requiredGroups });
     }
   });
+
+  // Fusion : refs exactes en tête, puis résultats Fuse dédoublonnés
+  const fuseOnly = fuseRaw.filter(r => !exactRefIds.has(r.item.original.url || r.item.original.slug));
+  const all = [...exactRefResults, ...fuseOnly];
   all.sort((a, b) => a.score - b.score);
 
   const universe = detectUniverse(rawQuery);
@@ -711,9 +731,7 @@ function showToast(message, opts) {
 }
 
 // ============= CART COUNTER REFRESH (v1.4.0) =============
-// Tente plusieurs méthodes pour rafraîchir le compteur de l'icône panier
 function refreshCartCounter(addedQty) {
-  // Méthode 1 : API Webflow Commerce (si dispo)
   try {
     if (window.Webflow && typeof window.Webflow.require === 'function') {
       const commerce = window.Webflow.require('commerce');
@@ -724,7 +742,6 @@ function refreshCartCounter(addedQty) {
     }
   } catch (e) {}
 
-  // Méthode 2 : manipulation DOM directe du compteur natif Webflow
   const counterSelectors = [
     '.w-commerce-commercecartopenlinkcount',
     '[data-node-type="commerce-cart-open-link-count"]',
@@ -735,13 +752,11 @@ function refreshCartCounter(addedQty) {
     document.querySelectorAll(sel).forEach(el => {
       const current = parseInt(el.textContent, 10) || 0;
       el.textContent = String(current + addedQty);
-      // Show the counter if hidden
       el.style.display = '';
       updated = true;
     });
   });
 
-  // Méthode 3 : dispatch d'events que Webflow pourrait écouter
   try {
     window.dispatchEvent(new CustomEvent('wf-commerce-cart-updated'));
     document.dispatchEvent(new CustomEvent('cartupdate'));
@@ -1164,8 +1179,6 @@ function findClosestSuggestion(q) {
 // ============= DRAWER =============
 function openDrawer() {
   if (!sidebar) return;
-  // Re-mesure la navbar juste avant d'ouvrir : garantit alignement parfait
-  // même si la page a scrollé, redimensionné, ou si Webflow a fini de charger.
   applyNavbarOffset();
   sidebar.classList.add('is-open');
   document.body.classList.add('filter-drawer-open');
@@ -1365,12 +1378,6 @@ resultsList.addEventListener('click', e => {
 });
 
 // ============= INTERCEPTEUR CLIC ICÔNE PANIER v1.4.2 =============
-// Quand un ajout iframe a eu lieu, le state JS de Webflow Commerce est
-// figé. Si l'user clique sur l'icône panier, le drawer afficherait
-// "panier vide". On intercepte le clic, on applique la classe overlay
-// immédiatement (qui persistera via sessionStorage + script inline de
-// l'embed au prochain chargement), puis on reload.
-// Tout est en CSS pur via des pseudo-éléments sur html : aucun flash.
 document.addEventListener('click', function (e) {
   if (!window._cpCartDirty) return;
   const cartLink = e.target.closest(
@@ -1384,21 +1391,15 @@ document.addEventListener('click', function (e) {
   e.stopPropagation();
   e.stopImmediatePropagation();
 
-  // L'overlay s'applique INSTANTANÉMENT via CSS (pseudo-éléments sur html).
-  // Il restera visible pendant toute la transition (avant reload + pendant
-  // reload + après reload jusqu'à l'ouverture du drawer).
   document.documentElement.classList.add('cp-cart-reloading');
 
   try { sessionStorage.setItem('cp-open-cart-on-load', '1'); } catch (ex) {}
 
-  // Micro-délai pour que le navigateur ait le temps de peindre l'overlay
-  // avant d'initier la navigation (sinon certains navigateurs affichent
-  // brièvement l'ancienne page sans overlay).
   setTimeout(function () { window.location.reload(); }, 60);
-}, true); // capture phase : avant les handlers Webflow
+}, true);
 
 // ============= HANDLERS QUANTITÉ + ADD TO CART v1.4.0 (IFRAME) =============
-let pendingAddToCart = null; // { iframe, btn, label, origText, timeoutId, listener }
+let pendingAddToCart = null;
 
 function cleanupPending() {
   if (!pendingAddToCart) return;
@@ -1415,7 +1416,6 @@ function cleanupPending() {
 }
 
 resultsList.addEventListener('click', e => {
-  // Bouton diminuer
   const minus = e.target.closest('.qty-minus');
   if (minus) {
     e.preventDefault();
@@ -1428,7 +1428,6 @@ resultsList.addEventListener('click', e => {
     }
     return;
   }
-  // Bouton augmenter
   const plus = e.target.closest('.qty-plus');
   if (plus) {
     e.preventDefault();
@@ -1441,11 +1440,10 @@ resultsList.addEventListener('click', e => {
     }
     return;
   }
-  // Bouton Ajouter au panier → iframe invisible
   const addBtn = e.target.closest('.add-to-cart-btn');
   if (addBtn) {
     e.preventDefault();
-    if (pendingAddToCart) return; // éviter les doubles clics sur d'autres cartes
+    if (pendingAddToCart) return;
 
     const skuId = addBtn.dataset.skuId;
     const url = addBtn.dataset.url;
@@ -1462,7 +1460,6 @@ resultsList.addEventListener('click', e => {
     const labelEl = addBtn.querySelector('.add-to-cart-btn__label');
     const origText = labelEl ? labelEl.textContent : 'Ajouter au panier';
 
-    // Feedback visuel
     addBtn.disabled = true;
     addBtn.classList.add('is-loading');
     if (labelEl) labelEl.textContent = 'Ajout en cours…';
@@ -1476,11 +1473,9 @@ resultsList.addEventListener('click', e => {
       }]
     });
 
-    // Construire l'URL iframe avec silent=1
     const sep = url.indexOf('?') === -1 ? '?' : '&';
     const iframeSrc = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche&silent=1';
 
-    // Créer l'iframe hors viewport (invisible mais fonctionnel)
     const iframe = document.createElement('iframe');
     iframe.setAttribute('aria-hidden', 'true');
     iframe.setAttribute('tabindex', '-1');
@@ -1489,24 +1484,15 @@ resultsList.addEventListener('click', e => {
       'border:0;opacity:0;pointer-events:none;visibility:hidden;';
     iframe.src = iframeSrc;
 
-    // Écoute postMessage
     const listener = (ev) => {
       if (ev.origin !== window.location.origin) return;
       if (!ev.data || typeof ev.data !== 'object') return;
       if (ev.data.type === 'cp-cart-added') {
-        // Succès
         cleanupPending();
         showToast('Produit ajouté au panier', { duration: 3500 });
         const refreshed = refreshCartCounter(qty);
-        // v1.4.1 — Le drawer panier Webflow n'est pas synchronisé avec le
-        // cookie après un ajout iframe. On marque comme "sale" pour que le
-        // prochain clic sur l'icône panier déclenche un reload qui
-        // resynchronise le drawer.
         window._cpCartDirty = true;
-        // Si on n'a pas pu update le compteur et que la navbar a bien un élément panier,
-        // l'user verra le vrai compteur au prochain refresh de page.
       } else if (ev.data.type === 'cp-cart-error') {
-        // Échec : fallback redirection classique
         cleanupPending();
         showToast('Ajout impossible — redirection…', { error: true, duration: 2000 });
         setTimeout(() => {
@@ -1516,7 +1502,6 @@ resultsList.addEventListener('click', e => {
     };
     window.addEventListener('message', listener);
 
-    // Timeout failsafe (6s)
     const timeoutId = setTimeout(() => {
       if (!pendingAddToCart) return;
       cleanupPending();
