@@ -1,5 +1,5 @@
 /* ================================================================
-   PAGE /recherche — CamProtect v1.4.9
+   PAGE /recherche — CamProtect v1.5.0
    Hébergé sur GitHub Pages : camprotect-outils/recherche.js
    Cache-busting via ?v=X.Y.Z dans l'embed Webflow
    Dépendance : Fuse.js (chargé dans l'embed avant ce fichier)
@@ -11,19 +11,17 @@
    v1.4.8 - Fix format e-commerce GA4 : les events select_item, add_to_cart,
             view_item, etc. sont maintenant wrappés dans { ecommerce: {...} }
             avec un reset ecommerce: null préalable pour éviter le merge.
-            Sans ça, GA4 ignorait items, currency, value car pas dans le
-            bon format. Les events custom (search, filter_applied, etc.)
-            restent au format plat.
-   v1.4.9 - Fix recherche par référence produit (productref) :
-            • Ajout d'une pré-passe d'exacte correspondance sur productref
-              avant le moteur Fuse, garantissant que saisir une ref comme
-              "38244.40.BL1" ou "DS-7732NXI-I4/16P/S" remonte toujours
-              le bon produit en tête, même quand le score Fuse agrégé
-              dépassait le threshold à cause des autres champs sans match.
-            • Ajout du champ productref_clean (ref sans tirets/slashes/points)
-              dans normalizeData et FUSE_OPTIONS (weight 0.30) pour couvrir
-              les saisies sans caractères spéciaux (ex : "DS7732NXII416PS").
-            • Poids productref relevé de 0.25 → 0.35 dans FUSE_OPTIONS.
+   v1.4.9 - Fix recherche par productref :
+            • Pré-passe exacte sur productref avant Fuse
+            • productref_clean (sans tirets/slashes) ajouté
+            • Poids productref relevé de 0.25 → 0.35
+   v1.5.0 - Ajout du champ code_fabricant (champ Webflow "Code Fabricant",
+            valeurs type "311323485") dans l'index de recherche :
+            • code_fabricant indexé en Fuse (weight 0.28)
+            • code_fabricant_clean indexé (weight 0.25 — sans tirets/points)
+            • Pré-passe exacte étendue à code_fabricant
+            → Un installateur peut maintenant chercher par code interne
+              (ex : "311323485") et trouver le bon produit.
    ================================================================ */
 
 (function () {
@@ -191,16 +189,11 @@ function ga4(eventName, params) {
     'remove_from_cart', 'begin_checkout', 'add_shipping_info',
     'add_payment_info', 'purchase', 'refund', 'view_cart'
   ]);
-
   try {
     window.dataLayer = window.dataLayer || [];
-
     if (ECOMMERCE_EVENTS.has(eventName)) {
       window.dataLayer.push({ ecommerce: null });
-      window.dataLayer.push({
-        event: eventName,
-        ecommerce: params || {}
-      });
+      window.dataLayer.push({ event: eventName, ecommerce: params || {} });
     } else {
       window.dataLayer.push(Object.assign({ event: eventName }, params || {}));
     }
@@ -268,27 +261,12 @@ const UNIVERSE_TRIGGERS = {
     'nvr', 'dvr', 'xvr', 'enregistreur',
     'hikvision', 'dahua', 'ezviz', 'wizsense'
   ],
-  network: [
-    'switch', 'commutateur', 'injecteur', 'poe',
-    'prolongateur', 'access', 'acces'
-  ],
-  cables: [
-    'rj45', 'ethernet', 'coaxial', 'cable', 'cordon',
-    'kx6', 'rg59', 'rg6'
-  ],
-  power: [
-    'onduleur', 'ups', 'alimentation', 'coffret'
-  ],
-  mounting: [
-    'support', 'bracket', 'equerre', 'fixation',
-    'jonction', 'casquette', 'protection'
-  ],
-  display: [
-    'ecran', 'moniteur'
-  ],
-  storage: [
-    'hdd', 'disque', 'stockage'
-  ]
+  network: ['switch', 'commutateur', 'injecteur', 'poe', 'prolongateur', 'access', 'acces'],
+  cables:  ['rj45', 'ethernet', 'coaxial', 'cable', 'cordon', 'kx6', 'rg59', 'rg6'],
+  power:   ['onduleur', 'ups', 'alimentation', 'coffret'],
+  mounting: ['support', 'bracket', 'equerre', 'fixation', 'jonction', 'casquette', 'protection'],
+  display: ['ecran', 'moniteur'],
+  storage: ['hdd', 'disque', 'stockage']
 };
 
 function getProductUniverse(item) {
@@ -296,18 +274,13 @@ function getProductUniverse(item) {
   const pt    = normalize(item.productType);
   if (brand === 'ajax') return 'ajax';
   if (pt === 'camera' || pt === 'enregistreur') return 'videosurveillance';
-  if (['switch', 'injecteur', "point d'accès", 'point d\'acces',
+  if (['switch', 'injecteur', "point d'accès", "point d'acces",
        'prolongateur réseau', 'prolongateur reseau'].includes(pt)) return 'network';
-  if (['rj45', 'rj45-futp', 'coaxial', 'coaxial-kx6',
-       'cordon', 'connecteur', 'pince'].includes(pt)) return 'cables';
-  if (['alimentation', "coffret d'alimentation", 'coffret d\'alimentation',
-       'onduleur', "cable d'alimentation", 'cable d\'alimentation'].includes(pt)) return 'power';
-  if (['support mural', "support d'angle", 'support d\'angle',
-       'support de montage', 'boite de jonction', 'boîte de jonction',
-       'accessoire de protection', 'support inclinable',
-       "support d'écran 1 articulation", 'support d\'ecran 1 articulation',
-       "support d'écran 2 articulations", 'support d\'ecran 2 articulations',
-       'casquette'].includes(pt)) return 'mounting';
+  if (['rj45', 'rj45-futp', 'coaxial', 'coaxial-kx6', 'cordon', 'connecteur', 'pince'].includes(pt)) return 'cables';
+  if (['alimentation', "coffret d'alimentation", "onduleur", "cable d'alimentation"].includes(pt)) return 'power';
+  if (['support mural', "support d'angle", 'support de montage', 'boite de jonction',
+       'boîte de jonction', 'accessoire de protection', 'support inclinable',
+       "support d'écran 1 articulation", "support d'écran 2 articulations", 'casquette'].includes(pt)) return 'mounting';
   if (pt === 'écran' || pt === 'ecran') return 'display';
   if (pt === 'hdd 3.5' || pt === 'hdd 3.5"') return 'storage';
   return 'other';
@@ -317,8 +290,7 @@ function detectUniverse(query) {
   const nq = normalize(query);
   const tokens = nq.split(/\s+/).filter(t => t.length > 1);
   if (!tokens.length) return null;
-  const priority = ['ajax', 'videosurveillance', 'network', 'cables',
-                    'power', 'mounting', 'display', 'storage'];
+  const priority = ['ajax', 'videosurveillance', 'network', 'cables', 'power', 'mounting', 'display', 'storage'];
   const scores = {};
   priority.forEach(u => scores[u] = 0);
   tokens.forEach(tok => {
@@ -335,19 +307,13 @@ function detectUniverse(query) {
   });
   if (scores.ajax > 0) return 'ajax';
   let best = null, bestScore = 0;
-  priority.forEach(u => {
-    if (scores[u] > bestScore) {
-      best = u;
-      bestScore = scores[u];
-    }
-  });
+  priority.forEach(u => { if (scores[u] > bestScore) { best = u; bestScore = scores[u]; } });
   return best;
 }
 
 const UNIVERSE_COMPATIBILITY = {
   ajax: ['ajax'],
-  videosurveillance: ['videosurveillance', 'network', 'power', 'mounting',
-                      'display', 'storage', 'cables'],
+  videosurveillance: ['videosurveillance', 'network', 'power', 'mounting', 'display', 'storage', 'cables'],
   network: ['network', 'cables', 'power'],
   cables: ['cables', 'network'],
   power: ['power'],
@@ -378,16 +344,10 @@ function buildAjaxComplements(allProducts, primaryProductTypes) {
     const candidates = ajaxProducts.filter(p => {
       const pt = normalize(p.productType);
       const pid = p.url || p.slug;
-      return group.types.some(t => normalize(t) === pt)
-          && !primaryProductTypes.has(pt)
-          && !used.has(pid);
+      return group.types.some(t => normalize(t) === pt) && !primaryProductTypes.has(pt) && !used.has(pid);
     });
-    candidates.sort((a, b) => {
-      const pa = priceTtcFromItem(a), pb = priceTtcFromItem(b);
-      return (pa || Infinity) - (pb || Infinity);
-    });
-    const take = candidates.slice(0, group.max);
-    take.forEach(p => {
+    candidates.sort((a, b) => (priceTtcFromItem(a) || Infinity) - (priceTtcFromItem(b) || Infinity));
+    candidates.slice(0, group.max).forEach(p => {
       complements.push({ item: { original: p }, score: 0 });
       used.add(p.url || p.slug);
     });
@@ -395,53 +355,56 @@ function buildAjaxComplements(allProducts, primaryProductTypes) {
   return complements.slice(0, 8);
 }
 
-// ============= FUSE CONFIG (v1.4.9) =============
-// productref : 0.25 → 0.35 (boost recherche par ref)
-// productref_clean ajouté (weight 0.30) pour couvrir saisies sans char spéciaux
+// ============= FUSE CONFIG (v1.5.0) =============
+// Nouveaux champs v1.5.0 : code_fabricant + code_fabricant_clean
 const FUSE_OPTIONS = {
   keys: [
-    { name: 'title', weight: 0.55 },
-    { name: 'productref', weight: 0.35 },
-    { name: 'productref_clean', weight: 0.30 },
-    { name: 'brand', weight: 0.15 },
-    { name: 'description', weight: 0.12 },
-    { name: 'altwords', weight: 0.12 },
-    { name: 'productType', weight: 0.1 },
-    { name: 'cameraForm', weight: 0.08 },
-    { name: 'categorie1', weight: 0.06 },
-    { name: 'categorie2', weight: 0.06 },
-    { name: 'compatibilite', weight: 0.04 },
-    { name: 'couleur', weight: 0.04 },
-    { name: 'environnement', weight: 0.04 },
-    { name: 'technologie', weight: 0.04 }
+    { name: 'title',                weight: 0.55 },
+    { name: 'productref',           weight: 0.35 },
+    { name: 'productref_clean',     weight: 0.30 },
+    { name: 'code_fabricant',       weight: 0.28 },
+    { name: 'code_fabricant_clean', weight: 0.25 },
+    { name: 'brand',                weight: 0.15 },
+    { name: 'description',          weight: 0.12 },
+    { name: 'altwords',             weight: 0.12 },
+    { name: 'productType',          weight: 0.10 },
+    { name: 'cameraForm',           weight: 0.08 },
+    { name: 'categorie1',           weight: 0.06 },
+    { name: 'categorie2',           weight: 0.06 },
+    { name: 'compatibilite',        weight: 0.04 },
+    { name: 'couleur',              weight: 0.04 },
+    { name: 'environnement',        weight: 0.04 },
+    { name: 'technologie',          weight: 0.04 }
   ],
   threshold: 0.35,
   includeScore: true,
   ignoreLocation: true
 };
 
-// v1.4.9 : ajout de productref_clean (ref sans tirets, slashes, points)
+// v1.5.0 : normalizeData inclut code_fabricant et code_fabricant_clean
 function normalizeData(data) {
   return data.map(item => ({
     original: item,
-    title: normalize(item.title),
-    description: normalize(item.description),
-    altwords: normalize(item.altwords),
-    brand: normalize(item.brand),
-    productref: normalize(item.productref),
-    productref_clean: normalize(item.productref || '').replace(/[\s\/\.\-]/g, ''),
-    productType: normalize(item.productType),
-    cameraForm: normalize(item.cameraForm),
-    categorie1: normalize(item.categorie1),
-    categorie2: normalize(item.categorie2),
-    compatibilite: normalize(item.compatibilite),
-    alimentation: normalize(item.alimentation),
-    communication: normalize(item.communication),
-    couleur: normalize(item.couleur),
-    environnement: normalize(item.environnement),
-    iacamera: normalize(item.iacamera),
-    micro: normalize(item.micro),
-    technologie: normalize(item.technologie)
+    title:                normalize(item.title),
+    description:          normalize(item.description),
+    altwords:             normalize(item.altwords),
+    brand:                normalize(item.brand),
+    productref:           normalize(item.productref),
+    productref_clean:     normalize(item.productref      || '').replace(/[\s\/\.\-]/g, ''),
+    code_fabricant:       normalize(item.code_fabricant  || ''),
+    code_fabricant_clean: normalize(item.code_fabricant  || '').replace(/[\s\/\.\-]/g, ''),
+    productType:          normalize(item.productType),
+    cameraForm:           normalize(item.cameraForm),
+    categorie1:           normalize(item.categorie1),
+    categorie2:           normalize(item.categorie2),
+    compatibilite:        normalize(item.compatibilite),
+    alimentation:         normalize(item.alimentation),
+    communication:        normalize(item.communication),
+    couleur:              normalize(item.couleur),
+    environnement:        normalize(item.environnement),
+    iacamera:             normalize(item.iacamera),
+    micro:                normalize(item.micro),
+    technologie:          normalize(item.technologie)
   }));
 }
 
@@ -459,32 +422,20 @@ function loadCache() {
 }
 function saveCache(meta, products) {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      at: Date.now(),
-      generated: meta && meta.generated,
-      products: products
-    }));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), generated: meta && meta.generated, products }));
   } catch (e) {}
 }
 
-// ============= RECHERCHE (v1.4.9) =============
-// PRÉ-PASSE : correspondance exacte sur productref avant Fuse.
-// Problème résolu : quand on cherche une ref comme "38244.40.BL1" ou
-// "DS-7732NXI-I4/16P/S", Fuse calcule un score agrégé sur TOUS les champs.
-// Les champs sans match (title, brand, description…) ont un score de 1.0
-// (pire cas). La moyenne pondérée dépasse threshold=0.35, le produit
-// disparaît des résultats malgré un match parfait sur productref.
-// Cette pré-passe contourne Fuse pour les refs exactes et les injecte en tête.
+// ============= RECHERCHE (v1.5.0) =============
+// PRÉ-PASSE : correspondance exacte sur productref ET code_fabricant.
+// Contourne le bug Fuse où seul un champ léger qui matche ne suffit pas
+// à passer le threshold=0.35 (la moyenne de tous les champs sans match
+// monte le score global au-dessus du seuil).
 function runSearch(fuse, rawQuery) {
   const tokens = normalize(rawQuery).split(/\s+/).filter(t => t.length > 1);
   if (tokens.length === 0) return { primary: [], accessories: [], universe: null };
 
-  // === PRÉ-PASSE : correspondance exacte sur productref (v1.4.9) ===
-  // Deux comparaisons :
-  //   1. ref nettoyée (sans tirets/slashes/points) vs query nettoyée
-  //      → couvre "DS7732NXII416PS" pour trouver "DS-7732NXI-I4/16P/S"
-  //   2. ref brute normalisée vs query brute normalisée
-  //      → couvre la saisie exacte "ds-7732nxi-i4/16p/s"
+  // === PRÉ-PASSE EXACTE : productref + code_fabricant (v1.4.9 / v1.5.0) ===
   const nqRaw   = normalize(rawQuery);
   const nqClean = nqRaw.replace(/[\s\/\.\-]/g, '');
   const exactRefIds     = new Set();
@@ -492,19 +443,32 @@ function runSearch(fuse, rawQuery) {
 
   if (nqClean.length >= 4) {
     allProducts.forEach(item => {
+      const pid = item.url || item.slug;
+      if (!pid) return;
+
+      // Test productref (modèle fabricant ex: DS-2CD3646G2-IZS)
       const refRaw   = normalize(item.productref || '');
       const refClean = refRaw.replace(/[\s\/\.\-]/g, '');
-      if (!refClean) return;
-      if (refClean === nqClean || refRaw === nqRaw) {
-        const pid = item.url || item.slug;
-        if (pid && !exactRefIds.has(pid)) {
+      if (refClean && (refClean === nqClean || refRaw === nqRaw)) {
+        if (!exactRefIds.has(pid)) {
+          exactRefIds.add(pid);
+          exactRefResults.push({ item: { original: item }, score: 0 });
+        }
+        return;
+      }
+
+      // Test code_fabricant (code interne ex: 311323485) — NOUVEAU v1.5.0
+      const cfRaw   = normalize(item.code_fabricant || '');
+      const cfClean = cfRaw.replace(/[\s\/\.\-]/g, '');
+      if (cfClean && (cfClean === nqClean || cfRaw === nqRaw)) {
+        if (!exactRefIds.has(pid)) {
           exactRefIds.add(pid);
           exactRefResults.push({ item: { original: item }, score: 0 });
         }
       }
     });
   }
-  // =================================================================
+  // =====================================================================
 
   const expanded = tokens.map(t => expandTokenWithSynonyms(t));
   const accumulated = new Map();
@@ -537,25 +501,20 @@ function runSearch(fuse, rawQuery) {
     }
   });
 
-  // Fusion : refs exactes en tête, puis résultats Fuse dédoublonnés
   const fuseOnly = fuseRaw.filter(r => !exactRefIds.has(r.item.original.url || r.item.original.slug));
   const all = [...exactRefResults, ...fuseOnly];
   all.sort((a, b) => a.score - b.score);
 
   const universe = detectUniverse(rawQuery);
-  if (!universe) {
-    return { primary: all, accessories: [], universe: null };
-  }
+  if (!universe) return { primary: all, accessories: [], universe: null };
+
   const allowedAccessory = UNIVERSE_COMPATIBILITY[universe] || [universe];
   const primary = [];
   const accessories = [];
   all.forEach(r => {
     const itemUniverse = getProductUniverse(r.item.original);
-    if (itemUniverse === universe) {
-      primary.push(r);
-    } else if (allowedAccessory.includes(itemUniverse)) {
-      accessories.push(r);
-    }
+    if (itemUniverse === universe) primary.push(r);
+    else if (allowedAccessory.includes(itemUniverse)) accessories.push(r);
   });
   return { primary, accessories, universe };
 }
@@ -566,9 +525,7 @@ function buildHighlightRegex(rawQuery) {
   if (!tokens.length) return null;
   const all = [];
   tokens.forEach(t => expandTokenWithSynonyms(t).forEach(s => all.push(s)));
-  const escaped = [...new Set(all)]
-    .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    .filter(Boolean);
+  const escaped = [...new Set(all)].map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).filter(Boolean);
   if (!escaped.length) return null;
   return new RegExp('(' + escaped.join('|') + ')', 'gi');
 }
@@ -604,13 +561,7 @@ let displayed = 0;
 let highlightRegex = null;
 let sortMode = 'relevance';
 let keywordCorpus = [];
-const activeFilters = {
-  brands: new Set(),
-  categories: new Set(),
-  colors: new Set(),
-  priceMin: null,
-  priceMax: null
-};
+const activeFilters = { brands: new Set(), categories: new Set(), colors: new Set(), priceMin: null, priceMax: null };
 let priceBounds = { min: 0, max: 0 };
 let relatedTitleOriginal = null;
 let relatedSubtitleOriginal = null;
@@ -618,24 +569,24 @@ let relatedSubtitleOriginal = null;
 // ============= DOM =============
 const params = new URLSearchParams(window.location.search);
 const query = (params.get("query") || "").trim();
-const pageWrapper       = document.getElementById("searchResultsPage");
-const titleEl           = document.getElementById("searchTitle");
-const countEl           = document.getElementById("searchCount");
-const resultsList       = document.getElementById("Result_List");
-const brandFiltersEl    = document.getElementById("brandFilters");
-const categoryFiltersEl = document.getElementById("categoryFilters");
-const colorFiltersEl    = document.getElementById("colorFilters");
-const resetBtn          = document.getElementById("resetFilters");
-const loadMoreWrapper   = document.getElementById("loadMoreWrapper");
-const loadMoreBtn       = document.getElementById("loadMoreBtn");
-const sortHost          = document.getElementById("sortDropdownHost");
-const priceInputsHost   = document.getElementById("priceInputsHost");
-const priceRangeDisplay = document.getElementById("priceRangeDisplay");
-const openFiltersBtns   = document.querySelectorAll("#openFiltersMobile, [data-open-filters-mobile]");
+const pageWrapper        = document.getElementById("searchResultsPage");
+const titleEl            = document.getElementById("searchTitle");
+const countEl            = document.getElementById("searchCount");
+const resultsList        = document.getElementById("Result_List");
+const brandFiltersEl     = document.getElementById("brandFilters");
+const categoryFiltersEl  = document.getElementById("categoryFilters");
+const colorFiltersEl     = document.getElementById("colorFilters");
+const resetBtn           = document.getElementById("resetFilters");
+const loadMoreWrapper    = document.getElementById("loadMoreWrapper");
+const loadMoreBtn        = document.getElementById("loadMoreBtn");
+const sortHost           = document.getElementById("sortDropdownHost");
+const priceInputsHost    = document.getElementById("priceInputsHost");
+const priceRangeDisplay  = document.getElementById("priceRangeDisplay");
+const openFiltersBtns    = document.querySelectorAll("#openFiltersMobile, [data-open-filters-mobile]");
 const mobileFilterCounts = document.querySelectorAll("#mobileFilterCount, [data-mobile-filter-count]");
-const sidebar           = document.getElementById("searchFilters");
-const relatedSection    = document.getElementById("relatedAccessories");
-const relatedList       = document.getElementById("relatedAccessoriesList");
+const sidebar            = document.getElementById("searchFilters");
+const relatedSection     = document.getElementById("relatedAccessories");
+const relatedList        = document.getElementById("relatedAccessoriesList");
 
 if (!resultsList) return;
 if (countEl) { countEl.setAttribute('role', 'status'); countEl.setAttribute('aria-live', 'polite'); }
@@ -676,10 +627,7 @@ if (priceInputsHost) {
       '<input type="range" id="priceMin" min="0" max="100" value="0" step="1" aria-label="Prix minimum">' +
       '<input type="range" id="priceMax" min="0" max="100" value="100" step="1" aria-label="Prix maximum">' +
     '</div>' +
-    '<div class="price-slider__values">' +
-      '<span id="priceMinLabel">0 €</span>' +
-      '<span id="priceMaxLabel">0 €</span>' +
-    '</div>';
+    '<div class="price-slider__values"><span id="priceMinLabel">0 €</span><span id="priceMaxLabel">0 €</span></div>';
 }
 if (sidebar) {
   const overlay = document.createElement('div');
@@ -693,7 +641,7 @@ if (sidebar) {
   sidebar.insertBefore(closeBtn, sidebar.firstChild);
 }
 
-// ============= TOAST INLINE (v1.4.0) =============
+// ============= TOAST =============
 let cpToastEl = null;
 function ensureToast() {
   if (cpToastEl) return cpToastEl;
@@ -721,16 +669,12 @@ function showToast(message, opts) {
   t.innerHTML =
     '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:' + iconBg + ';color:#fff;border-radius:50%;flex-shrink:0;">' + iconSvg + '</span>' +
     '<span>' + escapeHtml(message) + '</span>';
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => { t.style.transform = 'translateX(-50%) translateY(0)'; });
-  });
+  requestAnimationFrame(() => { requestAnimationFrame(() => { t.style.transform = 'translateX(-50%) translateY(0)'; }); });
   clearTimeout(t._hideTimer);
-  t._hideTimer = setTimeout(() => {
-    t.style.transform = 'translateX(-50%) translateY(220%)';
-  }, opts.duration || 3500);
+  t._hideTimer = setTimeout(() => { t.style.transform = 'translateX(-50%) translateY(220%)'; }, opts.duration || 3500);
 }
 
-// ============= CART COUNTER REFRESH (v1.4.0) =============
+// ============= CART COUNTER =============
 function refreshCartCounter(addedQty) {
   try {
     if (window.Webflow && typeof window.Webflow.require === 'function') {
@@ -741,28 +685,9 @@ function refreshCartCounter(addedQty) {
       }
     }
   } catch (e) {}
-
-  const counterSelectors = [
-    '.w-commerce-commercecartopenlinkcount',
-    '[data-node-type="commerce-cart-open-link-count"]',
-    '.w-commerce-commercecartitemcount'
-  ];
-  let updated = false;
-  counterSelectors.forEach(sel => {
-    document.querySelectorAll(sel).forEach(el => {
-      const current = parseInt(el.textContent, 10) || 0;
-      el.textContent = String(current + addedQty);
-      el.style.display = '';
-      updated = true;
-    });
-  });
-
-  try {
-    window.dispatchEvent(new CustomEvent('wf-commerce-cart-updated'));
-    document.dispatchEvent(new CustomEvent('cartupdate'));
-  } catch (e) {}
-
-  return updated;
+  ['.w-commerce-commercecartopenlinkcount', '[data-node-type="commerce-cart-open-link-count"]', '.w-commerce-commercecartitemcount']
+    .forEach(sel => document.querySelectorAll(sel).forEach(el => { el.textContent = String((parseInt(el.textContent, 10) || 0) + addedQty); el.style.display = ''; }));
+  try { window.dispatchEvent(new CustomEvent('wf-commerce-cart-updated')); document.dispatchEvent(new CustomEvent('cartupdate')); } catch (e) {}
 }
 
 // ============= URL STATE =============
@@ -797,13 +722,9 @@ function renderSkeletons(n) {
   clearCards();
   for (let i = 0; i < n; i++) {
     resultsList.insertAdjacentHTML('beforeend',
-      '<div class="search-skeleton"><div class="skeleton-img"></div>' +
-      '<div class="skeleton-body">' +
-        '<div class="skeleton-line w-40"></div>' +
-        '<div class="skeleton-line w-80"></div>' +
-        '<div class="skeleton-line w-60"></div>' +
-        '<div class="skeleton-line w-30"></div>' +
-      '</div></div>');
+      '<div class="search-skeleton"><div class="skeleton-img"></div><div class="skeleton-body">' +
+      '<div class="skeleton-line w-40"></div><div class="skeleton-line w-80"></div>' +
+      '<div class="skeleton-line w-60"></div><div class="skeleton-line w-30"></div></div></div>');
   }
 }
 function setTitle(raw, highlighted) {
@@ -813,32 +734,26 @@ function setTitle(raw, highlighted) {
 }
 function setCount(n) {
   if (!countEl) return;
-  if (n === 0) countEl.textContent = "Aucun produit trouvé";
-  else if (n === 1) countEl.textContent = "1 produit trouvé";
-  else countEl.textContent = n + " produits trouvés";
+  countEl.textContent = n === 0 ? "Aucun produit trouvé" : n === 1 ? "1 produit trouvé" : n + " produits trouvés";
 }
 function toggleGroup(containerEl, isVisible) {
   if (!containerEl) return;
   const group = containerEl.closest('.Result_filter-group, .result_filter-group');
   if (!group) return;
-  if (isVisible) group.classList.remove('is-hidden');
-  else group.classList.add('is-hidden');
+  isVisible ? group.classList.remove('is-hidden') : group.classList.add('is-hidden');
 }
 function countActiveFilters() {
   return activeFilters.brands.size + activeFilters.categories.size + activeFilters.colors.size
-    + (activeFilters.priceMin != null ? 1 : 0)
-    + (activeFilters.priceMax != null ? 1 : 0);
+    + (activeFilters.priceMin != null ? 1 : 0) + (activeFilters.priceMax != null ? 1 : 0);
 }
 function updateMobileFilterBadge() {
   if (!mobileFilterCounts || !mobileFilterCounts.length) return;
-  const n = countActiveFilters();
-  const txt = n > 0 ? String(n) : '';
+  const txt = countActiveFilters() > 0 ? String(countActiveFilters()) : '';
   mobileFilterCounts.forEach(el => { el.textContent = txt; });
 }
 function shortSpec(str) {
   if (!str) return '';
-  const s = String(str).trim();
-  return s.split(/[·(]|\s+[–—-]\s+|,/)[0].trim();
+  return String(str).trim().split(/[·(]|\s+[–—-]\s+|,/)[0].trim();
 }
 function priceTtcFromItem(item) {
   const raw = typeof item.prix_ht === 'number' ? item.prix_ht : parseFloat(String(item.prix_ht || '').replace(',', '.'));
@@ -856,7 +771,7 @@ function buildFacet(results, fieldName) {
     if (!key) return;
     if (!map.has(key)) map.set(key, { label: raw, count: 0, labels: {} });
     const e = map.get(key);
-    e.count += 1;
+    e.count++;
     e.labels[raw] = (e.labels[raw] || 0) + 1;
   });
   map.forEach(e => {
@@ -869,12 +784,7 @@ function buildFacet(results, fieldName) {
 }
 function computePriceBounds(results) {
   let min = Infinity, max = 0;
-  results.forEach(r => {
-    const p = priceTtcFromItem(r.item.original);
-    if (p == null) return;
-    if (p < min) min = p;
-    if (p > max) max = p;
-  });
+  results.forEach(r => { const p = priceTtcFromItem(r.item.original); if (p == null) return; if (p < min) min = p; if (p > max) max = p; });
   if (min === Infinity) return { min: 0, max: 0 };
   return { min: Math.floor(min), max: Math.ceil(max) };
 }
@@ -887,10 +797,9 @@ function renderFilterGroup(containerEl, facetMap, filterKey) {
   const stateSet = activeFilters[filterKey === 'category' ? 'categories' : filterKey === 'color' ? 'colors' : 'brands'];
   entries.forEach(([key, data]) => {
     const id = 'f-' + filterKey + '-' + key.replace(/\W/g, '');
-    const checked = stateSet.has(key);
     containerEl.insertAdjacentHTML('beforeend',
       '<label for="' + id + '">' +
-        '<input type="checkbox" id="' + id + '" value="' + escapeHtml(key) + '" data-filter="' + filterKey + '"' + (checked ? ' checked' : '') + '>' +
+        '<input type="checkbox" id="' + id + '" value="' + escapeHtml(key) + '" data-filter="' + filterKey + '"' + (stateSet.has(key) ? ' checked' : '') + '>' +
         '<span>' + escapeHtml(data.label) + '</span>' +
         '<span class="Result_filter-count">' + data.count + '</span>' +
       '</label>');
@@ -904,27 +813,19 @@ function updatePriceSliderUI() {
   const minLabel = document.getElementById('priceMinLabel');
   const maxLabel = document.getElementById('priceMaxLabel');
   if (!minInput || !maxInput) return;
-  const min = parseInt(minInput.min, 10);
-  const max = parseInt(minInput.max, 10);
-  const v1 = parseInt(minInput.value, 10);
-  const v2 = parseInt(maxInput.value, 10);
+  const min = parseInt(minInput.min, 10), max = parseInt(minInput.max, 10);
+  const v1  = parseInt(minInput.value, 10), v2 = parseInt(maxInput.value, 10);
   const span = max - min || 1;
-  const left = ((v1 - min) / span) * 100;
-  const right = ((v2 - min) / span) * 100;
+  const left = ((v1 - min) / span) * 100, right = ((v2 - min) / span) * 100;
   if (range) { range.style.left = left + '%'; range.style.width = (right - left) + '%'; }
   if (minLabel) minLabel.textContent = v1 + ' €';
   if (maxLabel) maxLabel.textContent = v2 + ' €';
 }
 function renderFilters() {
-  const facets = {
-    brands:     buildFacet(allResults, 'brand'),
-    categories: buildFacet(allResults, 'productType'),
-    colors:     buildFacet(allResults, 'couleur')
-  };
+  const facets = { brands: buildFacet(allResults, 'brand'), categories: buildFacet(allResults, 'productType'), colors: buildFacet(allResults, 'couleur') };
   const hasBrand = renderFilterGroup(brandFiltersEl,    facets.brands,     'brand');
   const hasCat   = renderFilterGroup(categoryFiltersEl, facets.categories, 'category');
   const hasColor = renderFilterGroup(colorFiltersEl,    facets.colors,     'color');
-
   priceBounds = computePriceBounds(allResults);
   const priceGroup = document.getElementById('priceFilterGroup');
   if (priceBounds.max > priceBounds.min) {
@@ -943,15 +844,12 @@ function renderFilters() {
     if (priceGroup) priceGroup.classList.add('is-hidden');
   }
   const hasAny = hasBrand || hasCat || hasColor || (priceBounds.max > priceBounds.min);
-  if (!hasAny) pageWrapper && pageWrapper.classList.add('no-sidebar');
-  else pageWrapper && pageWrapper.classList.remove('no-sidebar');
+  pageWrapper && pageWrapper.classList[hasAny ? 'remove' : 'add']('no-sidebar');
 }
 
 // ============= FILTRAGE =============
 function productMatchesFilters(item) {
-  const b = normalize(item.brand || '');
-  const c = normalize(item.productType || '');
-  const col = normalize(item.couleur || '');
+  const b = normalize(item.brand || ''), c = normalize(item.productType || ''), col = normalize(item.couleur || '');
   if (activeFilters.brands.size && !activeFilters.brands.has(b)) return false;
   if (activeFilters.categories.size && !activeFilters.categories.has(c)) return false;
   if (activeFilters.colors.size && !activeFilters.colors.has(col)) return false;
@@ -981,27 +879,13 @@ function applyFilters(source) {
 function buildSpecs(item) {
   const specs = [];
   const push = v => { if (!v) return; const s = shortSpec(v); if (s) specs.push(s); };
-  push(item.resolution);
-  push(item.ir_portee);
-  push(item.canaux);
-  push(item.compression);
+  push(item.resolution); push(item.ir_portee); push(item.canaux); push(item.compression);
   if (item.peripheriques_max) specs.push('Jusqu\'à ' + item.peripheriques_max + ' périph.');
-  push(item.acoustique_db);
-  push(item.ip);
-  push(item.environnement);
-  push(item.couleur);
-  push(item.technologie);
+  push(item.acoustique_db); push(item.ip); push(item.environnement); push(item.couleur); push(item.technologie);
   const seen = new Set(), out = [];
-  for (const s of specs) {
-    const k = s.toLowerCase();
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(s);
-    if (out.length >= 5) break;
-  }
+  for (const s of specs) { const k = s.toLowerCase(); if (seen.has(k)) continue; seen.add(k); out.push(s); if (out.length >= 5) break; }
   return out;
 }
-
 function buildQuickBuy(item) {
   const priceTtc = priceTtcFromItem(item);
   if (!item.sku_id || priceTtc == null) return '';
@@ -1022,8 +906,7 @@ function buildQuickBuy(item) {
         ' data-title="' + escapeHtml(item.title) + '"' +
         ' data-price="' + priceTtc.toFixed(2) + '">' +
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-          '<circle cx="9" cy="21" r="1"></circle>' +
-          '<circle cx="20" cy="21" r="1"></circle>' +
+          '<circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>' +
           '<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>' +
         '</svg>' +
         '<span class="add-to-cart-btn__label">Ajouter au panier</span>' +
@@ -1031,10 +914,8 @@ function buildQuickBuy(item) {
     '</div>'
   );
 }
-
 function buildCard(item, position) {
-  const brand = (item.brand || '').trim();
-  const cat = (item.productType || '').trim();
+  const brand = (item.brand || '').trim(), cat = (item.productType || '').trim();
   const priceTtc = priceTtcFromItem(item);
   const priceStr = priceTtc != null ? priceTtc.toFixed(2).replace('.', ',') + '\u00A0€' : null;
   const ref = item.productref ? String(item.productref).trim() : '';
@@ -1043,13 +924,11 @@ function buildCard(item, position) {
   const badges = [];
   if (brand) badges.push('<span class="search-badge search-badge-brand">' + escapeHtml(brand) + '</span>');
   if (cat)   badges.push('<span class="search-badge search-badge-cat">'   + escapeHtml(cat)   + '</span>');
-  const specsHtml = specs.length
-    ? '<div class="search-result-specs">' + specs.map(s => '<span class="search-spec">' + escapeHtml(s) + '</span>').join('') + '</div>' : '';
+  const specsHtml = specs.length ? '<div class="search-result-specs">' + specs.map(s => '<span class="search-spec">' + escapeHtml(s) + '</span>').join('') + '</div>' : '';
   const footerParts = [];
   if (priceStr) footerParts.push('<div class="search-result-price">' + priceStr + '<span class="ttc-label">TTC</span></div>');
   if (warranty) footerParts.push('<div class="search-result-warranty">Garantie ' + escapeHtml(warranty) + '</div>');
   const footerHtml = footerParts.length ? '<div class="search-result-footer">' + footerParts.join('') + '</div>' : '';
-  const buyHtml = buildQuickBuy(item);
   return (
     '<div class="search-result-item" data-position="' + position + '" data-url="' + escapeHtml(item.url) + '" data-title="' + escapeHtml(item.title) + '" data-price="' + (priceTtc != null ? priceTtc.toFixed(2) : '') + '">' +
       '<a class="search-result-main" href="' + escapeHtml(item.url) + '">' +
@@ -1062,7 +941,7 @@ function buildCard(item, position) {
           specsHtml + footerHtml +
         '</div>' +
       '</a>' +
-      buyHtml +
+      buildQuickBuy(item) +
     '</div>'
   );
 }
@@ -1081,43 +960,29 @@ function buildRelatedCard(item) {
     '</div>'
   );
 }
-
 function setRelatedHeading(title, subtitle) {
   if (!relatedSection) return;
-  const titleNode = relatedSection.querySelector('h2, h3, .Result_related-title');
-  const subtitleNode = relatedSection.querySelector('p, .Result_related-subtitle');
-  if (titleNode) titleNode.textContent = title;
-  if (subtitleNode) subtitleNode.textContent = subtitle;
+  const tn = relatedSection.querySelector('h2, h3, .Result_related-title');
+  const sn = relatedSection.querySelector('p, .Result_related-subtitle');
+  if (tn) tn.textContent = title;
+  if (sn) sn.textContent = subtitle;
 }
-
 function renderRelated() {
   if (!relatedSection || !relatedList) return;
   if (detectedUniverse === 'ajax') {
     const primaryProductTypes = new Set(allResults.map(r => normalize(r.item.original.productType)));
     const complements = buildAjaxComplements(allProducts, primaryProductTypes);
-    if (complements.length === 0) {
-      relatedSection.classList.remove('is-visible');
-      return;
-    }
-    setRelatedHeading(
-      'Complétez votre système Ajax',
-      'Les produits indispensables ou complémentaires pour faire fonctionner votre alarme.'
-    );
+    if (complements.length === 0) { relatedSection.classList.remove('is-visible'); return; }
+    setRelatedHeading('Complétez votre système Ajax', 'Les produits indispensables ou complémentaires pour faire fonctionner votre alarme.');
     relatedSection.classList.add('is-visible');
     relatedList.innerHTML = complements.map(r => buildRelatedCard(r.item.original)).join('');
     return;
   }
-  if (allAccessories.length === 0) {
-    relatedSection.classList.remove('is-visible');
-    return;
-  }
-  if (relatedTitleOriginal && relatedSubtitleOriginal) {
-    setRelatedHeading(relatedTitleOriginal, relatedSubtitleOriginal);
-  }
+  if (allAccessories.length === 0) { relatedSection.classList.remove('is-visible'); return; }
+  if (relatedTitleOriginal && relatedSubtitleOriginal) setRelatedHeading(relatedTitleOriginal, relatedSubtitleOriginal);
   relatedSection.classList.add('is-visible');
   relatedList.innerHTML = allAccessories.slice(0, 8).map(r => buildRelatedCard(r.item.original)).join('');
 }
-
 function renderCards(results, reset) {
   if (reset) { clearCards(); displayed = 0; }
   if (results.length === 0 && displayed === 0) {
@@ -1137,27 +1002,14 @@ function renderCards(results, reset) {
   const slice = results.slice(displayed, displayed + PAGE_SIZE);
   slice.forEach((r, i) => resultsList.insertAdjacentHTML('beforeend', buildCard(r.item.original, displayed + i + 1)));
   displayed += slice.length;
-  if (loadMoreWrapper) {
-    if (displayed < results.length) loadMoreWrapper.classList.add('is-visible');
-    else loadMoreWrapper.classList.remove('is-visible');
-  }
+  if (loadMoreWrapper) loadMoreWrapper.classList[displayed < results.length ? 'add' : 'remove']('is-visible');
 }
 
 // ============= SUGGESTION =============
 function buildKeywordCorpus(products) {
   const words = new Set();
-  const add = (s) => {
-    if (!s) return;
-    normalize(s).split(/\s+/).forEach(w => {
-      if (w.length >= 3 && w.length <= 30 && !/^\d+$/.test(w)) words.add(w);
-    });
-  };
-  products.forEach(p => {
-    add(p.title);
-    add(p.brand);
-    add(p.productType);
-    add(p.cameraForm);
-  });
+  const add = s => { if (!s) return; normalize(s).split(/\s+/).forEach(w => { if (w.length >= 3 && w.length <= 30 && !/^\d+$/.test(w)) words.add(w); }); };
+  products.forEach(p => { add(p.title); add(p.brand); add(p.productType); add(p.cameraForm); });
   ['camera','detecteur','enregistreur','sirene','kit','switch','cable','ecran','hub','centrale','alarme','surveillance','videosurveillance','clavier','keypad','ouverture','mouvement','incendie','onduleur','doorprotect','motionprotect','ajax','hikvision','dahua','ezviz'].forEach(w => words.add(w));
   return Array.from(words).map(w => ({ w }));
 }
@@ -1168,11 +1020,8 @@ function findClosestSuggestion(q) {
   const loose = new Fuse(keywordCorpus, { keys: ['w'], threshold: 0.45, includeScore: true, distance: 100 });
   const tokens = nq.split(/\s+/).filter(t => t.length >= 3);
   if (!tokens.length) return null;
-  const correctedTokens = tokens.map(tok => {
-    const res = loose.search(tok);
-    return res.length && res[0].score < 0.4 ? res[0].item.w : tok;
-  });
-  const candidate = correctedTokens.join(' ');
+  const corrected = tokens.map(tok => { const res = loose.search(tok); return res.length && res[0].score < 0.4 ? res[0].item.w : tok; });
+  const candidate = corrected.join(' ');
   return candidate !== nq ? candidate : null;
 }
 
@@ -1195,12 +1044,10 @@ function closeDrawer() {
 
 // ============= INIT =============
 if (!query) {
-  setTitle('Aucune recherche active');
-  setCount(0);
+  setTitle('Aucune recherche active'); setCount(0);
   pageWrapper && pageWrapper.classList.add('no-sidebar');
   clearCards();
-  resultsList.insertAdjacentHTML('beforeend',
-    '<div class="search-state"><h3>Aucun mot-clé fourni</h3><p>Utilisez la barre de recherche pour commencer.</p></div>');
+  resultsList.insertAdjacentHTML('beforeend', '<div class="search-state"><h3>Aucun mot-clé fourni</h3><p>Utilisez la barre de recherche pour commencer.</p></div>');
   return;
 }
 
@@ -1224,12 +1071,7 @@ function processData(products) {
   renderCards(filtered, true);
   renderRelated();
   updateMobileFilterBadge();
-  ga4('search', {
-    search_term: query,
-    results_count: allResults.length,
-    accessories_count: allAccessories.length,
-    universe_detected: universe || 'none'
-  });
+  ga4('search', { search_term: query, results_count: allResults.length, accessories_count: allAccessories.length, universe_detected: universe || 'none' });
 }
 
 const cached = loadCache();
@@ -1242,23 +1084,16 @@ if (cached && cached.products) {
         saveCache(data.meta, data.products || []);
         processData(data.products || []);
       }
-    })
-    .catch(() => {});
+    }).catch(() => {});
 } else {
   fetch('https://raw.githubusercontent.com/IMS-SX304/camprotect-json/refs/heads/main/data.json')
     .then(r => r.json())
-    .then(data => {
-      const products = data.products || [];
-      saveCache(data.meta, products);
-      processData(products);
-    })
+    .then(data => { const products = data.products || []; saveCache(data.meta, products); processData(products); })
     .catch(err => {
       console.error('Recherche — erreur de chargement :', err);
-      clearCards();
-      setCount(0);
+      clearCards(); setCount(0);
       pageWrapper && pageWrapper.classList.add('no-sidebar');
-      resultsList.insertAdjacentHTML('beforeend',
-        '<div class="search-state"><h3>Erreur de chargement</h3><p>Impossible de charger le catalogue. Rechargez la page ou réessayez.</p></div>');
+      resultsList.insertAdjacentHTML('beforeend', '<div class="search-state"><h3>Erreur de chargement</h3><p>Impossible de charger le catalogue. Rechargez la page ou réessayez.</p></div>');
     });
 }
 
@@ -1268,24 +1103,20 @@ function bindFilterGroup(container, filterKey, stateSet) {
   if (!container) return;
   container.addEventListener('change', e => {
     if (!e.target.matches('input[data-filter="' + filterKey + '"]')) return;
-    if (e.target.checked) stateSet.add(e.target.value);
-    else stateSet.delete(e.target.value);
+    e.target.checked ? stateSet.add(e.target.value) : stateSet.delete(e.target.value);
     applyFilters(filterKey);
   });
 }
-bindFilterGroup(brandFiltersEl,    'brand',    activeFilters.brands);
+bindFilterGroup(brandFiltersEl, 'brand', activeFilters.brands);
 bindFilterGroup(categoryFiltersEl, 'category', activeFilters.categories);
-bindFilterGroup(colorFiltersEl,    'color',    activeFilters.colors);
+bindFilterGroup(colorFiltersEl, 'color', activeFilters.colors);
 
 document.addEventListener('input', e => {
-  const isMin = e.target && e.target.id === 'priceMin';
-  const isMax = e.target && e.target.id === 'priceMax';
+  const isMin = e.target && e.target.id === 'priceMin', isMax = e.target && e.target.id === 'priceMax';
   if (!isMin && !isMax) return;
-  const minInput = document.getElementById('priceMin');
-  const maxInput = document.getElementById('priceMax');
+  const minInput = document.getElementById('priceMin'), maxInput = document.getElementById('priceMax');
   if (!minInput || !maxInput) return;
-  let v1 = parseInt(minInput.value, 10);
-  let v2 = parseInt(maxInput.value, 10);
+  let v1 = parseInt(minInput.value, 10), v2 = parseInt(maxInput.value, 10);
   if (isMin && v1 > v2 - 1) { minInput.value = String(v2 - 1); v1 = v2 - 1; }
   if (isMax && v2 < v1 + 1) { maxInput.value = String(v1 + 1); v2 = v1 + 1; }
   activeFilters.priceMin = (v1 === parseInt(minInput.min, 10)) ? null : v1;
@@ -1296,24 +1127,17 @@ document.addEventListener('input', e => {
 
 resetBtn && resetBtn.addEventListener('click', e => {
   e.preventDefault();
-  activeFilters.brands.clear();
-  activeFilters.categories.clear();
-  activeFilters.colors.clear();
-  activeFilters.priceMin = null;
-  activeFilters.priceMax = null;
+  activeFilters.brands.clear(); activeFilters.categories.clear(); activeFilters.colors.clear();
+  activeFilters.priceMin = null; activeFilters.priceMax = null;
   document.querySelectorAll('#brandFilters input, #categoryFilters input, #colorFilters input').forEach(i => i.checked = false);
-  const minInput = document.getElementById('priceMin');
-  const maxInput = document.getElementById('priceMax');
+  const minInput = document.getElementById('priceMin'), maxInput = document.getElementById('priceMax');
   if (minInput) minInput.value = minInput.min;
   if (maxInput) maxInput.value = maxInput.max;
   updatePriceSliderUI();
   applyFilters('reset');
 });
 
-loadMoreBtn && loadMoreBtn.addEventListener('click', e => {
-  e.preventDefault();
-  renderCards(getFilteredResults(), false);
-});
+loadMoreBtn && loadMoreBtn.addEventListener('click', e => { e.preventDefault(); renderCards(getFilteredResults(), false); });
 
 let scrollLoadTimer = null;
 window.addEventListener('scroll', () => {
@@ -1321,37 +1145,25 @@ window.addEventListener('scroll', () => {
   scrollLoadTimer = setTimeout(() => {
     scrollLoadTimer = null;
     if (!loadMoreWrapper || !loadMoreWrapper.classList.contains('is-visible')) return;
-    const rect = loadMoreWrapper.getBoundingClientRect();
-    if (rect.top < window.innerHeight + 200) {
-      renderCards(getFilteredResults(), false);
-    }
+    if (loadMoreWrapper.getBoundingClientRect().top < window.innerHeight + 200) renderCards(getFilteredResults(), false);
   }, 120);
 });
 
 document.addEventListener('click', e => {
-  const btn = e.target.closest('.sort-dropdown-btn');
-  const opt = e.target.closest('.sort-dropdown-option');
-  const dd  = document.querySelector('.sort-dropdown');
-  if (btn && dd) {
-    dd.classList.toggle('is-open');
-    btn.setAttribute('aria-expanded', dd.classList.contains('is-open') ? 'true' : 'false');
-  } else if (opt && dd) {
+  const btn = e.target.closest('.sort-dropdown-btn'), opt = e.target.closest('.sort-dropdown-option'), dd = document.querySelector('.sort-dropdown');
+  if (btn && dd) { dd.classList.toggle('is-open'); btn.setAttribute('aria-expanded', dd.classList.contains('is-open') ? 'true' : 'false'); }
+  else if (opt && dd) {
     sortMode = opt.dataset.value;
     dd.querySelectorAll('.sort-dropdown-option').forEach(o => o.classList.remove('is-active'));
     opt.classList.add('is-active');
-    const l = dd.querySelector('.sort-dropdown-label');
-    if (l) l.textContent = opt.textContent;
+    const l = dd.querySelector('.sort-dropdown-label'); if (l) l.textContent = opt.textContent;
     dd.classList.remove('is-open');
     applyFilters('sort');
     ga4('sort_changed', { search_term: query, sort_mode: sortMode });
-  } else if (dd && !e.target.closest('.sort-dropdown')) {
-    dd.classList.remove('is-open');
-  }
+  } else if (dd && !e.target.closest('.sort-dropdown')) { dd.classList.remove('is-open'); }
 });
 
-openFiltersBtns.forEach(btn => {
-  btn.addEventListener('click', e => { e.preventDefault(); openDrawer(); });
-});
+openFiltersBtns.forEach(btn => btn.addEventListener('click', e => { e.preventDefault(); openDrawer(); }));
 document.addEventListener('click', e => {
   if (e.target && e.target.id === 'filterDrawerOverlay') closeDrawer();
   if (e.target.closest && e.target.closest('.drawer-close-btn')) closeDrawer();
@@ -1360,164 +1172,77 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 
 resultsList.addEventListener('click', e => {
   const sug = e.target.closest('.search-suggestion');
-  if (sug) {
-    e.preventDefault();
-    window.location.href = '/recherche?query=' + encodeURIComponent(sug.dataset.suggest);
-  }
+  if (sug) { e.preventDefault(); window.location.href = '/recherche?query=' + encodeURIComponent(sug.dataset.suggest); }
 });
 
 resultsList.addEventListener('click', e => {
   const card = e.target.closest('.search-result-item');
-  if (!card) return;
-  if (e.target.closest('.search-result-buy')) return;
-  ga4('select_item', {
-    item_list_name: 'Résultats de recherche',
-    search_term: query,
-    items: [{ item_id: card.dataset.url, item_name: card.dataset.title, price: parseFloat(card.dataset.price) || 0, index: parseInt(card.dataset.position, 10) || 0 }]
-  });
+  if (!card || e.target.closest('.search-result-buy')) return;
+  ga4('select_item', { item_list_name: 'Résultats de recherche', search_term: query, items: [{ item_id: card.dataset.url, item_name: card.dataset.title, price: parseFloat(card.dataset.price) || 0, index: parseInt(card.dataset.position, 10) || 0 }] });
 });
 
-// ============= INTERCEPTEUR CLIC ICÔNE PANIER v1.4.2 =============
+// ============= INTERCEPTEUR PANIER v1.4.2 =============
 document.addEventListener('click', function (e) {
   if (!window._cpCartDirty) return;
-  const cartLink = e.target.closest(
-    '[data-node-type="commerce-cart-open-link"], ' +
-    '.w-commerce-commercecartopenlink, ' +
-    'a.w-commerce-commercecartopenlink'
-  );
+  const cartLink = e.target.closest('[data-node-type="commerce-cart-open-link"], .w-commerce-commercecartopenlink, a.w-commerce-commercecartopenlink');
   if (!cartLink) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-
+  e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
   document.documentElement.classList.add('cp-cart-reloading');
-
   try { sessionStorage.setItem('cp-open-cart-on-load', '1'); } catch (ex) {}
-
   setTimeout(function () { window.location.reload(); }, 60);
 }, true);
 
-// ============= HANDLERS QUANTITÉ + ADD TO CART v1.4.0 (IFRAME) =============
+// ============= ADD TO CART (IFRAME) =============
 let pendingAddToCart = null;
-
 function cleanupPending() {
   if (!pendingAddToCart) return;
   const p = pendingAddToCart;
   if (p.timeoutId) clearTimeout(p.timeoutId);
   if (p.listener) window.removeEventListener('message', p.listener);
   if (p.iframe && p.iframe.parentNode) p.iframe.parentNode.removeChild(p.iframe);
-  if (p.btn) {
-    p.btn.disabled = false;
-    p.btn.classList.remove('is-loading');
-    if (p.label) p.label.textContent = p.origText || 'Ajouter au panier';
-  }
+  if (p.btn) { p.btn.disabled = false; p.btn.classList.remove('is-loading'); if (p.label) p.label.textContent = p.origText || 'Ajouter au panier'; }
   pendingAddToCart = null;
 }
 
 resultsList.addEventListener('click', e => {
   const minus = e.target.closest('.qty-minus');
-  if (minus) {
-    e.preventDefault();
-    const selector = minus.closest('.qty-selector');
-    const valueEl = selector.querySelector('.qty-value');
-    const current = parseInt(valueEl.textContent, 10) || 1;
-    if (current > 1) {
-      valueEl.textContent = String(current - 1);
-      selector.dataset.qty = String(current - 1);
-    }
-    return;
-  }
+  if (minus) { e.preventDefault(); const s = minus.closest('.qty-selector'), v = s.querySelector('.qty-value'), c = parseInt(v.textContent, 10) || 1; if (c > 1) { v.textContent = String(c - 1); s.dataset.qty = String(c - 1); } return; }
   const plus = e.target.closest('.qty-plus');
-  if (plus) {
-    e.preventDefault();
-    const selector = plus.closest('.qty-selector');
-    const valueEl = selector.querySelector('.qty-value');
-    const current = parseInt(valueEl.textContent, 10) || 1;
-    if (current < 99) {
-      valueEl.textContent = String(current + 1);
-      selector.dataset.qty = String(current + 1);
-    }
-    return;
-  }
+  if (plus) { e.preventDefault(); const s = plus.closest('.qty-selector'), v = s.querySelector('.qty-value'), c = parseInt(v.textContent, 10) || 1; if (c < 99) { v.textContent = String(c + 1); s.dataset.qty = String(c + 1); } return; }
+
   const addBtn = e.target.closest('.add-to-cart-btn');
   if (addBtn) {
     e.preventDefault();
     if (pendingAddToCart) return;
-
-    const skuId = addBtn.dataset.skuId;
-    const url = addBtn.dataset.url;
-    const title = addBtn.dataset.title;
-    const price = parseFloat(addBtn.dataset.price) || 0;
-    if (!skuId || !url) {
-      console.warn('Recherche add-to-cart : sku_id ou url manquant');
-      return;
-    }
-    const card = addBtn.closest('.search-result-item');
-    const valueEl = card && card.querySelector('.qty-value');
+    const skuId = addBtn.dataset.skuId, url = addBtn.dataset.url, title = addBtn.dataset.title, price = parseFloat(addBtn.dataset.price) || 0;
+    if (!skuId || !url) { console.warn('Recherche add-to-cart : sku_id ou url manquant'); return; }
+    const card = addBtn.closest('.search-result-item'), valueEl = card && card.querySelector('.qty-value');
     const qty = valueEl ? parseInt(valueEl.textContent, 10) || 1 : 1;
-
-    const labelEl = addBtn.querySelector('.add-to-cart-btn__label');
-    const origText = labelEl ? labelEl.textContent : 'Ajouter au panier';
-
-    addBtn.disabled = true;
-    addBtn.classList.add('is-loading');
+    const labelEl = addBtn.querySelector('.add-to-cart-btn__label'), origText = labelEl ? labelEl.textContent : 'Ajouter au panier';
+    addBtn.disabled = true; addBtn.classList.add('is-loading');
     if (labelEl) labelEl.textContent = 'Ajout en cours…';
-
-    ga4('add_to_cart', {
-      currency: 'EUR',
-      value: +(price * qty).toFixed(2),
-      items: [{
-        item_id: skuId, item_name: title, price,
-        quantity: qty, item_list_name: 'Résultats de recherche'
-      }]
-    });
-
-    const sep = url.indexOf('?') === -1 ? '?' : '&';
-    const iframeSrc = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche&silent=1';
-
+    ga4('add_to_cart', { currency: 'EUR', value: +(price * qty).toFixed(2), items: [{ item_id: skuId, item_name: title, price, quantity: qty, item_list_name: 'Résultats de recherche' }] });
+    const sep = url.indexOf('?') === -1 ? '?' : '&', iframeSrc = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche&silent=1';
     const iframe = document.createElement('iframe');
-    iframe.setAttribute('aria-hidden', 'true');
-    iframe.setAttribute('tabindex', '-1');
-    iframe.style.cssText =
-      'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;' +
-      'border:0;opacity:0;pointer-events:none;visibility:hidden;';
+    iframe.setAttribute('aria-hidden', 'true'); iframe.setAttribute('tabindex', '-1');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;opacity:0;pointer-events:none;visibility:hidden;';
     iframe.src = iframeSrc;
-
-    const listener = (ev) => {
-      if (ev.origin !== window.location.origin) return;
-      if (!ev.data || typeof ev.data !== 'object') return;
-      if (ev.data.type === 'cp-cart-added') {
-        cleanupPending();
-        showToast('Produit ajouté au panier', { duration: 3500 });
-        const refreshed = refreshCartCounter(qty);
-        window._cpCartDirty = true;
-      } else if (ev.data.type === 'cp-cart-error') {
-        cleanupPending();
-        showToast('Ajout impossible — redirection…', { error: true, duration: 2000 });
-        setTimeout(() => {
-          window.location.href = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche';
-        }, 800);
-      }
+    const listener = ev => {
+      if (ev.origin !== window.location.origin || !ev.data || typeof ev.data !== 'object') return;
+      if (ev.data.type === 'cp-cart-added') { cleanupPending(); showToast('Produit ajouté au panier', { duration: 3500 }); refreshCartCounter(qty); window._cpCartDirty = true; }
+      else if (ev.data.type === 'cp-cart-error') { cleanupPending(); showToast('Ajout impossible — redirection…', { error: true, duration: 2000 }); setTimeout(() => { window.location.href = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche'; }, 800); }
     };
     window.addEventListener('message', listener);
-
     const timeoutId = setTimeout(() => {
       if (!pendingAddToCart) return;
-      cleanupPending();
-      showToast('L\'ajout prend plus de temps que prévu — redirection…', { error: true, duration: 2000 });
-      setTimeout(() => {
-        window.location.href = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche';
-      }, 800);
+      cleanupPending(); showToast("L'ajout prend plus de temps que prévu — redirection…", { error: true, duration: 2000 });
+      setTimeout(() => { window.location.href = url + sep + 'qty=' + qty + '&autoadd=1&src=recherche'; }, 800);
     }, 6000);
-
     pendingAddToCart = { iframe, btn: addBtn, label: labelEl, origText, timeoutId, listener };
     document.body.appendChild(iframe);
-    return;
   }
 });
 
-// Prefetch au hover
 const prefetched = new Set();
 function bindPrefetch(container) {
   if (!container) return;
@@ -1527,10 +1252,7 @@ function bindPrefetch(container) {
     const url = card.dataset.url;
     if (!url || prefetched.has(url)) return;
     prefetched.add(url);
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = url;
-    document.head.appendChild(link);
+    const link = document.createElement('link'); link.rel = 'prefetch'; link.href = url; document.head.appendChild(link);
   }, true);
 }
 bindPrefetch(resultsList);
@@ -1539,12 +1261,10 @@ bindPrefetch(relatedList);
 window.addEventListener('popstate', () => {
   loadStateFromUrl();
   document.querySelectorAll('#brandFilters input, #categoryFilters input, #colorFilters input').forEach(i => {
-    const filter = i.dataset.filter;
-    const set = activeFilters[filter === 'category' ? 'categories' : filter === 'color' ? 'colors' : 'brands'];
+    const filter = i.dataset.filter, set = activeFilters[filter === 'category' ? 'categories' : filter === 'color' ? 'colors' : 'brands'];
     i.checked = set.has(i.value);
   });
-  const minInput = document.getElementById('priceMin');
-  const maxInput = document.getElementById('priceMax');
+  const minInput = document.getElementById('priceMin'), maxInput = document.getElementById('priceMax');
   if (minInput) minInput.value = activeFilters.priceMin != null ? activeFilters.priceMin : minInput.min;
   if (maxInput) maxInput.value = activeFilters.priceMax != null ? activeFilters.priceMax : maxInput.max;
   updatePriceSliderUI();
@@ -1553,9 +1273,6 @@ window.addEventListener('popstate', () => {
 
 } // end init()
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+else { init(); }
 })();
