@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choix de vos cadeaux — Coupe du Monde 2026 · CamProtect</title>
+<!--
+  CamProtect — Formulaire "Choix des cadeaux" (offre Coupe du Monde 2026)
+  À héberger sur GitHub Pages (repo camprotect-outils).
+  Appelé avec les paramètres d'URL : ?order=1234&total=2000&email=client@mail.fr
+  (total = montant HT de la commande, transmis par la page de confirmation / l'email Make).
+
+  >>> À COMPLÉTER : WEBHOOK_URL (webhook Make) + --orange si besoin.
+  >>> SÉCURITÉ : Make doit re-vérifier le budget à partir de la vraie commande,
+      le paramètre "total" venant de l'URL ne doit pas être considéré comme fiable.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#F26522; --orange-deep:#D4521A; --orange-soft:#FFF1E9;
+    --ink:#16233A; --ink-soft:#5C6677; --line:#ECE6DD;
+    --surface:#FFFFFF; --surface-2:#FBF8F3; --ok:#1D9E75; --ok-soft:#E1F5EE;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Barlow",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--surface-2);line-height:1.5}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 60px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;background:var(--orange-soft);color:var(--orange-deep);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 13px;border-radius:999px;margin-bottom:14px}
+  h1{font-weight:800;font-size:clamp(26px,4vw,38px);margin:0 0 8px;letter-spacing:-.01em}
+  .sub{color:var(--ink-soft);font-size:15px;margin:0 0 22px}
+  .budget{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 24px}
+  .stat{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .stat .lab{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .stat .val{font-size:24px;font-weight:800;margin-top:3px}
+  .stat .val.rest{color:var(--orange)}
+  h2{font-weight:800;font-size:19px;margin:26px 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column}
+  .card .thumb{background:var(--surface);height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .card .thumb img{max-width:100%;max-height:100%;object-fit:contain}
+  .card .name{font-size:14px;font-weight:600;line-height:1.25;min-height:34px}
+  .card .value{display:inline-block;background:var(--orange-soft);color:var(--orange-deep);font-weight:700;font-size:13px;padding:2px 10px;border-radius:999px;margin:8px 0 10px;align-self:flex-start}
+  .card button{margin-top:auto;border:1px solid var(--orange);background:var(--orange);color:#fff;font-family:inherit;font-weight:700;font-size:14px;padding:9px 12px;border-radius:10px;cursor:pointer;transition:background .15s,opacity .15s}
+  .card button:hover{background:var(--orange-deep)}
+  .card button:disabled{background:var(--surface-2);color:var(--ink-soft);border-color:var(--line);cursor:not-allowed}
+  .sel{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .sel .empty{padding:20px;color:var(--ink-soft);font-size:14px;text-align:center}
+  .item{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-top:1px solid var(--line)}
+  .item:first-child{border-top:0}
+  .item .ithumb{width:54px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border-radius:10px}
+  .item .ithumb img{max-width:100%;max-height:100%;object-fit:contain}
+  .item .body{flex:1;min-width:0}
+  .item .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .item .inm{font-size:14.5px;font-weight:600}
+  .item .iv{font-size:13px;color:var(--ink-soft);white-space:nowrap}
+  .selects{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  select,input[type=text]{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);min-width:130px}
+  select:focus,input:focus{outline:none;border-color:var(--orange)}
+  .rm{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:13px;font-weight:600;padding:4px;text-decoration:underline}
+  .rm:hover{color:var(--orange-deep)}
+  .submit{margin-top:24px;width:100%;border:none;background:var(--orange);color:#fff;font-family:inherit;font-weight:800;font-size:17px;padding:16px;border-radius:12px;cursor:pointer;transition:background .15s}
+  .submit:hover{background:var(--orange-deep)}
+  .submit:disabled{background:var(--surface-2);color:var(--ink-soft);cursor:not-allowed}
+  .hint{font-size:13px;color:var(--ink-soft);margin-top:10px;text-align:center}
+  .notice{background:var(--orange-soft);border:1px solid #F5C4B3;border-radius:12px;padding:14px 16px;font-size:14px;color:var(--orange-deep);margin-bottom:20px}
+  .done{background:var(--ok-soft);border:1px solid #9FE1CB;border-radius:16px;padding:28px;text-align:center}
+  .done h2{color:#0F6E56;margin:0 0 8px}
+  .done p{color:#0F6E56;margin:0;font-size:15px}
+  .manual{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:20px;display:none}
+  .manual.show{display:block}
+  .manual label{display:block;font-size:13px;font-weight:600;margin:0 0 6px}
+  .manual .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .manual .field{flex:1;min-width:160px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="kicker"><span>★</span> Coupe du Monde 2026</span>
+  <h1>Composez vos cadeaux</h1>
+  <p class="sub" id="sub">Choisissez vos cadeaux et la sélection de votre choix pour chaque maillot et écharpe.</p>
+
+  <div id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ====== CONFIG ======
+  var WEBHOOK_URL = "https://hook.eu2.make.com/wndbrgtsi97d8cmlxoesucyu777lffa1";
+  var CDN = "https://cdn.prod.website-files.com/66e1f578f9f545dee86c9a91/";
+  var STEP = 500; // une tranche = 500 € HT
+
+  var GIFTS = [
+    {id:"echarpe",        name:"Écharpe supporter",                 value:500,  team:true,  size:false, img:CDN+"6a255cc42af10e9ae46e0647_echarppe.png"},
+    {id:"maillot_echarpe",name:"Maillot + écharpe assortie",        value:1000, team:true,  size:true,  img:CDN+"6a255d43d01b2eec3dc3b3ed_Maillot%20%2B%20echarpe.png"},
+    {id:"maillot_wifi",   name:"Maillot + caméra Wi-Fi extérieure", value:1500, team:true,  size:true,  img:CDN+"6a255cc451d05ada755c8e7a_Maillot%20%2B%20camera%20Wifi.png"},
+    {id:"maillot_ip",     name:"Maillot + caméra extérieure IP",    value:2000, team:true,  size:true,  img:CDN+"6a255cc4da8906173d6f0eb4_Maillot%20%2B%20Cam%C3%A9ra%20IP.png"},
+    {id:"maillot_hdd",    name:"Maillot + disque dur 2 To",         value:2500, team:true,  size:true,  img:CDN+"6a255cc4368827f3fc4be7fb_Maillot%20%2B%20HDD.png"}
+  ];
+
+  var TEAMS = ["France","Portugal","Brésil","Argentine","Espagne","Angleterre","Allemagne",
+    "Pays-Bas","Croatie","Belgique","Suisse","Autriche","Maroc","Sénégal","Côte d'Ivoire",
+    "Tunisie","Algérie","Égypte","Japon","Corée du Sud","Mexique","États-Unis","Canada",
+    "Uruguay","Colombie","Autre"];
+
+  var SIZES = ["S","M","L","XL","XXL"];
+
+  // ====== PARAMS ======
+  function qp(k){ return new URLSearchParams(window.location.search).get(k); }
+  var order = qp("order") || "";
+  var email = qp("email") || "";
+  var total = parseFloat(qp("total"));
+  var hasTotal = !isNaN(total) && total > 0;
+
+  var budget = hasTotal ? Math.floor(total/STEP)*STEP : 0;
+  var selections = []; // {uid, giftId, team, teamOther, size}
+  var uid = 0;
+
+  var app = document.getElementById("app");
+
+  function eur(n){ return n.toLocaleString("fr-FR") + " €"; }
+  function gift(id){ return GIFTS.filter(function(g){return g.id===id;})[0]; }
+  function used(){ return selections.reduce(function(s,it){return s+gift(it.giftId).value;},0); }
+  function remaining(){ return budget - used(); }
+
+  // ====== RENDER ======
+  function render(){
+    if(!hasTotal){ renderManual(); return; }
+    var html = "";
+    html += '<div class="budget">';
+    html += '<div class="stat"><div class="lab">Commande</div><div class="val">'+(order?("#"+order):"—")+'</div></div>';
+    html += '<div class="stat"><div class="lab">Budget cadeaux</div><div class="val">'+eur(budget)+'</div></div>';
+    html += '<div class="stat"><div class="lab">Reste à utiliser</div><div class="val rest">'+eur(remaining())+'</div></div>';
+    html += '</div>';
+
+    html += '<h2>Ajoutez vos cadeaux</h2><div class="grid">';
+    GIFTS.forEach(function(g){
+      var dis = g.value > remaining() ? "disabled" : "";
+      html += '<div class="card">';
+      html += '<div class="thumb"><img src="'+g.img+'" alt="'+g.name+'"></div>';
+      html += '<div class="name">'+g.name+'</div>';
+      html += '<span class="value">Valeur '+eur(g.value)+'</span>';
+      html += '<button data-add="'+g.id+'" '+dis+'>Ajouter</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<h2>Vos cadeaux sélectionnés</h2><div class="sel">';
+    if(selections.length===0){
+      html += '<div class="empty">Aucun cadeau pour l\'instant. Ajoutez-en depuis la liste ci-dessus.</div>';
+    } else {
+      selections.forEach(function(it){
+        var g = gift(it.giftId);
+        html += '<div class="item">';
+        html += '<div class="ithumb"><img src="'+g.img+'" alt=""></div>';
+        html += '<div class="body">';
+        html += '<div class="top"><span class="inm">'+g.name+'</span><span class="iv">'+eur(g.value)+'</span></div>';
+        html += '<div class="selects">';
+        if(g.team){
+          html += '<select data-team="'+it.uid+'"><option value="">— Sélection —</option>';
+          TEAMS.forEach(function(t){ html += '<option '+(it.team===t?"selected":"")+'>'+t+'</option>'; });
+          html += '</select>';
+          if(it.team==="Autre"){
+            html += '<input type="text" data-other="'+it.uid+'" placeholder="Précisez l\'équipe" value="'+(it.teamOther||"")+'">';
+          }
+        }
+        if(g.size){
+          html += '<select data-size="'+it.uid+'"><option value="">— Taille —</option>';
+          SIZES.forEach(function(s){ html += '<option '+(it.size===s?"selected":"")+'>'+s+'</option>'; });
+          html += '</select>';
+        }
+        html += '<button class="rm" data-rm="'+it.uid+'">Retirer</button>';
+        html += '</div></div></div>';
+      });
+    }
+    html += '</div>';
+
+    var ready = selections.length>0 && selections.every(function(it){
+      var g = gift(it.giftId);
+      if(g.team && !it.team) return false;
+      if(it.team==="Autre" && !it.teamOther) return false;
+      if(g.size && !it.size) return false;
+      return true;
+    });
+
+    html += '<button class="submit" id="send" '+(ready?"":"disabled")+'>Valider mes cadeaux</button>';
+    html += '<p class="hint">Vous pourrez encore nous contacter si besoin. Cadeaux expédiés selon les stocks disponibles.</p>';
+
+    app.innerHTML = html;
+    bind();
+  }
+
+  function renderManual(){
+    app.innerHTML =
+      '<div class="notice">Pour composer vos cadeaux, accédez à ce formulaire depuis le lien reçu dans votre <b>email de confirmation</b> de commande. '+
+      'Vous pouvez sinon saisir votre numéro de commande ci-dessous.</div>'+
+      '<div class="manual show"><div class="row">'+
+      '<div class="field"><label>Numéro de commande</label><input type="text" id="m-order" placeholder="ex. 1234"></div>'+
+      '<div class="field"><label>Montant HT de la commande (€)</label><input type="text" id="m-total" placeholder="ex. 2000"></div>'+
+      '<button class="submit" style="width:auto;margin:0;padding:13px 22px" id="m-go">Continuer</button>'+
+      '</div></div>';
+    document.getElementById("m-go").addEventListener("click",function(){
+      order = (document.getElementById("m-order").value||"").trim();
+      var t = parseFloat((document.getElementById("m-total").value||"").replace(",","."));
+      if(!isNaN(t) && t>0){ total=t; hasTotal=true; budget=Math.floor(t/STEP)*STEP; render(); }
+    });
+  }
+
+  function bind(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-add]"),function(b){
+      b.addEventListener("click",function(){
+        var g = gift(b.getAttribute("data-add"));
+        if(g.value<=remaining()){ selections.push({uid:++uid,giftId:g.id,team:"",teamOther:"",size:""}); render(); }
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-rm]"),function(b){
+      b.addEventListener("click",function(){
+        var id = parseInt(b.getAttribute("data-rm"),10);
+        selections = selections.filter(function(it){return it.uid!==id;}); render();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-team]"),function(s){
+      s.addEventListener("change",function(){ setField(s.getAttribute("data-team"),"team",s.value); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-other]"),function(i){
+      i.addEventListener("input",function(){ setField(i.getAttribute("data-other"),"teamOther",i.value,true); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-size]"),function(s){
+      s.addEventListener("change",function(){ setField(s.getAttribute("data-size"),"size",s.value,true); });
+    });
+    var send = document.getElementById("send");
+    if(send) send.addEventListener("click",submit);
+  }
+
+  function setField(uidStr,key,val,noRender){
+    var id = parseInt(uidStr,10);
+    selections.forEach(function(it){ if(it.uid===id) it[key]=val; });
+    if(!noRender) render();
+  }
+
+  function submit(){
+    var recap = selections.map(function(it){
+      var g = gift(it.giftId);
+      var team = it.team==="Autre" ? it.teamOther : it.team;
+      return "• " + g.name + (team ? " — " + team : "") + (g.size && it.size ? " (taille " + it.size + ")" : "");
+    }).join("\n");
+    var payload = {
+      order: order,
+      email: email,
+      totalHT: hasTotal ? total : null,
+      budget: budget,
+      selectedTotal: used(),
+      recap: recap,
+      detailJson: JSON.stringify(selections.map(function(it){
+        var g = gift(it.giftId);
+        return { gift:g.id, value:g.value, team: it.team==="Autre"?it.teamOther:it.team, size: g.size?it.size:null };
+      })),
+      selections: selections.map(function(it){
+        var g = gift(it.giftId);
+        return { gift:g.id, label:g.name, value:g.value,
+                 team: it.team==="Autre" ? it.teamOther : it.team,
+                 size: g.size ? it.size : null };
+      }),
+      submittedAt: new Date().toISOString()
+    };
+    var btn = document.getElementById("send");
+    btn.disabled = true; btn.textContent = "Envoi en cours…";
+    fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+      .then(function(r){ if(!r.ok) throw new Error("http"); return r; })
+      .then(function(){ success(); })
+      .catch(function(){
+        btn.disabled=false; btn.textContent="Valider mes cadeaux";
+        alert("L'envoi a échoué. Vérifiez votre connexion et réessayez, ou contactez-nous.");
+      });
+  }
+
+  function success(){
+    app.innerHTML =
+      '<div class="done"><h2>C\'est noté, merci !</h2>'+
+      '<p>Votre sélection de cadeaux a bien été enregistrée pour la commande '+(order?("#"+order):"")+'. '+
+      'Nous l\'expédions avec votre commande dans la mesure des stocks, ou ultérieurement dès réapprovisionnement.</p></div>';
+    document.getElementById("sub").style.display="none";
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
