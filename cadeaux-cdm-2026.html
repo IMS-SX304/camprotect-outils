@@ -122,6 +122,16 @@
   function gift(id){ return GIFTS.filter(function(g){return g.id===id;})[0]; }
   function used(){ return selections.reduce(function(s,it){return s+gift(it.giftId).value;},0); }
   function remaining(){ return budget - used(); }
+  function isReady(){
+    return selections.length>0 && selections.every(function(it){
+      var g = gift(it.giftId);
+      if(g.team && !it.team) return false;
+      if(it.team==="Autre" && !it.teamOther) return false;
+      if(g.size && !it.size) return false;
+      return true;
+    });
+  }
+  function updateSubmit(){ var s=document.getElementById("send"); if(s) s.disabled = !isReady(); }
 
   // ====== RENDER ======
   function render(){
@@ -175,13 +185,7 @@
     }
     html += '</div>';
 
-    var ready = selections.length>0 && selections.every(function(it){
-      var g = gift(it.giftId);
-      if(g.team && !it.team) return false;
-      if(it.team==="Autre" && !it.teamOther) return false;
-      if(g.size && !it.size) return false;
-      return true;
-    });
+    var ready = isReady();
 
     html += '<button class="submit" id="send" '+(ready?"":"disabled")+'>Valider mes cadeaux</button>';
     html += '<p class="hint">Vous pourrez encore nous contacter si besoin. Cadeaux expédiés selon les stocks disponibles.</p>';
@@ -223,10 +227,10 @@
       s.addEventListener("change",function(){ setField(s.getAttribute("data-team"),"team",s.value); });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-other]"),function(i){
-      i.addEventListener("input",function(){ setField(i.getAttribute("data-other"),"teamOther",i.value,true); });
+      i.addEventListener("input",function(){ setField(i.getAttribute("data-other"),"teamOther",i.value,true); updateSubmit(); });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-size]"),function(s){
-      s.addEventListener("change",function(){ setField(s.getAttribute("data-size"),"size",s.value,true); });
+      s.addEventListener("change",function(){ setField(s.getAttribute("data-size"),"size",s.value,true); updateSubmit(); });
     });
     var send = document.getElementById("send");
     if(send) send.addEventListener("click",submit);
