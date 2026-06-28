@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CamProtect — Prestations & Partenariats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  .cp {
+    --ink:#17191C;
+    --ink-soft:#2A2D31;
+    --signal:#F26522;
+    --signal-2:#FF8A4C;
+    --signal-soft:#FFF0E6;
+    --canvas:#F7F5F2;
+    --surface:#FFFFFF;
+    --line:#EBE7E1;
+    --line-strong:#D9D3CB;
+    --text:#22252A;
+    --muted:#71757A;
+    --danger:#D64545;
+    --radius:14px;
+    --radius-sm:10px;
+    --shadow:0 1px 2px rgba(12,32,49,.04), 0 8px 28px rgba(12,32,49,.06);
+    --shadow-lift:0 2px 6px rgba(12,32,49,.08), 0 18px 48px rgba(12,32,49,.12);
+    --maxw:1120px;
+    font-family:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color:var(--text);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .cp *, .cp *::before, .cp *::after { box-sizing:border-box; }
+  .cp { background:var(--canvas); margin:0; }
+  .cp h1,.cp h2,.cp h3,.cp .display { font-family:"Space Grotesk", system-ui, sans-serif; }
+  .cp button { font-family:inherit; cursor:pointer; }
+  .cp a { color:inherit; }
+
+  /* ---------- Top bar ---------- */
+  .cp-topbar {
+    background:var(--ink);
+    color:#fff;
+    border-bottom:3px solid var(--signal);
+  }
+  .cp-topbar-in {
+    max-width:var(--maxw); margin:0 auto; padding:14px 22px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .cp-wordmark { font-family:"Space Grotesk", sans-serif; font-weight:700; font-size:18px; letter-spacing:1.5px; }
+  .cp-wordmark span { color:var(--signal-2); }
+  .cp-topbar-tag { font-size:11.5px; letter-spacing:1.5px; text-transform:uppercase; color:#9FB6C9; }
+
+  /* ---------- Hero ---------- */
+  .cp-hero {
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(120% 140% at 90% -20%, rgba(242,101,34,.14), transparent 46%),
+      radial-gradient(120% 130% at -5% 0%, rgba(242,101,34,.07), transparent 52%),
+      linear-gradient(180deg,#FFFFFF, var(--canvas));
+    color:var(--text);
+    padding:60px 22px 128px;
+  }
+  .cp-scanline { position:absolute; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, rgba(242,101,34,.7), transparent);
+    top:0; animation:cpScan 7s linear infinite; opacity:.85;
+  }
+  @keyframes cpScan { 0%{ transform:translateY(0); opacity:0;} 8%{opacity:.85;} 92%{opacity:.85;} 100%{ transform:translateY(420px); opacity:0;} }
+  .cp-hero-in { position:relative; max-width:var(--maxw); margin:0 auto; }
+  .cp-eyebrow {
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--signal); font-weight:600;
+    margin-bottom:18px;
+  }
+  .cp-eyebrow::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--signal); box-shadow:0 0 0 4px rgba(242,101,34,.16); }
+  .cp-hero h1 { font-size:clamp(30px, 5vw, 52px); line-height:1.05; font-weight:700; letter-spacing:-.5px; margin:0 0 18px; max-width:16ch; color:var(--ink); }
+  .cp-hero p.sub { font-size:clamp(15px,1.6vw,18px); color:#5A5E63; max-width:56ch; margin:0; }
+
+  .cp-paths { display:grid; grid-template-columns:1fr; gap:16px; margin-top:36px; max-width:760px; }
+  @media (min-width:680px){ .cp-paths{ grid-template-columns:1fr 1fr; } }
+  .cp-path {
+    text-align:left; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:22px 22px 20px; color:var(--text); box-shadow:var(--shadow);
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .cp-path:hover { transform:translateY(-3px); border-color:var(--signal); box-shadow:var(--shadow-lift); }
+  .cp-path:focus-visible { outline:3px solid var(--signal); outline-offset:3px; }
+  .cp-path .ic { width:38px; height:38px; border-radius:10px; display:grid; place-items:center;
+    background:linear-gradient(135deg, var(--signal), var(--signal-2)); margin-bottom:4px; }
+  .cp-path .ic svg { width:20px; height:20px; stroke:#fff; }
+  .cp-path .t { font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:18px; color:var(--text); }
+  .cp-path .d { font-size:13.5px; color:var(--muted); line-height:1.5; }
+  .cp-path .go { margin-top:6px; font-size:13px; font-weight:600; color:var(--signal); display:inline-flex; align-items:center; gap:6px; }
+
+  /* ---------- Switcher (sticky) ---------- */
+  .cp-stage { max-width:var(--maxw); margin:-92px auto 0; padding:0 22px 70px; position:relative; }
+  .cp-switch {
+    display:inline-flex; background:var(--surface); border:1px solid var(--line); border-radius:999px;
+    padding:6px; box-shadow:var(--shadow); gap:4px; margin-bottom:26px;
+  }
+  .cp-switch button {
+    border:0; background:transparent; color:var(--muted); font-weight:600; font-size:14px;
+    padding:10px 18px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; transition:all .16s ease;
+  }
+  .cp-switch button .dot { width:7px; height:7px; border-radius:50%; background:var(--line-strong); transition:all .16s ease; }
+  .cp-switch button[aria-selected="true"] { background:var(--ink); color:#fff; }
+  .cp-switch button[aria-selected="true"] .dot { background:var(--signal-2); box-shadow:0 0 0 3px rgba(19,176,201,.25); }
+  .cp-switch button:focus-visible { outline:3px solid var(--signal); outline-offset:2px; }
+
+  /* ---------- Panel layout ---------- */
+  .cp-panel { display:none; }
+  .cp-panel.is-active { display:block; animation:cpFade .35s ease both; }
+  @keyframes cpFade { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+  .cp-grid { display:grid; grid-template-columns:1fr; gap:22px; }
+  @media (min-width:920px){ .cp-grid{ grid-template-columns:340px 1fr; align-items:start; gap:28px; } }
+
+  /* Aside (intro / accompagnement) */
+  .cp-aside { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow); }
+  @media (min-width:920px){ .cp-aside{ position:sticky; top:18px; } }
+  .cp-aside h2 { font-size:21px; margin:0 0 8px; letter-spacing:-.2px; }
+  .cp-aside .lead { font-size:14px; color:var(--muted); margin:0 0 20px; }
+  .cp-steps { list-style:none; margin:0 0 20px; padding:0; counter-reset:s; }
+  .cp-steps li { position:relative; padding:0 0 16px 42px; counter-increment:s; }
+  .cp-steps li:last-child { padding-bottom:0; }
+  .cp-steps li::before {
+    content:counter(s,decimal-leading-zero); position:absolute; left:0; top:-2px;
+    width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
+    font-family:"Space Grotesk",sans-serif; font-size:12px; font-weight:600; color:var(--signal);
+    background:var(--signal-soft); border:1px solid #FBD9C4;
+  }
+  .cp-steps li::after { content:""; position:absolute; left:13px; top:30px; bottom:6px; width:1px; background:var(--line); }
+  .cp-steps li:last-child::after { display:none; }
+  .cp-steps .st { font-weight:600; font-size:14px; display:block; }
+  .cp-steps .sd { font-size:13px; color:var(--muted); }
+  .cp-assure { display:flex; gap:10px; align-items:flex-start; background:var(--canvas); border:1px solid var(--line);
+    border-radius:var(--radius-sm); padding:13px 14px; font-size:12.5px; color:var(--text); }
+  .cp-assure svg { flex:0 0 auto; width:17px; height:17px; stroke:var(--signal); margin-top:1px; }
+
+  /* Form card */
+  .cp-form { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:8px; box-shadow:var(--shadow); }
+  .cp-fset { padding:22px 22px 6px; }
+  .cp-fset + .cp-fset { border-top:1px solid var(--line); }
+  .cp-legend { display:flex; align-items:center; gap:10px; margin:0 0 16px; }
+  .cp-legend .n { font-family:"Space Grotesk",sans-serif; font-size:12px; font-weight:600; color:#fff; background:var(--ink);
+    width:24px; height:24px; border-radius:7px; display:grid; place-items:center; flex:0 0 auto; }
+  .cp-legend h3 { font-size:15.5px; margin:0; letter-spacing:-.1px; }
+  .cp-row { display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:18px; }
+  @media (min-width:560px){ .cp-row.two{ grid-template-columns:1fr 1fr; } }
+  .cp-field { display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .cp-field > label { font-size:13.5px; font-weight:600; color:var(--text); }
+  .cp-field .req { color:var(--signal); margin-left:2px; }
+  .cp-help { font-size:12px; color:var(--muted); line-height:1.4; }
+  .cp-input, .cp-select, .cp-textarea {
+    width:100%; font-family:inherit; font-size:14.5px; color:var(--text); background:#fff;
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm); padding:11px 13px; transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .cp-textarea { resize:vertical; min-height:96px; }
+  .cp-select { appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236A7B8A' stroke-width='2.4'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat; background-position:right 12px center; padding-right:36px; }
+  .cp-input:focus, .cp-select:focus, .cp-textarea:focus { outline:none; border-color:var(--signal); box-shadow:0 0 0 3px var(--signal-soft); }
+  .cp-input::placeholder, .cp-textarea::placeholder { color:#9DAAB6; }
+
+  /* Segmented */
+  .cp-seg { display:inline-flex; flex-wrap:wrap; gap:6px; }
+  .cp-seg input { position:absolute; opacity:0; pointer-events:none; }
+  .cp-seg label {
+    border:1px solid var(--line-strong); border-radius:999px; padding:9px 15px; font-size:13.5px; font-weight:500;
+    color:var(--text); background:#fff; transition:all .15s ease; user-select:none;
+  }
+  .cp-seg label:hover { border-color:var(--signal); }
+  .cp-seg input:checked + label { background:var(--signal); color:#fff; border-color:var(--signal); }
+  .cp-seg input:focus-visible + label { outline:3px solid var(--signal); outline-offset:2px; }
+
+  /* Choice cards (radio) */
+  .cp-choices { display:grid; grid-template-columns:1fr; gap:10px; }
+  @media (min-width:560px){ .cp-choices.three{ grid-template-columns:repeat(3,1fr);} }
+  .cp-choice { position:relative; }
+  .cp-choice input { position:absolute; opacity:0; pointer-events:none; }
+  .cp-choice label { display:block; border:1px solid var(--line-strong); border-radius:var(--radius-sm); padding:13px 14px;
+    font-size:13.5px; transition:all .15s ease; height:100%; }
+  .cp-choice label .ct { font-weight:600; display:block; }
+  .cp-choice label .cd { font-size:12px; color:var(--muted); }
+  .cp-choice label:hover { border-color:var(--signal); }
+  .cp-choice input:checked + label { border-color:var(--signal); background:var(--signal-soft); box-shadow:0 0 0 1px var(--signal) inset; }
+  .cp-choice input:focus-visible + label { outline:3px solid var(--signal); outline-offset:2px; }
+
+  /* Checkbox grid */
+  .cp-checks { display:grid; grid-template-columns:1fr; gap:9px; }
+  @media (min-width:480px){ .cp-checks.two{ grid-template-columns:1fr 1fr; } }
+  .cp-check { display:flex; align-items:center; gap:10px; border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    padding:10px 12px; font-size:13.5px; cursor:pointer; transition:all .15s ease; }
+  .cp-check:hover { border-color:var(--signal); }
+  .cp-check input { width:17px; height:17px; accent-color:var(--signal); flex:0 0 auto; }
+  .cp-check.is-on { border-color:var(--signal); background:var(--signal-soft); }
+
+  /* Consent / cadre */
+  .cp-consent { display:flex; gap:12px; align-items:flex-start; background:var(--canvas); border:1px solid var(--line);
+    border-radius:var(--radius-sm); padding:14px; font-size:13px; color:var(--text); }
+  .cp-consent input { width:18px; height:18px; accent-color:var(--signal); margin-top:1px; flex:0 0 auto; }
+  .cp-consent.cadre { background:#FBF8EF; border-color:#EBDDB6; }
+  .cp-consent strong { font-weight:600; }
+
+  /* Footer of form / submit */
+  .cp-foot { padding:18px 22px 22px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between; }
+  .cp-submit {
+    border:0; background:var(--signal); color:#fff; font-size:15px; font-weight:600; padding:13px 26px; border-radius:var(--radius-sm);
+    display:inline-flex; align-items:center; gap:9px; transition:background .15s ease, transform .12s ease, box-shadow .15s ease;
+    box-shadow:0 6px 16px rgba(242,101,34,.30);
+  }
+  .cp-submit:hover { background:#D9551A; transform:translateY(-1px); }
+  .cp-submit:active { transform:translateY(0); }
+  .cp-submit:focus-visible { outline:3px solid var(--ink); outline-offset:2px; }
+  .cp-submit svg { width:17px; height:17px; stroke:#fff; }
+  .cp-foot .note { font-size:12px; color:var(--muted); max-width:34ch; }
+
+  .cp-err { font-size:12px; color:var(--danger); font-weight:500; display:none; }
+  .cp-field.invalid .cp-input, .cp-field.invalid .cp-select, .cp-field.invalid .cp-textarea { border-color:var(--danger); }
+  .cp-field.invalid .cp-err { display:block; }
+
+  /* Success state */
+  .cp-sent { display:none; padding:46px 30px; text-align:center; }
+  .cp-form.is-sent .cp-fset, .cp-form.is-sent .cp-foot { display:none; }
+  .cp-form.is-sent .cp-sent { display:block; animation:cpFade .4s ease both; }
+  .cp-sent .badge { width:58px; height:58px; border-radius:16px; background:linear-gradient(135deg,var(--signal),var(--signal-2));
+    display:grid; place-items:center; margin:0 auto 18px; box-shadow:0 10px 26px rgba(242,101,34,.32); }
+  .cp-sent .badge svg { width:28px; height:28px; stroke:#fff; }
+  .cp-sent h3 { font-size:22px; margin:0 0 8px; }
+  .cp-sent p { font-size:14.5px; color:var(--muted); max-width:46ch; margin:0 auto 18px; }
+  .cp-restart { border:1px solid var(--line-strong); background:#fff; color:var(--text); font-weight:600; font-size:13.5px;
+    padding:10px 18px; border-radius:var(--radius-sm); }
+
+  /* Footer */
+  .cp-footer { background:var(--ink); color:#90A6B8; text-align:center; padding:22px; font-size:12px; }
+  .cp-footer span { color:#fff; }
+
+  /* Prototype ribbon */
+  .cp-proto { position:fixed; bottom:14px; left:14px; z-index:50; background:var(--ink); color:#fff;
+    font-size:11.5px; letter-spacing:.4px; padding:8px 13px; border-radius:999px; box-shadow:var(--shadow-lift);
+    display:inline-flex; align-items:center; gap:8px; }
+  .cp-proto .pdot { width:7px; height:7px; border-radius:50%; background:var(--signal-2); animation:cpPulse 2s ease-in-out infinite; }
+  @keyframes cpPulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  @media (prefers-reduced-motion:reduce){
+    .cp *, .cp *::before, .cp *::after { animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="cp">
+
+  <!-- Hero -->
+  <section class="cp-hero">
+    <div class="cp-scanline"></div>
+    <div class="cp-hero-in">
+      <span class="cp-eyebrow">Installation · Mise en service · Partenariat</span>
+      <h1>Votre projet de sécurité, pris en main de A à Z.</h1>
+      <p class="sub">Un projet à réaliser ou un savoir-faire à proposer&nbsp;? Tout passe par un seul interlocuteur, du matériel jusqu'à la pose. Choisissez votre parcours pour commencer.</p>
+
+      <div class="cp-paths">
+        <button class="cp-path" data-go="client" type="button">
+          <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-5h5v5"/></svg></span>
+          <span class="t">J'ai un projet</span>
+          <span class="d">Mise en service, accompagnement de chantier ou installation complète. On monte votre dossier matériel + pose.</span>
+          <span class="go">Décrire mon projet →</span>
+        </button>
+        <button class="cp-path" data-go="partenaire" type="button">
+          <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13A4 4 0 0 1 16 11"/></svg></span>
+          <span class="t">Je suis installateur</span>
+          <span class="d">Recevez des chantiers qualifiés, sans prospection. Devenez partenaire et concentrez-vous sur votre métier.</span>
+          <span class="go">Devenir partenaire →</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stage -->
+  <div class="cp-stage">
+    <div class="cp-switch" role="tablist" aria-label="Choisir un parcours">
+      <button role="tab" id="tab-client" aria-controls="panel-client" aria-selected="true" data-tab="client"><span class="dot"></span>J'ai un projet</button>
+      <button role="tab" id="tab-partenaire" aria-controls="panel-partenaire" aria-selected="false" data-tab="partenaire"><span class="dot"></span>Devenir partenaire</button>
+    </div>
+
+    <!-- ============ PANEL CLIENT ============ -->
+    <section class="cp-panel is-active" id="panel-client" role="tabpanel" aria-labelledby="tab-client">
+      <div class="cp-grid">
+        <aside class="cp-aside">
+          <h2>Décrivez votre besoin</h2>
+          <p class="lead">Pas de devis à remplir vous-même&nbsp;: vous nous donnez les grandes lignes, on revient vers vous avec une proposition claire. C'est une demande d'étude, sans engagement.</p>
+          <ul class="cp-steps">
+            <li><span class="st">Vous décrivez votre projet</span><span class="sd">Quelques informations suffisent pour démarrer.</span></li>
+            <li><span class="st">On monte le dossier</span><span class="sd">Matériel + pose, avec le bon installateur sélectionné près de chez vous.</span></li>
+            <li><span class="st">Un seul interlocuteur</span><span class="sd">Un devis, une facture, un suivi — CamProtect gère tout de bout en bout.</span></li>
+          </ul>
+          <div class="cp-assure">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>
+            <span>Vos informations servent uniquement à étudier votre projet. Aucun engagement, aucun prix ferme à ce stade.</span>
+          </div>
+        </aside>
+
+        <form class="cp-form" id="form-client" novalidate>
+          <fieldset class="cp-fset">
+            <div class="cp-legend"><span class="n">1</span><h3>Vous</h3></div>
+            <div class="cp-field" style="margin-bottom:18px;">
+              <label>Vous êtes <span class="req">*</span></label>
+              <div class="cp-seg" role="radiogroup">
+                <input type="radio" id="tc-part" name="type_client" value="Particulier"><label for="tc-part">Un particulier</label>
+                <input type="radio" id="tc-pro" name="type_client" value="Professionnel"><label for="tc-pro">Un professionnel</label>
+              </div>
+              <span class="cp-err">Indiquez si vous êtes un particulier ou un professionnel.</span>
+            </div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="c-nom">Nom complet <span class="req">*</span></label>
+                <input class="cp-input" id="c-nom" name="nom" placeholder="Prénom Nom" autocomplete="name">
+                <span class="cp-err">Indiquez votre nom.</span>
+              </div>
+              <div class="cp-field">
+                <label for="c-cp">Code postal <span class="req">*</span></label>
+                <input class="cp-input" id="c-cp" name="code_postal" inputmode="numeric" maxlength="5" placeholder="94500" autocomplete="postal-code">
+                <span class="cp-help">Sert à trouver un installateur proche de vous.</span>
+                <span class="cp-err">Renseignez un code postal à 5 chiffres.</span>
+              </div>
+            </div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="c-email">E-mail <span class="req">*</span></label>
+                <input class="cp-input" id="c-email" name="email" type="email" placeholder="vous@exemple.fr" autocomplete="email">
+                <span class="cp-err">Renseignez un e-mail valide.</span>
+              </div>
+              <div class="cp-field">
+                <label for="c-tel">Téléphone</label>
+                <input class="cp-input" id="c-tel" name="telephone" type="tel" placeholder="06 12 34 56 78" autocomplete="tel">
+                <span class="cp-help">Optionnel — utile si vous préférez qu'on vous rappelle.</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cp-fset">
+            <div class="cp-legend"><span class="n">2</span><h3>Votre projet</h3></div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="c-nature">Type de projet <span class="req">*</span></label>
+                <select class="cp-select" id="c-nature" name="nature_projet">
+                  <option value="" disabled selected>Sélectionnez…</option>
+                  <option>Alarme Ajax</option>
+                  <option>Vidéosurveillance</option>
+                  <option>Mixte</option>
+                  <option>Autre</option>
+                </select>
+                <span class="cp-err">Choisissez le type de projet.</span>
+              </div>
+              <div class="cp-field">
+                <label for="c-lieu">Type de lieu <span class="req">*</span></label>
+                <select class="cp-select" id="c-lieu" name="type_lieu">
+                  <option value="" disabled selected>Sélectionnez…</option>
+                  <option>Logement</option>
+                  <option>Local commercial</option>
+                  <option>Entrepôt / Industriel</option>
+                  <option>Autre</option>
+                </select>
+                <span class="cp-err">Choisissez le type de lieu.</span>
+              </div>
+            </div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="c-nbeq">Nombre d'équipements</label>
+                <input class="cp-input" id="c-nbeq" name="nb_equipements" placeholder="ex. 6 caméras + 1 NVR">
+                <span class="cp-help">Une estimation suffit, même approximative.</span>
+              </div>
+              <div class="cp-field">
+                <label for="c-nbsites">Nombre de sites</label>
+                <input class="cp-input" id="c-nbsites" name="nb_sites" inputmode="numeric" placeholder="1">
+                <span class="cp-help">Combien d'adresses à équiper&nbsp;?</span>
+              </div>
+            </div>
+            <div class="cp-field" style="margin-bottom:18px;">
+              <label>Où en êtes-vous du matériel&nbsp;?</label>
+              <div class="cp-choices three">
+                <div class="cp-choice"><input type="radio" id="m1" name="materiel_statut" value="À acheter chez CamProtect"><label for="m1"><span class="ct">À acheter</span><span class="cd">On vous le fournit</span></label></div>
+                <div class="cp-choice"><input type="radio" id="m2" name="materiel_statut" value="Partiellement"><label for="m2"><span class="ct">En partie</span><span class="cd">J'ai déjà une partie</span></label></div>
+                <div class="cp-choice"><input type="radio" id="m3" name="materiel_statut" value="Déjà acheté"><label for="m3"><span class="ct">Déjà acheté</span><span class="cd">Je veux juste la pose</span></label></div>
+              </div>
+            </div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="c-delai">Délai souhaité</label>
+                <select class="cp-select" id="c-delai" name="delai_souhaite">
+                  <option value="" disabled selected>Sélectionnez…</option>
+                  <option>Urgent (&lt; 2 semaines)</option>
+                  <option>Sous 1 mois</option>
+                  <option>1 à 3 mois</option>
+                  <option>Flexible</option>
+                </select>
+              </div>
+              <div class="cp-field">
+                <label for="c-budget">Budget indicatif</label>
+                <input class="cp-input" id="c-budget" name="budget_indicatif" placeholder="ex. 1 500 – 2 500 €">
+                <span class="cp-help">Optionnel — aide à calibrer la proposition.</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cp-fset">
+            <div class="cp-legend"><span class="n">3</span><h3>Décrivez en quelques mots</h3></div>
+            <div class="cp-field" style="margin-bottom:18px;">
+              <label for="c-desc">Votre projet en détail</label>
+              <textarea class="cp-textarea" id="c-desc" name="description" placeholder="Ex. : maison de 120 m², besoin de 4 caméras extérieures + alarme, accès difficile à l'arrière du bâtiment…"></textarea>
+              <span class="cp-help">Plus c'est précis, plus la proposition sera juste. Contraintes, accès, attentes — tout est utile.</span>
+            </div>
+            <div class="cp-consent" style="margin-bottom:18px;">
+              <input type="checkbox" id="c-consent" name="consentement">
+              <label for="c-consent">J'accepte que CamProtect utilise ces informations pour me recontacter au sujet de mon projet. <span class="req">*</span></label>
+            </div>
+          </fieldset>
+
+          <div class="cp-foot">
+            <button class="cp-submit" type="submit">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+              Envoyer ma demande
+            </button>
+            <span class="note">Réponse sous 48&nbsp;h ouvrées. Demande d'étude gratuite et sans engagement.</span>
+          </div>
+
+          <div class="cp-sent">
+            <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <h3>Demande bien reçue</h3>
+            <p>Merci&nbsp;! Notre équipe étudie votre projet et revient vers vous sous 48&nbsp;h ouvrées avec une proposition matériel + pose. Un seul interlocuteur, du début à la fin.</p>
+            <button class="cp-restart" type="button">Envoyer une autre demande</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ PANEL PARTENAIRE ============ -->
+    <section class="cp-panel" id="panel-partenaire" role="tabpanel" aria-labelledby="tab-partenaire">
+      <div class="cp-grid">
+        <aside class="cp-aside">
+          <h2>Devenez partenaire</h2>
+          <p class="lead">Recevez des chantiers qualifiés sans prospecter. Vous nous communiquez votre coût de main d'œuvre&nbsp;; on gère la relation client, la facturation et le paiement.</p>
+          <ul class="cp-steps">
+            <li><span class="st">Vous présentez votre activité</span><span class="sd">Compétences, zone d'intervention, assurances.</span></li>
+            <li><span class="st">On valide votre profil</span><span class="sd">Vérification des assurances et qualifications avant toute mission.</span></li>
+            <li><span class="st">On vous envoie des chantiers</span><span class="sd">Vous indiquez votre coût, on s'occupe du client et de la facturation.</span></li>
+          </ul>
+          <div class="cp-assure">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>
+            <span>Le matériel passe par CamProtect et vous ne traitez pas le commercial en direct avec le client. En échange&nbsp;: zéro prospection, paiement sécurisé.</span>
+          </div>
+        </aside>
+
+        <form class="cp-form" id="form-partenaire" novalidate>
+          <fieldset class="cp-fset">
+            <div class="cp-legend"><span class="n">1</span><h3>Votre entreprise</h3></div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="p-rs">Raison sociale <span class="req">*</span></label>
+                <input class="cp-input" id="p-rs" name="raison_sociale" placeholder="Nom de l'entreprise" autocomplete="organization">
+                <span class="cp-err">Indiquez le nom de votre entreprise.</span>
+              </div>
+              <div class="cp-field">
+                <label for="p-siret">SIRET</label>
+                <input class="cp-input" id="p-siret" name="siret" inputmode="numeric" placeholder="123 456 789 00012">
+                <span class="cp-help">Optionnel à ce stade, demandé à la validation.</span>
+              </div>
+            </div>
+            <div class="cp-field">
+              <label>Forme juridique <span class="req">*</span></label>
+              <div class="cp-seg" role="radiogroup">
+                <input type="radio" id="fj1" name="forme_juridique" value="Entreprise"><label for="fj1">Entreprise</label>
+                <input type="radio" id="fj2" name="forme_juridique" value="Artisan"><label for="fj2">Artisan</label>
+                <input type="radio" id="fj3" name="forme_juridique" value="Auto-entrepreneur"><label for="fj3">Auto-entrepreneur</label>
+                <input type="radio" id="fj4" name="forme_juridique" value="Autre"><label for="fj4">Autre</label>
+              </div>
+              <span class="cp-err">Sélectionnez votre forme juridique.</span>
+            </div>
+          </fieldset>
+
+          <fieldset class="cp-fset">
+            <div class="cp-legend"><span class="n">2</span><h3>Contact &amp; zone</h3></div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="p-contact">Personne à contacter <span class="req">*</span></label>
+                <input class="cp-input" id="p-contact" name="contact_nom" placeholder="Prénom Nom" autocomplete="name">
+                <span class="cp-err">Indiquez un contact.</span>
+              </div>
+              <div class="cp-field">
+                <label for="p-tel">Téléphone <span class="req">*</span></label>
+                <input class="cp-input" id="p-tel" name="telephone" type="tel" placeholder="06 12 34 56 78" autocomplete="tel">
+                <span class="cp-err">Indiquez un téléphone.</span>
+              </div>
+            </div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="p-email">E-mail <span class="req">*</span></label>
+                <input class="cp-input" id="p-email" name="email" type="email" placeholder="contact@entreprise.fr" autocomplete="email">
+                <span class="cp-err">Renseignez un e-mail valide.</span>
+              </div>
+              <div class="cp-field">
+                <label for="p-dep">Départements couverts <span class="req">*</span></label>
+                <input class="cp-input" id="p-dep" name="departements" placeholder="ex. 75, 92, 93, 94">
+                <span class="cp-help">Là où vous pouvez intervenir.</span>
+                <span class="cp-err">Indiquez au moins un département.</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cp-fset">
+            <div class="cp-legend"><span class="n">3</span><h3>Vos compétences</h3></div>
+            <div class="cp-field" style="margin-bottom:18px;">
+              <label>Ce que vous savez faire <span class="req">*</span></label>
+              <div class="cp-checks two">
+                <label class="cp-check"><input type="checkbox" name="competences" value="Pose">Pose</label>
+                <label class="cp-check"><input type="checkbox" name="competences" value="Câblage">Câblage</label>
+                <label class="cp-check"><input type="checkbox" name="competences" value="Mise en service / Configuration">Mise en service / Configuration</label>
+                <label class="cp-check"><input type="checkbox" name="competences" value="Réseau / IP">Réseau / IP</label>
+              </div>
+              <span class="cp-err">Sélectionnez au moins une compétence.</span>
+            </div>
+            <div class="cp-field" style="margin-bottom:18px;">
+              <label>Marques maîtrisées</label>
+              <div class="cp-checks two">
+                <label class="cp-check"><input type="checkbox" name="marques_maitrisees" value="Ajax">Ajax</label>
+                <label class="cp-check"><input type="checkbox" name="marques_maitrisees" value="Hikvision">Hikvision</label>
+                <label class="cp-check"><input type="checkbox" name="marques_maitrisees" value="Dahua">Dahua</label>
+                <label class="cp-check"><input type="checkbox" name="marques_maitrisees" value="EZVIZ">EZVIZ</label>
+              </div>
+              <span class="cp-help">Cochez celles que vous installez et configurez couramment.</span>
+            </div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="p-cap">Capacité de chantier</label>
+                <select class="cp-select" id="p-cap" name="capacite_chantier">
+                  <option value="" disabled selected>Sélectionnez…</option>
+                  <option>Petits chantiers</option>
+                  <option>Chantiers moyens</option>
+                  <option>Gros chantiers</option>
+                  <option>Tous types</option>
+                </select>
+              </div>
+              <div class="cp-field">
+                <label for="p-dispo">Disponibilité</label>
+                <input class="cp-input" id="p-dispo" name="disponibilite" placeholder="ex. sous 1 semaine, soirs & week-ends…">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cp-fset">
+            <div class="cp-legend"><span class="n">4</span><h3>Assurances &amp; tarif</h3></div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label>Assurance RC Pro <span class="req">*</span></label>
+                <div class="cp-seg" role="radiogroup">
+                  <input type="radio" id="rc1" name="assurance_rc_pro" value="Oui"><label for="rc1">Oui</label>
+                  <input type="radio" id="rc2" name="assurance_rc_pro" value="Non"><label for="rc2">Non</label>
+                </div>
+                <span class="cp-err">Précisez si vous êtes couvert.</span>
+              </div>
+              <div class="cp-field">
+                <label>Assurance décennale <span class="req">*</span></label>
+                <div class="cp-seg" role="radiogroup">
+                  <input type="radio" id="dc1" name="assurance_decennale" value="Oui"><label for="dc1">Oui</label>
+                  <input type="radio" id="dc2" name="assurance_decennale" value="Non"><label for="dc2">Non</label>
+                </div>
+                <span class="cp-err">Précisez si vous êtes couvert.</span>
+              </div>
+            </div>
+            <div class="cp-row two">
+              <div class="cp-field">
+                <label for="p-cert">Certifications</label>
+                <input class="cp-input" id="p-cert" name="certifications" placeholder="Habilitations élec., APSAD…">
+              </div>
+              <div class="cp-field">
+                <label for="p-tarif">Tarif main d'œuvre indicatif</label>
+                <input class="cp-input" id="p-tarif" name="tarif_mo_indicatif" placeholder="ex. 45 €/h ou forfait pose caméra">
+                <span class="cp-help">Une fourchette suffit pour démarrer.</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cp-fset">
+            <div class="cp-legend"><span class="n">5</span><h3>Le cadre du partenariat</h3></div>
+            <div class="cp-consent cadre" style="margin-bottom:18px;">
+              <input type="checkbox" id="p-cadre" name="acceptation_cadre">
+              <label for="p-cadre">Je comprends et j'accepte le cadre&nbsp;: <strong>le matériel passe par CamProtect</strong>, je communique mon coût de main d'œuvre, et <strong>je ne traite pas le commercial en direct avec le client</strong>. CamProtect facture le client et me règle. <span class="req">*</span></label>
+            </div>
+          </fieldset>
+
+          <div class="cp-foot">
+            <button class="cp-submit" type="submit">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+              Envoyer ma candidature
+            </button>
+            <span class="note">On revient vers vous après étude de votre profil. Aucune exclusivité demandée.</span>
+          </div>
+
+          <div class="cp-sent">
+            <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <h3>Candidature bien reçue</h3>
+            <p>Merci&nbsp;! On étudie votre profil et on revient vers vous rapidement. Si tout correspond, vous recevrez vos premiers chantiers qualifiés sans avoir à prospecter.</p>
+            <button class="cp-restart" type="button">Envoyer une autre candidature</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  </div>
+
+<script>
+(function(){
+  var root = document.querySelector('.cp');
+  var WEBHOOK_URL = "https://hook.eu2.make.com/f3988o8hpxaldt160ta31efou3mg73ue";
+  var ARRAY_FIELDS = { competences:1, marques_maitrisees:1 };
+
+  // ---- Build a payload whose keys match the Airtable field names ----
+  function serialize(form, formType){
+    var data = { form_type: formType };
+    form.querySelectorAll('input[name], select[name], textarea[name]').forEach(function(el){
+      var n = el.name;
+      if(el.type === 'radio'){ if(el.checked){ data[n] = el.value; } else if(!(n in data)){ data[n] = ''; } }
+      else if(el.type === 'checkbox'){
+        if(ARRAY_FIELDS[n]){ if(!data[n]){ data[n] = []; } if(el.checked){ data[n].push(el.value); } }
+        else { data[n] = el.checked; }
+      }
+      else { data[n] = el.value; }
+    });
+    return data;
+  }
+
+  // ---- Tell the parent (Webflow) how tall the iframe should be ----
+  function postHeight(){
+    try { parent.postMessage({ cpPrestationsHeight: document.documentElement.scrollHeight }, '*'); } catch(e){}
+  }
+  window.addEventListener('load', postHeight);
+  if(window.ResizeObserver){ new ResizeObserver(postHeight).observe(document.body); }
+
+  // ---- Tab switching ----
+  var tabs = root.querySelectorAll('.cp-switch [role="tab"]');
+  var panels = { client: root.querySelector('#panel-client'), partenaire: root.querySelector('#panel-partenaire') };
+  function selectTab(name, scroll){
+    tabs.forEach(function(t){ t.setAttribute('aria-selected', t.dataset.tab === name ? 'true':'false'); });
+    Object.keys(panels).forEach(function(k){ panels[k].classList.toggle('is-active', k === name); });
+    if(scroll){
+      var top = root.querySelector('.cp-switch').getBoundingClientRect().top + window.scrollY - 16;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    }
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ selectTab(t.dataset.tab, false); }); });
+  root.querySelectorAll('.cp-path').forEach(function(p){
+    p.addEventListener('click', function(){ selectTab(p.dataset.go, true); });
+  });
+
+  // ---- Checkbox visual state ----
+  root.querySelectorAll('.cp-check input').forEach(function(cb){
+    cb.addEventListener('change', function(){ cb.closest('.cp-check').classList.toggle('is-on', cb.checked); });
+  });
+
+  // ---- Validation helpers ----
+  function setInvalid(field, bad){ if(field) field.classList.toggle('invalid', bad); }
+  function groupChecked(form, name){ return form.querySelector('input[name="'+name+'"]:checked'); }
+
+  function validate(form){
+    var ok = true, firstBad = null;
+    // text/select required
+    form.querySelectorAll('[data-required]').forEach(function(el){
+      var field = el.closest('.cp-field');
+      var val = (el.value||'').trim();
+      var bad = !val;
+      if(el.type === 'email' && val){ bad = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val); }
+      if(el.id === 'c-cp' && val){ bad = !/^\d{5}$/.test(val); }
+      setInvalid(field, bad);
+      if(bad){ ok=false; firstBad = firstBad || field; }
+    });
+    // radio/checkbox groups required
+    form.querySelectorAll('[data-required-group]').forEach(function(holder){
+      var name = holder.dataset.requiredGroup;
+      var bad = !form.querySelector('input[name="'+name+'"]:checked');
+      var field = holder.closest('.cp-field');
+      setInvalid(field, bad);
+      if(bad){ ok=false; firstBad = firstBad || field; }
+    });
+    if(firstBad){ firstBad.scrollIntoView({behavior:'smooth', block:'center'}); }
+    return ok;
+  }
+
+  function wireForm(id, requiredText, requiredGroups){
+    var form = root.querySelector(id);
+    requiredText.forEach(function(sel){ var el=form.querySelector(sel); if(el) el.setAttribute('data-required',''); });
+    requiredGroups.forEach(function(g){
+      var holder = form.querySelector(g.holder);
+      if(holder) holder.setAttribute('data-required-group', g.name);
+    });
+    // clear invalid on input
+    form.addEventListener('input', function(e){
+      var f = e.target.closest('.cp-field'); if(f) f.classList.remove('invalid');
+    });
+    form.addEventListener('change', function(e){
+      var f = e.target.closest('.cp-field'); if(f) f.classList.remove('invalid');
+    });
+    var formType = id.indexOf('partenaire') > -1 ? 'partenaire' : 'client';
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(!validate(form)) return;
+      var btn = form.querySelector('.cp-submit');
+      btn.disabled = true; btn.style.opacity = '.7';
+      var prev = btn.innerHTML;
+      btn.innerHTML = 'Envoi en cours…';
+      fetch(WEBHOOK_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(serialize(form, formType))
+      }).then(function(){
+        form.classList.add('is-sent');
+        form.querySelector('.cp-sent').scrollIntoView({behavior:'smooth', block:'center'});
+        postHeight();
+      }).catch(function(){
+        btn.disabled = false; btn.style.opacity = '1'; btn.innerHTML = prev;
+        var foot = form.querySelector('.cp-foot');
+        var er = foot.querySelector('.cp-senderr');
+        if(!er){ er = document.createElement('div'); er.className = 'cp-senderr';
+          er.style.cssText = 'flex-basis:100%;color:var(--danger);font-size:13px;font-weight:500;'; foot.appendChild(er); }
+        er.textContent = "L'envoi n'a pas abouti. Vérifiez votre connexion et réessayez.";
+      });
+    });
+    form.querySelector('.cp-restart').addEventListener('click', function(){
+      form.reset();
+      form.classList.remove('is-sent');
+      var b = form.querySelector('.cp-submit'); b.disabled = false; b.style.opacity = '1';
+      form.querySelectorAll('.cp-check').forEach(function(c){ c.classList.remove('is-on'); });
+      form.querySelectorAll('.cp-field').forEach(function(f){ f.classList.remove('invalid'); });
+      form.scrollIntoView({behavior:'smooth', block:'start'});
+      postHeight();
+    });
+  }
+
+  wireForm('#form-client',
+    ['#c-nom','#c-cp','#c-email','#c-nature','#c-lieu','#c-consent'],
+    [{holder:'.cp-seg', name:'type_client'}]
+  );
+  // consent checkbox required (single) — mark its field
+  (function(){
+    var f = root.querySelector('#form-client');
+    var consent = f.querySelector('#c-consent');
+    consent.removeAttribute('data-required');
+    f.querySelector('.cp-consent').setAttribute('data-required-group','consentement');
+  })();
+
+  wireForm('#form-partenaire',
+    ['#p-rs','#p-contact','#p-tel','#p-email','#p-dep'],
+    [
+      {holder:'#form-partenaire .cp-seg', name:'forme_juridique'}
+    ]
+  );
+  // partner extra required groups
+  (function(){
+    var f = root.querySelector('#form-partenaire');
+    // competences (at least one)
+    f.querySelectorAll('.cp-field').forEach(function(field){
+      if(field.querySelector('input[name="competences"]')) field.setAttribute('data-required-group','competences');
+    });
+    // assurances + cadre + forme already; add rc/decennale/cadre
+    var segs = f.querySelectorAll('.cp-seg');
+    // segs[0]=forme, [1]=rc, [2]=decennale
+    if(segs[1]) segs[1].closest('.cp-field').setAttribute('data-required-group','assurance_rc_pro');
+    if(segs[2]) segs[2].closest('.cp-field').setAttribute('data-required-group','assurance_decennale');
+    f.querySelector('.cp-consent.cadre').setAttribute('data-required-group','acceptation_cadre');
+  })();
+})();
+</script>
+</body>
+</html>
