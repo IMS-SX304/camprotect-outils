@@ -707,8 +707,8 @@
       var prev = btn.innerHTML;
       btn.innerHTML = 'Envoi en cours…';
       fetch(WEBHOOK_URL, {
-        method: 'POST', mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serialize(form, formType))
       }).then(function(){
         form.classList.add('is-sent');
