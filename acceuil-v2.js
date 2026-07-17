@@ -138,14 +138,25 @@
         mqTrack.innerHTML += mqTrack.innerHTML;
         var mqSetup = function () {
           var kids = mqTrack.children;
+          if (!kids[mqCount]) return;
           var shift = kids[mqCount].offsetLeft - kids[0].offsetLeft; // largeur exacte d'un jeu
           if (shift > 0) {
             mqTrack.style.setProperty('--mq-shift', shift + 'px');
-            // Vitesse constante (~70 px/s) quel que soit l'ecran
-            mqTrack.style.animationDuration = Math.max(12, shift / 70) + 's';
+            mqTrack.style.animationDuration = Math.max(12, shift / 70) + 's'; // ~70 px/s
           }
         };
+        // Images Webflow souvent en lazy-load : on force le chargement et on remesure
+        mqTrack.querySelectorAll('img').forEach(function (img) {
+          img.loading = 'eager';
+          if (!img.complete) img.addEventListener('load', mqSetup);
+        });
         mqSetup();
+        // Remesure quand la section entre en vue (déclenche le lazy-load restant)
+        if ('IntersectionObserver' in window) {
+          new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) { if (e.isIntersecting) setTimeout(mqSetup, 120); });
+          }, { threshold: 0.05 }).observe(mqTrack);
+        }
         var mqTimer;
         window.addEventListener('resize', function () {
           clearTimeout(mqTimer);
