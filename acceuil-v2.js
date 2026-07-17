@@ -136,11 +136,21 @@
       var mqCount = mqTrack.children.length;
       if (mqCount) {
         mqTrack.innerHTML += mqTrack.innerHTML;
-        // Décalage EXACT en pixels entiers = largeur d'un jeu de logos (raccord invisible)
-        var mqKids = mqTrack.children;
-        var mqShift = mqKids[mqCount].offsetLeft - mqKids[0].offsetLeft;
-        mqTrack.style.setProperty('--mq-shift', mqShift + 'px');
-        mqTrack.style.animationDuration = Math.max(18, mqCount * 4) + 's';
+        var mqSetup = function () {
+          var kids = mqTrack.children;
+          var shift = kids[mqCount].offsetLeft - kids[0].offsetLeft; // largeur exacte d'un jeu
+          if (shift > 0) {
+            mqTrack.style.setProperty('--mq-shift', shift + 'px');
+            // Vitesse constante (~70 px/s) quel que soit l'ecran
+            mqTrack.style.animationDuration = Math.max(12, shift / 70) + 's';
+          }
+        };
+        mqSetup();
+        var mqTimer;
+        window.addEventListener('resize', function () {
+          clearTimeout(mqTimer);
+          mqTimer = setTimeout(mqSetup, 200);
+        });
       }
     }
   }
