@@ -103,8 +103,8 @@
 
     /* ---- E) Apparition au scroll (cascade) ---- */
     var groups = [
-      { sel: '.cta-section',   items: '.cta-eyebrow, .cta-h2, .cta-sub, .cta-btn' },
-      { sel: '.tools-section', items: '.tools-card' }
+      { sel: '.cta-card',   items: '.cta-eyebrow, .cta-h2, .cta-sub, .cta-btn' },
+      { sel: '.tools-grid', items: '.tools-card' }
     ];
     groups.forEach(function (g) {
       var sec = document.querySelector(g.sel);
