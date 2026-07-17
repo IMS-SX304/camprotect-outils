@@ -1,3 +1,4 @@
+
 /* CamProtect — Acceuil V2 : styles sliders, onglets, outils, bandeau */
 
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
@@ -61,11 +62,11 @@ body{ overflow-x:clip; }
   -webkit-mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
   mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
 }
-.mq-track{ display:flex; align-items:center; width:max-content; will-change:transform; animation:mqScroll 30s linear infinite; }
+.mq-track{ display:flex; align-items:center; width:max-content; will-change:transform; backface-visibility:hidden; animation:mqScroll 30s linear infinite; }
 .mq-track:hover{ animation-play-state:paused; }
 .mq-logo{ height:38px; width:auto; flex:0 0 auto; object-fit:contain; opacity:.7; transition:opacity .2s ease; margin-right:64px; }
 .mq-logo:hover{ opacity:1; }
-@keyframes mqScroll{ from{ transform:translateX(0); } to{ transform:translateX(calc(-1 * var(--mq-shift, 50%))); } }
+@keyframes mqScroll{ from{ transform:translate3d(0,0,0); } to{ transform:translate3d(calc(-1 * var(--mq-shift, 50%)),0,0); } }
 
 @media (max-width:600px){
   .mq-section{ padding:44px 16px; }
