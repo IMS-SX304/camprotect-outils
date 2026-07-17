@@ -136,6 +136,10 @@
       var mqCount = mqTrack.children.length;
       if (mqCount) {
         mqTrack.innerHTML += mqTrack.innerHTML;
+        // Décalage EXACT en pixels entiers = largeur d'un jeu de logos (raccord invisible)
+        var mqKids = mqTrack.children;
+        var mqShift = mqKids[mqCount].offsetLeft - mqKids[0].offsetLeft;
+        mqTrack.style.setProperty('--mq-shift', mqShift + 'px');
         mqTrack.style.animationDuration = Math.max(18, mqCount * 4) + 's';
       }
     }
