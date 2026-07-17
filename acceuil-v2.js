@@ -108,8 +108,10 @@
     ];
     groups.forEach(function (g) {
       var sec = document.querySelector(g.sel);
+      console.log('[reveal]', g.sel, sec ? 'conteneur OK' : 'CONTENEUR ABSENT');
       if (!sec) return;
       var items = sec.querySelectorAll(g.items);
+      console.log('[reveal]', g.sel, '-> items:', items.length);
       if (!items.length) return;
       items.forEach(function (el, i) {
         el.style.opacity = '0';
@@ -120,6 +122,7 @@
       var obs = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
           if (e.isIntersecting) {
+            console.log('[reveal] declenche:', g.sel);
             items.forEach(function (el) { el.style.opacity = '1'; el.style.transform = 'none'; });
             setTimeout(function () { items.forEach(function (el) { el.style.transform = ''; }); }, 900);
             obs.disconnect();
