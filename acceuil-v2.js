@@ -151,14 +151,22 @@
           if (!img.complete) img.addEventListener('load', mqSetup);
         });
         mqSetup();
-        // Remesure quand la section entre en vue (déclenche le lazy-load restant)
-        if ('IntersectionObserver' in window) {
-          new IntersectionObserver(function (entries) {
-            entries.forEach(function (e) { if (e.isIntersecting) setTimeout(mqSetup, 120); });
-          }, { threshold: 0.05 }).observe(mqTrack);
+        // Remesure une SEULE fois quand la section apparait — on observe un parent STATIQUE
+        // (surtout pas la piste animée, sinon l'observer se redeclenche en boucle -> saut)
+        var mqParent = mqTrack.parentElement;
+        if ('IntersectionObserver' in window && mqParent) {
+          var mqIO = new IntersectionObserver(function (entries, obs) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) { setTimeout(mqSetup, 150); obs.disconnect(); }
+            });
+          }, { threshold: 0.05 });
+          mqIO.observe(mqParent);
         }
-        var mqTimer;
+        // Resize : uniquement si la LARGEUR change (ignore la barre d'URL mobile)
+        var mqW = window.innerWidth, mqTimer;
         window.addEventListener('resize', function () {
+          if (window.innerWidth === mqW) return;
+          mqW = window.innerWidth;
           clearTimeout(mqTimer);
           mqTimer = setTimeout(mqSetup, 200);
         });
