@@ -108,23 +108,20 @@
     ];
     groups.forEach(function (g) {
       var sec = document.querySelector(g.sel);
-      console.log('[reveal]', g.sel, sec ? 'conteneur OK' : 'CONTENEUR ABSENT');
       if (!sec) return;
       var items = sec.querySelectorAll(g.items);
-      console.log('[reveal]', g.sel, '-> items:', items.length);
       if (!items.length) return;
       items.forEach(function (el, i) {
         el.style.opacity = '0';
-        el.style.transform = 'translateY(24px)';
-        el.style.transition = 'opacity .6s ease, transform .6s ease';
-        el.style.transitionDelay = (i * 0.12) + 's';
+        el.style.transform = 'translateX(-40px)';
+        el.style.transition = 'opacity .8s ease, transform .8s ease';
+        el.style.transitionDelay = (i * 0.15) + 's';
       });
       var obs = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
           if (e.isIntersecting) {
-            console.log('[reveal] declenche:', g.sel);
             items.forEach(function (el) { el.style.opacity = '1'; el.style.transform = 'none'; });
-            setTimeout(function () { items.forEach(function (el) { el.style.transform = ''; }); }, 900);
+            setTimeout(function () { items.forEach(function (el) { el.style.transform = ''; }); }, 1400);
             obs.disconnect();
           }
         });
