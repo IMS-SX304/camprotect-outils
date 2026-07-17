@@ -128,6 +128,17 @@
       }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
       obs.observe(sec);
     });
+
+    /* ---- F) Bandeau marques : duplication pour boucle sans couture ---- */
+    var mqTrack = document.querySelector('.mq-track');
+    if (mqTrack && !mqTrack.dataset.mq) {
+      mqTrack.dataset.mq = '1';
+      var mqCount = mqTrack.children.length;
+      if (mqCount) {
+        mqTrack.innerHTML += mqTrack.innerHTML;
+        mqTrack.style.animationDuration = Math.max(18, mqCount * 4) + 's';
+      }
+    }
   }
 
   if (document.readyState === 'complete') init();
