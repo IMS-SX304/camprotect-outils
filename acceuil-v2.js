@@ -139,7 +139,7 @@
         var mqSetup = function () {
           var kids = mqTrack.children;
           if (!kids[mqCount]) return;
-          var shift = kids[mqCount].offsetLeft - kids[0].offsetLeft; // largeur exacte d'un jeu
+          var shift = kids[mqCount].getBoundingClientRect().left - kids[0].getBoundingClientRect().left; // largeur exacte au sous-pixel
           if (shift > 0) {
             mqTrack.style.setProperty('--mq-shift', shift + 'px');
             mqTrack.style.animationDuration = Math.max(12, shift / 70) + 's'; // ~70 px/s
