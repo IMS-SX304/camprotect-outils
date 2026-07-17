@@ -53,3 +53,22 @@ body{ overflow-x:clip; }
   .cta-sub{ font-size:15px; }
   .cta-btn{ width:100%; justify-content:center; }
 }
+
+/* ---- Bandeau marques (marquee logos) ---- */
+.mq-section{ padding:56px 5%; background:#ffffff; }
+.mq-title{ text-align:center; color:#9aa0a6; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin:0 0 28px; }
+.mq-viewport{ overflow:hidden; width:100%;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.mq-track{ display:flex; align-items:center; gap:64px; width:max-content; animation:mqScroll 30s linear infinite; }
+.mq-track:hover{ animation-play-state:paused; }
+.mq-logo{ height:38px; width:auto; flex:0 0 auto; object-fit:contain; opacity:.7; transition:opacity .2s ease; }
+.mq-logo:hover{ opacity:1; }
+@keyframes mqScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+
+@media (max-width:600px){
+  .mq-section{ padding:44px 16px; }
+  .mq-track{ gap:44px; }
+  .mq-logo{ height:30px; }
+}
