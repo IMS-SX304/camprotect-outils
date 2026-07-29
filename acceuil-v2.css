@@ -141,6 +141,28 @@ body{ overflow-x:clip; }
 .form_input.is-search-engine::placeholder{ color:#6B7280 !important; text-transform:none; }
 .form_input.is-search-engine:focus{ border-color:#FF6A13 !important; box-shadow:0 0 0 3px rgba(255,106,19,.18) !important; outline:none !important; }
 
+/* Champ + loupe : un seul bloc fusionné (pas de couture ni coins blancs) */
+.navbar_seach-engine{ gap:0 !important; background:transparent !important; border:none !important; border-radius:0 !important; padding:0 !important; }
+.form_input.is-search-engine{
+  border-radius:9px 0 0 9px !important;
+  border-right:none !important;
+  margin:0 !important;
+}
+.button.is-seach-engine{
+  border-radius:0 9px 9px 0 !important;
+  border:1px solid #FF6A13 !important;
+  border-left:none !important;
+  background:#F3F4F6 !important;
+  margin:0 !important;
+  align-self:stretch !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:0 16px !important;
+  box-shadow:none !important;
+}
+.form_input.is-search-engine:focus{ box-shadow:none !important; }
+
 /* Icônes compte + panier (textes remplacés par le JS) */
 .navbar_text-link svg, .navbar_text-link-1 svg{ width:21px; height:21px; display:block; }
 .navbar_text-link, .navbar_text-link-1{ display:inline-flex; align-items:center; }
