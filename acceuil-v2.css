@@ -128,7 +128,7 @@ body{ overflow-x:clip; }
 .navbar_seach-engine{ width:100% !important; max-width:none !important; display:flex !important; align-items:center; margin:0 !important; }
 .form_input.is-search-engine{
   background:#F3F4F6 !important;
-  border:1px solid #E5E7EB !important;
+  border:1px solid #FF6A13 !important;
   color:#14161B !important;
   border-radius:9px !important;
   width:100% !important;
@@ -139,6 +139,7 @@ body{ overflow-x:clip; }
   padding:10px 14px !important;
 }
 .form_input.is-search-engine::placeholder{ color:#6B7280 !important; text-transform:none; }
+.form_input.is-search-engine:focus{ border-color:#FF6A13 !important; box-shadow:0 0 0 3px rgba(255,106,19,.18) !important; outline:none !important; }
 
 /* Icônes compte + panier (textes remplacés par le JS) */
 .navbar_text-link svg, .navbar_text-link-1 svg{ width:21px; height:21px; display:block; }
