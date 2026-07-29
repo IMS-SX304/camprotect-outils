@@ -4,6 +4,12 @@
     var hasSwiper = (typeof Swiper !== 'undefined');
     if (!hasSwiper) { console.error('[acceuil-v2] Swiper non chargé'); }
 
+    /* ---- 0) Images des sliders : chargement anticipe (anti "carte qui grandit") ---- */
+    document.querySelectorAll('.prod-swiper img, .pv-swiper img').forEach(function (img) {
+      img.loading = 'eager';
+      if (img.dataset && img.dataset.src && !img.src) img.src = img.dataset.src;
+    });
+
     /* ---- A) Slider "Notre sélection" (3 colonnes x 2 rangées) ---- */
     if (hasSwiper) try {
       document.querySelectorAll('.prod-swiper').forEach(function (el) {
@@ -136,19 +142,28 @@
       var mqCount = mqTrack.children.length;
       if (mqCount) {
         mqTrack.innerHTML += mqTrack.innerHTML;
+        var mqShiftCur = 0;
         var mqSetup = function () {
           var kids = mqTrack.children;
           if (!kids[mqCount]) return;
           var shift = kids[mqCount].getBoundingClientRect().left - kids[0].getBoundingClientRect().left; // largeur exacte au sous-pixel
-          if (shift > 0) {
+          if (shift > 0 && Math.abs(shift - mqShiftCur) > 0.5) {
+            mqShiftCur = shift;
+            // Redemarrage PROPRE de l'animation (changer la duree en vol = saut)
+            mqTrack.style.animation = 'none';
+            void mqTrack.offsetWidth; // force reflow
             mqTrack.style.setProperty('--mq-shift', shift + 'px');
+            mqTrack.style.animation = '';
             mqTrack.style.animationDuration = Math.max(12, shift / 70) + 's'; // ~70 px/s
           }
         };
+        // Remesure regroupee (debounce) pour ne redemarrer qu'une fois
+        var mqLoadTimer;
+        var mqQueueSetup = function () { clearTimeout(mqLoadTimer); mqLoadTimer = setTimeout(mqSetup, 250); };
         // Images Webflow souvent en lazy-load : on force le chargement et on remesure
         mqTrack.querySelectorAll('img').forEach(function (img) {
           img.loading = 'eager';
-          if (!img.complete) img.addEventListener('load', mqSetup);
+          if (!img.complete) img.addEventListener('load', mqQueueSetup);
         });
         mqSetup();
         // Remesure une SEULE fois quand la section apparait — on observe un parent STATIQUE
@@ -157,18 +172,17 @@
         if ('IntersectionObserver' in window && mqParent) {
           var mqIO = new IntersectionObserver(function (entries, obs) {
             entries.forEach(function (e) {
-              if (e.isIntersecting) { setTimeout(mqSetup, 150); obs.disconnect(); }
+              if (e.isIntersecting) { mqQueueSetup(); obs.disconnect(); }
             });
           }, { threshold: 0.05 });
           mqIO.observe(mqParent);
         }
         // Resize : uniquement si la LARGEUR change (ignore la barre d'URL mobile)
-        var mqW = window.innerWidth, mqTimer;
+        var mqW = window.innerWidth;
         window.addEventListener('resize', function () {
           if (window.innerWidth === mqW) return;
           mqW = window.innerWidth;
-          clearTimeout(mqTimer);
-          mqTimer = setTimeout(mqSetup, 200);
+          mqQueueSetup();
         });
       }
     }
