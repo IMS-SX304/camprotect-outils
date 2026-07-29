@@ -222,26 +222,28 @@
       if (valEl) box.appendChild(valEl);
     });
 
-    /* Slider Swiper des avis (autoplay + pause au survol) */
+    /* Slider Swiper des avis (boucle continue + pause au survol)
+       loop + centeredSlides => 1 puce PAR avis et autoplay qui ne s'arrete jamais */
     if (hasSwiper) try {
       var revEl = document.querySelector('.rev-swiper');
       if (revEl) {
         var revOuter = revEl.closest('.rev-swiper-outer') || revEl.parentElement;
         new Swiper(revEl, {
-          slidesPerView: 1.1,
+          slidesPerView: 1.05,
+          centeredSlides: true,
+          loop: true,
           spaceBetween: 16,
-          rewind: true,
           grabCursor: true,
-          autoplay: { delay: 4500, disableOnInteraction: false, pauseOnMouseEnter: true },
+          autoplay: { delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true },
           navigation: {
             nextEl: revOuter.querySelector('.swiper-button-next'),
             prevEl: revOuter.querySelector('.swiper-button-prev')
           },
           pagination: { el: revOuter.querySelector('.swiper-pagination'), clickable: true },
           breakpoints: {
-            480: { slidesPerView: 1.3, spaceBetween: 16 },
-            768: { slidesPerView: 1.8, spaceBetween: 18 },
-            992: { slidesPerView: 2.4, spaceBetween: 20 }
+            480: { slidesPerView: 1.2, spaceBetween: 16 },
+            768: { slidesPerView: 1.5, spaceBetween: 18 },
+            992: { slidesPerView: 1.8, spaceBetween: 20 }
           }
         });
       }
