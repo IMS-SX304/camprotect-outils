@@ -186,6 +186,26 @@
         });
       }
     }
+    /* ---- G) Avis clients : widget Trustpilot (Review Collector) + lien ---- */
+    var tpSlot = document.querySelector('[data-slot="trustpilot"]');
+    if (tpSlot && !tpSlot.dataset.tp) {
+      tpSlot.dataset.tp = '1';
+      tpSlot.innerHTML = '<div class="trustpilot-widget" data-locale="fr-FR" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6a69b75577fe0ed1a04cf512" data-style-height="52px" data-style-width="100%" data-token="c2e1ea63-6574-482e-a8bc-7daed7115ac5"><a href="https://fr.trustpilot.com/review/camprotect.fr" target="_blank" rel="noopener">Trustpilot</a></div>';
+      var tpScript = document.createElement('script');
+      tpScript.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js';
+      tpScript.async = true;
+      tpScript.onload = function () {
+        var w = tpSlot.querySelector('.trustpilot-widget');
+        if (w && window.Trustpilot) window.Trustpilot.loadFromElement(w, true);
+      };
+      document.head.appendChild(tpScript);
+      // Bouton "Voir nos avis Trustpilot" de la carte
+      var tpCard = tpSlot.closest('.rev-card');
+      if (tpCard) {
+        var tpBtn = tpCard.querySelector('.rev-btn-ghost');
+        if (tpBtn) { tpBtn.href = 'https://fr.trustpilot.com/review/camprotect.fr'; tpBtn.target = '_blank'; tpBtn.rel = 'noopener'; }
+      }
+    }
   }
 
   if (document.readyState === 'complete') init();
