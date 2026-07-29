@@ -150,6 +150,15 @@ body{ overflow-x:clip; }
 }
 .form_input.is-search-engine:focus{ box-shadow:none !important; }
 
+/* Bouton loupe : fond clair assorti au champ + coins droits arrondis (background-color préserve l'icône) */
+.button.is-seach-engine{
+  background-color:#F3F4F6 !important;
+  border:1px solid #FF6A13 !important;
+  border-left:none !important;
+  border-radius:0 9px 9px 0 !important;
+  margin:0 !important;
+}
+
 /* Icônes compte + panier (textes remplacés par le JS) */
 .navbar_text-link svg, .navbar_text-link-1 svg{ width:21px; height:21px; display:block; }
 .navbar_text-link, .navbar_text-link-1{ display:inline-flex; align-items:center; }
