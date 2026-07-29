@@ -206,6 +206,46 @@
         if (tpBtn) { tpBtn.href = 'https://fr.trustpilot.com/review/camprotect.fr'; tpBtn.target = '_blank'; tpBtn.rel = 'noopener'; }
       }
     }
+
+    /* ---- H) Avis clients : slider CMS + étoiles depuis la note ---- */
+    /* Étoiles générées depuis la note (1–5) lue dans .rev-note-val (masqué) */
+    document.querySelectorAll('[data-rev-stars]').forEach(function (box) {
+      var valEl = box.querySelector('.rev-note-val');
+      var n = valEl ? parseInt((valEl.textContent || '').trim(), 10) : 5;
+      if (!n || n < 1) n = 5;
+      if (n > 5) n = 5;
+      var stars = document.createElement('span');
+      stars.textContent = '★'.repeat(n) + '☆'.repeat(5 - n);
+      // On vide sans perdre l'élément note (réinséré masqué pour rester lisible si besoin)
+      box.textContent = '';
+      box.appendChild(stars);
+      if (valEl) box.appendChild(valEl);
+    });
+
+    /* Slider Swiper des avis (autoplay + pause au survol) */
+    if (hasSwiper) try {
+      var revEl = document.querySelector('.rev-swiper');
+      if (revEl) {
+        var revOuter = revEl.closest('.rev-swiper-outer') || revEl.parentElement;
+        new Swiper(revEl, {
+          slidesPerView: 1.1,
+          spaceBetween: 16,
+          rewind: true,
+          grabCursor: true,
+          autoplay: { delay: 4500, disableOnInteraction: false, pauseOnMouseEnter: true },
+          navigation: {
+            nextEl: revOuter.querySelector('.swiper-button-next'),
+            prevEl: revOuter.querySelector('.swiper-button-prev')
+          },
+          pagination: { el: revOuter.querySelector('.swiper-pagination'), clickable: true },
+          breakpoints: {
+            480: { slidesPerView: 1.3, spaceBetween: 16 },
+            768: { slidesPerView: 1.8, spaceBetween: 18 },
+            992: { slidesPerView: 2.4, spaceBetween: 20 }
+          }
+        });
+      }
+    } catch (err) { console.error('[acceuil-v2] erreur slider avis :', err); }
   }
 
   if (document.readyState === 'complete') init();
