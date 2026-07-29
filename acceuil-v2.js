@@ -248,6 +248,28 @@
         });
       }
     } catch (err) { console.error('[acceuil-v2] erreur slider avis :', err); }
+
+    /* ---- I) Navbar : icônes utilisateur + panier ---- */
+    var icoUser = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    var icoCart = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
+    document.querySelectorAll('.navbar_text-link, .navbar_text-link-1').forEach(function (lk) {
+      if (lk.dataset.cpIco) return;
+      lk.dataset.cpIco = '1';
+      var label = (lk.textContent || '').trim() || 'Mon compte';
+      lk.setAttribute('aria-label', label);
+      lk.setAttribute('title', label);
+      lk.innerHTML = icoUser;
+      lk.style.color = '#D7DAE0';
+      lk.addEventListener('mouseenter', function () { lk.style.color = '#FF6A13'; });
+      lk.addEventListener('mouseleave', function () { lk.style.color = '#D7DAE0'; });
+    });
+    document.querySelectorAll('.mini-cart_text').forEach(function (t) {
+      if (t.dataset.cpIco) return;
+      t.dataset.cpIco = '1';
+      t.innerHTML = icoCart;
+      var btn = t.closest('.mini-cart_button');
+      if (btn) { btn.setAttribute('aria-label', 'Mon panier'); btn.setAttribute('title', 'Mon panier'); }
+    });
   }
 
   if (document.readyState === 'complete') init();
