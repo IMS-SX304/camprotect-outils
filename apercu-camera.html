@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aperçu caméra — CamProtect</title>
+<meta name="robots" content="noindex">
+<style>
+/* ===== Aperçu caméra CamProtect v1.0.0 =====
+   Couleurs de marque : à ajuster ici uniquement. */
+:root{
+  --bg:#ffffff; --panel:#f5f6f8; --line:#e3e6ea; --txt:#1c2126; --sub:#5d6670;
+  --accent:#e2001a; --accent-txt:#ffffff; --dark:#1c2126;
+  --ok:#1a9d55; --mid:#d98a00; --low:#c0392b; --radius:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.45}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;font-weight:600;margin:0 0 4px}
+p.lead{margin:0 0 16px;color:var(--sub)}
+.stage{position:relative;width:100%;aspect-ratio:16/9;background:var(--dark);border-radius:var(--radius);overflow:hidden}
+.stage canvas{width:100%;height:100%;display:block}
+.start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;color:#fff}
+.start p{margin:0;max-width:420px;color:#c9ced4;font-size:.95rem}
+.btn{appearance:none;border:0;border-radius:999px;padding:12px 22px;font:inherit;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-txt)}
+.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line);font-weight:500;padding:9px 16px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{appearance:none;border:0;background:transparent;font:inherit;padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--sub)}
+.seg button[aria-pressed="true"]{background:var(--dark);color:#fff}
+.lbl{font-size:.8rem;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-right:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.card h2{font-size:1rem;font-weight:600;margin:0 0 8px}
+.dist{display:flex;align-items:center;gap:12px}
+.dist input[type=range]{flex:1;accent-color:var(--accent)}
+.dist output{min-width:56px;text-align:right;font-weight:600}
+.verdict{margin-top:10px;padding:10px 12px;border-radius:8px;background:#fff;border-left:4px solid var(--sub);font-size:.95rem}
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+td{padding:6px 0;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--sub);font-size:.93rem}
+.calib{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-top:10px}
+.calib label{font-size:.85rem;color:var(--sub);display:flex;flex-direction:column;gap:4px}
+.calib input,.calib select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;width:150px;background:#fff}
+.note{font-size:.85rem;color:var(--sub);margin-top:14px}
+.err{color:#ffd7d7}
+.cta{display:inline-block;margin-top:10px;color:var(--accent);font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Voyez ce que verra votre caméra</h1>
+  <p class="lead">Tenez votre téléphone à l'horizontale, à l'endroit où vous comptez fixer la caméra. L'image simule le cadrage selon la focale choisie.</p>
+
+  <div class="stage">
+    <canvas id="cv" width="1280" height="720"></canvas>
+    <div class="start" id="start">
+      <button class="btn" id="go">Activer la caméra du téléphone</button>
+      <p id="startMsg">Aucune image n'est enregistrée ni envoyée : tout se passe dans votre navigateur.</p>
+    </div>
+  </div>
+  <video id="vid" playsinline muted autoplay style="display:none"></video>
+
+  <div class="row">
+    <span class="lbl">Focale</span>
+    <div class="seg" id="segFocal">
+      <button data-f="2.8" aria-pressed="false">2,8 mm</button>
+      <button data-f="4" aria-pressed="true">4 mm</button>
+      <button data-f="6" aria-pressed="false">6 mm</button>
+    </div>
+    <span class="lbl" style="margin-left:8px">Résolution</span>
+    <div class="seg" id="segRes">
+      <button data-r="1920" aria-pressed="false">2 MP</button>
+      <button data-r="2560" aria-pressed="true">4 MP</button>
+      <button data-r="3840" aria-pressed="false">8 MP</button>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn ghost" id="swap" disabled>Changer d'objectif</button>
+    <button class="btn ghost" id="snap" disabled>Enregistrer l'aperçu</button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Une personne à cette distance</h2>
+      <div class="dist">
+        <input type="range" id="dist" min="2" max="40" step="1" value="8" aria-label="Distance en mètres">
+        <output id="distOut">8 m</output>
+      </div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+    <div class="card">
+      <h2>Portées avec ce réglage</h2>
+      <table>
+        <tr><td><span class="dot" style="background:var(--ok)"></span>Identifier un inconnu</td><td id="dI"></td></tr>
+        <tr><td><span class="dot" style="background:var(--mid)"></span>Reconnaître un proche</td><td id="dR"></td></tr>
+        <tr><td><span class="dot" style="background:var(--low)"></span>Voir ce que fait la personne</td><td id="dO"></td></tr>
+        <tr><td><span class="dot" style="background:var(--sub)"></span>Détecter une présence</td><td id="dD"></td></tr>
+        <tr><td>Largeur couverte à <span id="wAt">8</span> m</td><td id="wW"></td></tr>
+      </table>
+      <a class="cta" id="cta" href="https://www.camprotect.fr/cameras-surveillance" target="_top">Voir les caméras IP →</a>
+    </div>
+  </div>
+
+  <details>
+    <summary>Affiner la précision (30 secondes)</summary>
+    <p class="note" style="margin-top:8px">L'angle de l'objectif varie d'un téléphone à l'autre. Pour un aperçu plus juste : placez-vous face à un objet de largeur connue (une porte fait environ 83 cm), reculez jusqu'à ce qu'il remplisse exactement la largeur de l'image du téléphone en mode « image complète », puis indiquez les deux mesures.</p>
+    <div class="calib">
+      <label>Objectif utilisé
+        <select id="preset">
+          <option value="66">Principal (≈ 66°)</option>
+          <option value="105">Ultra grand-angle (≈ 105°)</option>
+        </select>
+      </label>
+      <label>Largeur de l'objet (cm)<input type="number" id="cW" min="10" max="1000" placeholder="83"></label>
+      <label>Distance (cm)<input type="number" id="cD" min="10" max="3000" placeholder="70"></label>
+      <button class="btn ghost" id="cFull">Image complète</button>
+      <button class="btn ghost" id="cOk">Valider</button>
+    </div>
+    <p class="note" id="cMsg"></p>
+  </details>
+
+  <p class="note">Simulation indicative. Angles typiques d'une caméra IP à capteur 1/3" : 2,8 mm ≈ 103°, 4 mm ≈ 84°, 6 mm ≈ 54° (vérifiez la fiche du modèle). Le 2,8 mm est plus large que l'objectif principal de la plupart des téléphones : la zone hachurée est la partie que votre téléphone ne peut pas montrer. Portées calculées selon la norme EN 62676-4 (250 / 125 / 62 / 25 pixels par mètre), de jour, sans tenir compte de la compression ni de l'éclairage.</p>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var HFOV = {'2.8':103,'4':84,'6':54};           // angle horizontal typique par focale (degrés)
+  var DORI = {I:250,R:125,O:62,D:25};             // pixels par mètre
+  var st = {focal:'4', res:2560, dist:8, phoneFov:66, full:false, devices:[], devIdx:0, stream:null};
+  var $ = function(id){return document.getElementById(id)};
+  var cv=$('cv'), ctx=cv.getContext('2d'), vid=$('vid');
+  var rad=function(d){return d*Math.PI/180};
+
+  function track(ev,extra){
+    var p={event:'outil_apercu_camera',action:ev};
+    if(extra){for(var k in extra){p[k]=extra[k]}}
+    try{(window.dataLayer=window.dataLayer||[]).push(p)}catch(e){}
+    try{if(window.parent!==window){window.parent.postMessage({source:'camprotect-outil',payload:p},'*')}}catch(e){}
+  }
+
+  /* ---------- calculs ---------- */
+  function rangeFor(ppm){return st.res/(ppm*2*Math.tan(rad(HFOV[st.focal])/2))}
+  function ppmAt(d){return st.res/(2*d*Math.tan(rad(HFOV[st.focal])/2))}
+  function fmt(m){return (m<10?m.toFixed(1).replace('.',','):Math.round(m))+' m'}
+
+  function refresh(){
+    $('dI').textContent=fmt(rangeFor(DORI.I));
+    $('dR').textContent=fmt(rangeFor(DORI.R));
+    $('dO').textContent=fmt(rangeFor(DORI.O));
+    $('dD').textContent=fmt(rangeFor(DORI.D));
+    $('wAt').textContent=st.dist;
+    $('wW').textContent=fmt(2*st.dist*Math.tan(rad(HFOV[st.focal])/2));
+    $('distOut').textContent=st.dist+' m';
+    var l=level(), v=$('verdict');
+    v.style.borderLeftColor=l.color;
+    v.textContent='À '+st.dist+' m : '+l.text;
+  }
+  function level(){
+    var p=ppmAt(st.dist), css=getComputedStyle(document.documentElement);
+    var c=function(n){return css.getPropertyValue(n).trim()};
+    if(p>=DORI.I) return {color:c('--ok'), text:'visage identifiable, même pour un inconnu.'};
+    if(p>=DORI.R) return {color:c('--mid'),text:'vous reconnaissez quelqu\'un que vous connaissez, mais pas un inconnu avec certitude.'};
+    if(p>=DORI.O) return {color:c('--low'),text:'vous voyez ce que fait la personne et ses vêtements, pas son visage.'};
+    if(p>=DORI.D) return {color:c('--sub'),text:'vous détectez une présence, sans détail.'};
+    return {color:c('--sub'),text:'trop loin pour ce réglage : la personne ne fait que quelques pixels.'};
+  }
+
+  /* ---------- rendu ---------- */
+  function draw(){
+    var W=cv.width,H=cv.height;
+    ctx.fillStyle='#1c2126';ctx.fillRect(0,0,W,H);
+    var vw=vid.videoWidth,vh=vid.videoHeight;
+    if(vw&&vh){
+      var longSide=Math.max(vw,vh);
+      var fPhone=(longSide/2)/Math.tan(rad(st.phoneFov)/2);      // focale du téléphone en pixels vidéo
+      var scale;
+      if(st.full){ scale=Math.min(W/vw,H/vh); }
+      else{
+        // Les objectifs de caméras IP suivent une projection proche de f-thêta (angles fiche technique H/V cohérents avec ce modèle)
+        scale=(W/rad(HFOV[st.focal]))/fPhone;                    // pixels par radian au centre : caméra simulée / téléphone
+      }
+      var dw=vw*scale,dh=vh*scale,dx=(W-dw)/2,dy=(H-dh)/2;
+      if(dw<W-2||dh<H-2){hatch(W,H)}
+      ctx.drawImage(vid,dx,dy,dw,dh);
+      if(!st.full&&(dw<W-2)){
+        ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='500 22px system-ui,sans-serif';ctx.textAlign='left';
+        ctx.fillText('Hors champ du téléphone',16,H-18);
+      }
+      if(vh>vw){
+        ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,0,W,54);
+        ctx.fillStyle='#fff';ctx.font='500 24px system-ui,sans-serif';ctx.textAlign='center';
+        ctx.fillText('Tournez votre téléphone à l\'horizontale',W/2,36);
+      }
+    }
+    if(!st.full){person(W,H)}
+    badge(W);
+    requestAnimationFrame(draw);
+  }
+  function hatch(W,H){
+    ctx.save();ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=2;
+    for(var x=-H;x<W;x+=22){ctx.beginPath();ctx.moveTo(x,H);ctx.lineTo(x+H,0);ctx.stroke()}
+    ctx.restore();
+  }
+  function person(W,H){
+    var fT=W/rad(HFOV[st.focal]);                   // pixels par radian de la caméra simulée (modèle f-thêta)
+    var h=fT*2*Math.atan(1.75/(2*st.dist));         // personne de 1,75 m
+    var l=level(), cx=W*0.5, base=H*0.5+h*0.5;
+    if(base>H-8){base=H-8}
+    var head=h*0.13, top=base-h;
+    ctx.save();ctx.strokeStyle=l.color;ctx.fillStyle=l.color;ctx.globalAlpha=.9;ctx.lineWidth=Math.max(2,h*0.012);
+    ctx.setLineDash([8,6]);
+    ctx.beginPath();ctx.arc(cx,top+head/2,head/2,0,Math.PI*2);ctx.stroke();
+    var sw=h*0.26,bt=top+head*1.15;
+    ctx.beginPath();
+    ctx.moveTo(cx-sw/2,bt+h*0.04);ctx.quadraticCurveTo(cx,bt-h*0.02,cx+sw/2,bt+h*0.04);
+    ctx.lineTo(cx+sw*0.42,base);ctx.lineTo(cx-sw*0.42,base);ctx.closePath();ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    ctx.font='600 20px system-ui,sans-serif';ctx.textAlign='center';
+    var ty=Math.max(24,top-10);
+    ctx.fillStyle='rgba(0,0,0,.55)';var tw=ctx.measureText('1,75 m à '+st.dist+' m').width+16;
+    ctx.fillRect(cx-tw/2,ty-20,tw,28);
+    ctx.fillStyle='#fff';ctx.fillText('1,75 m à '+st.dist+' m',cx,ty);
+    ctx.restore();
+  }
+  function badge(W){
+    var t=st.full?'Image complète du téléphone':(String(st.focal).replace('.',',')+' mm · '+HFOV[st.focal]+'°');
+    ctx.save();ctx.font='600 20px system-ui,sans-serif';ctx.textAlign='left';
+    var w=ctx.measureText(t).width+20;ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(W-w-12,12,w,32);
+    ctx.fillStyle='#fff';ctx.fillText(t,W-w-2,34);ctx.restore();
+  }
+
+  /* ---------- caméra ---------- */
+  function stop(){if(st.stream){st.stream.getTracks().forEach(function(t){t.stop()});st.stream=null}}
+  function open(deviceId){
+    stop();
+    var c={audio:false,video:deviceId?{deviceId:{exact:deviceId},width:{ideal:1920},height:{ideal:1080}}
+                                     :{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}};
+    return navigator.mediaDevices.getUserMedia(c).then(function(s){
+      st.stream=s;vid.srcObject=s;return vid.play();
+    });
+  }
+  function listBack(){
+    return navigator.mediaDevices.enumerateDevices().then(function(d){
+      var v=d.filter(function(x){return x.kind==='videoinput'});
+      var back=v.filter(function(x){return /back|rear|arri|environment/i.test(x.label)});
+      st.devices=back.length?back:v;
+      var cur=st.stream&&st.stream.getVideoTracks()[0].getSettings().deviceId;
+      st.devIdx=Math.max(0,st.devices.findIndex(function(x){return x.deviceId===cur}));
+      $('swap').disabled=st.devices.length<2;
+    });
+  }
+  function fail(e){
+    var m=$('startMsg');m.className='err';
+    var n=e&&e.name;
+    m.textContent = n==='NotAllowedError' ? 'Accès à la caméra refusé. Autorisez-le dans les réglages du navigateur puis réessayez.'
+      : n==='NotFoundError' ? 'Aucune caméra détectée sur cet appareil. Ouvrez cette page sur votre téléphone.'
+      : 'Impossible d\'ouvrir la caméra ('+(n||'erreur')+'). Essayez avec Safari ou Chrome à jour.';
+    $('start').style.display='flex';
+    track('erreur',{detail:n||'inconnue'});
+  }
+
+  /* ---------- événements ---------- */
+  $('go').addEventListener('click',function(){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){fail({name:'NonSupporté'});return}
+    open().then(function(){
+      $('start').style.display='none';$('snap').disabled=false;track('camera_ok');return listBack();
+    }).catch(fail);
+  });
+  $('swap').addEventListener('click',function(){
+    if(st.devices.length<2)return;
+    st.devIdx=(st.devIdx+1)%st.devices.length;
+    open(st.devices[st.devIdx].deviceId).catch(fail);
+    $('cMsg').textContent='Objectif changé : indiquez ci-dessus s\'il s\'agit du principal ou de l\'ultra grand-angle.';
+    track('changer_objectif');
+  });
+  $('snap').addEventListener('click',function(){
+    cv.toBlob(function(b){
+      var a=document.createElement('a');a.href=URL.createObjectURL(b);
+      a.download='apercu-camera-'+String(st.focal).replace('.','_')+'mm.png';
+      document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000);
+    },'image/png');
+    track('capture',{focale:st.focal});
+  });
+  function seg(id,attr,cb){
+    $(id).addEventListener('click',function(e){
+      var b=e.target.closest('button');if(!b)return;
+      [].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});
+      cb(b.getAttribute(attr));st.full=false;$('cFull').textContent='Image complète';refresh();
+    });
+  }
+  seg('segFocal','data-f',function(v){st.focal=v;track('focale',{focale:v})});
+  seg('segRes','data-r',function(v){st.res=+v;track('resolution',{largeur:v})});
+  $('dist').addEventListener('input',function(){st.dist=+this.value;refresh()});
+  $('preset').addEventListener('change',function(){st.phoneFov=+this.value;$('cMsg').textContent='Angle du téléphone réglé sur '+this.value+'°.'});
+  $('cFull').addEventListener('click',function(){st.full=!st.full;this.textContent=st.full?'Revenir à la simulation':'Image complète'});
+  $('cOk').addEventListener('click',function(){
+    var w=+$('cW').value,d=+$('cD').value;
+    if(!(w>0&&d>0)){$('cMsg').textContent='Renseignez la largeur et la distance.';return}
+    var a=2*Math.atan(w/(2*d))*180/Math.PI;
+    if(a<35||a>130){$('cMsg').textContent='Résultat incohérent ('+a.toFixed(0)+'°) : vérifiez vos mesures.';return}
+    st.phoneFov=a;st.full=false;$('cFull').textContent='Image complète';
+    $('cMsg').textContent='Angle mesuré : '+a.toFixed(0)+'°. La simulation utilise désormais cette valeur.';
+    track('calibrage',{angle:Math.round(a)});
+  });
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){stop()}
+    else if($('start').style.display==='none'&&!st.stream){
+      open(st.devices[st.devIdx]&&st.devices[st.devIdx].deviceId).catch(fail);
+    }
+  });
+
+  refresh();requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
